@@ -1,4 +1,4 @@
-import { reactive, watch } from 'vue'
+import { computed, reactive, watch } from 'vue'
 import { rooms } from './data'
 
 const key = 'findmyroom-demo-v1'
@@ -15,6 +15,9 @@ function savedData(storageKey) {
 // The old browser-only session is no longer accepted as proof of login.
 try { sessionStorage.removeItem('findmyroom-session-v1') } catch {}
 export const state = reactive({ ...defaults(), ...savedData(key), user: null })
+export const canManagePosts = computed(() => state.user?.role === 'landlord' || (
+  state.user?.role === 'student' && state.posts.some(post => post.kind === 'roommate' && post.status !== 'Bản nháp' && (!post.ownerId || post.ownerId === state.user.id))
+))
 let hydrating = false
 function storageKey(user) { return user ? `${key}:${user.id}` : key }
 function persist() {

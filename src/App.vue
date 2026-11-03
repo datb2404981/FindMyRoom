@@ -2,7 +2,7 @@
 import { ref, watch, onMounted, onUnmounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import Icon from "./components/Icon.vue";
-import { state, logout as endSession } from "./store";
+import { state, canManagePosts, logout as endSession } from "./store";
 const route = useRoute(),
   router = useRouter(),
   menu = ref(false),
@@ -58,10 +58,10 @@ async function logout() {
         >FindMyRoom<span class="brand-dot">.</span></RouterLink
       >
       <nav class="desktop-nav" aria-label="Điều hướng chính">
-        <RouterLink to="/tim-tro">Tìm trọ</RouterLink
+        <RouterLink v-if="state.user?.role === 'landlord'" :to="{ path: '/', query: { search: '1' } }">Tìm trọ</RouterLink
         ><RouterLink to="/ghep-tro">Ghép trọ</RouterLink
         ><template v-if="state.user"
-          ><RouterLink to="/quan-ly/bai-dang">Quản lý bài đăng</RouterLink
+          ><RouterLink v-if="canManagePosts" to="/quan-ly/bai-dang">Quản lý bài đăng</RouterLink
           ><RouterLink v-if="state.user.role === 'landlord'" to="/quan-ly/nha-tro"
             >Quản lý nhà trọ</RouterLink
           ></template
@@ -86,7 +86,7 @@ async function logout() {
             <div class="account-identity"><strong>{{ state.user.name }}</strong><span>{{ state.user.email }}</span><small>{{ state.user.role === 'landlord' ? 'Chủ trọ' : 'Sinh viên' }}</small></div>
             <RouterLink to="/ho-so"><Icon name="user" :size="18" />Hồ sơ của tôi</RouterLink>
             <RouterLink to="/quan-ly/da-luu"><Icon name="heart" :size="18" />Tin đã lưu</RouterLink>
-            <RouterLink to="/quan-ly/bai-dang"><Icon name="grid" :size="18" />Quản lý bài đăng</RouterLink>
+            <RouterLink v-if="canManagePosts" to="/quan-ly/bai-dang"><Icon name="grid" :size="18" />Quản lý bài đăng</RouterLink>
             <RouterLink v-if="state.user.role === 'landlord'" to="/quan-ly/nha-tro"><Icon name="building" :size="18" />Quản lý nhà trọ</RouterLink>
             <RouterLink :to="'/dang-bai/' + (state.user.role === 'landlord' ? 'rental' : 'roommate')"><Icon name="plus" :size="18" />{{ state.user.role === 'landlord' ? 'Đăng bài cho thuê' : 'Đăng bài ghép trọ' }}</RouterLink>
             <button type="button" class="account-logout" :disabled="loggingOut" @click="logout"><Icon name="logout" :size="18" />Đăng xuất</button>
@@ -104,12 +104,12 @@ async function logout() {
       </div>
     </div>
     <nav v-if="menu" id="mobile-navigation" class="mobile-dropdown" aria-label="Điều hướng menu điện thoại" @keydown.esc="menu = false">
-      <RouterLink to="/tim-tro">Tìm trọ</RouterLink>
+      <RouterLink to="/">Trang chủ</RouterLink>
       <RouterLink to="/ghep-tro">Ghép trọ</RouterLink>
       <template v-if="state.user">
         <RouterLink to="/ho-so">Hồ sơ của tôi</RouterLink>
         <RouterLink to="/quan-ly/da-luu">Tin đã lưu</RouterLink>
-        <RouterLink to="/quan-ly/bai-dang">Quản lý bài đăng</RouterLink>
+        <RouterLink v-if="canManagePosts" to="/quan-ly/bai-dang">Quản lý bài đăng</RouterLink>
         <RouterLink v-if="state.user.role === 'landlord'" to="/quan-ly/nha-tro">Quản lý nhà trọ</RouterLink>
         <RouterLink :to="'/dang-bai/' + (state.user.role === 'landlord' ? 'rental' : 'roommate')">{{ state.user.role === 'landlord' ? 'Đăng bài cho thuê' : 'Đăng bài ghép trọ' }}</RouterLink>
         <button type="button" :disabled="loggingOut" @click="logout">Đăng xuất</button>
@@ -161,9 +161,9 @@ async function logout() {
       ><button v-if="state.user" class="text-button" :disabled="loggingOut" @click="logout">Đăng xuất</button>
     </div>
   </footer>
-  <nav class="bottom-nav" aria-label="Điều hướng điện thoại">
+  <nav class="bottom-nav" :class="{ 'unified-home-nav': state.user?.role !== 'landlord' }" aria-label="Điều hướng điện thoại">
     <RouterLink to="/"><Icon name="home" /><span>Trang chủ</span></RouterLink
-    ><RouterLink to="/tim-tro"><Icon name="search" /><span>Tìm trọ</span></RouterLink
+    ><RouterLink v-if="state.user?.role === 'landlord'" :to="{ path: '/', query: { search: '1' } }"><Icon name="search" /><span>Tìm trọ</span></RouterLink
     ><RouterLink to="/ghep-tro"><Icon name="users" /><span>Ghép trọ</span></RouterLink
     ><RouterLink :to="state.user ? '/ho-so' : '/dang-nhap'"><Icon name="user" /><span>{{ state.user ? 'Hồ sơ' : 'Đăng nhập' }}</span></RouterLink>
   </nav>

@@ -18,10 +18,10 @@ npm run preview
 
 ## Các trang và luồng
 
-- `/`: trang chủ, tìm theo từ khóa, địa điểm, khoảng giá, tiện ích; 4 khu vực, phòng nổi bật và khối ghép trọ.
-- `/#/tim-tro`: bộ lọc kết hợp, sắp xếp theo giá, trạng thái không có kết quả và sơ đồ khu vực.
+- `/`: trang chủ gộp tìm trọ. Khi chưa tìm kiếm, giữ khối giới thiệu, 4 khu vực, phòng nổi bật và danh sách phòng trọ bên dưới; chưa hiển thị nhóm ghép trọ hoặc nhà trọ. Khi tìm kiếm, giữ banner, bộ lọc và đường dẫn trang chủ; phần bên dưới hiển thị kết quả của ba nhóm phòng cho thuê/ghép trọ/nhà trọ cùng phân trang.
+- `/#/tim-tro`: liên kết tương thích, tự chuyển về trang chủ ở chế độ tìm kiếm và giữ query bộ lọc. Sinh viên và khách không có mục tìm trọ riêng trên thanh điều hướng.
 - `/#/phong/minh-an`: chi tiết phòng, chuyển ảnh minh họa, lưu tin, yêu cầu đăng nhập khi xem liên hệ.
-- `/#/ghep-tro`: lọc theo khu vực, đối tượng, ngân sách, lối sống; xem hồ sơ, bỏ qua, quan tâm.
+- `/#/ghep-tro`: bảng lọc theo trường học hoặc khu vực, giới tính, khoảng ngân sách hai đầu, tiện ích và phong cách sống. Thẻ checkbox bấm được toàn bộ; các tiêu chí lọc dựa trên dữ liệu hồ sơ mẫu. Có nút đặt lại bộ lọc; trên điện thoại, bắt đầu ghép sẽ đưa tới phần kết quả. Giữ luồng xem hồ sơ, bỏ qua và quan tâm.
 - `/#/dang-nhap`, `/#/dang-ky`: đăng nhập kiểm tra email/mật khẩu trong JSON, đăng ký chọn sinh viên/chủ trọ và lưu tài khoản mới. Đường dẫn cũ `/#/xac-thuc` chuyển về đăng ký; chưa gửi email xác thực.
 - `/#/ho-so`: xem, chỉnh sửa, xác nhận và lưu hồ sơ; ảnh đại diện xem trước.
 - `/#/quan-ly/nha-tro`: thêm, sửa, xóa nhà trọ dành cho chủ trọ.
@@ -29,6 +29,16 @@ npm run preview
 - `/#/dang-bai/roommate`: 4 bước thông tin, vị trí, hình ảnh, tiện ích; xem trước và đăng.
 - `/#/dang-bai/rental`: 5 bước cho thuê, gồm xem trước; kiểm tra dữ liệu trước khi qua bước, giữ bản nháp khi quay lại.
 - `/#/wireframes`: danh mục 140 màn hình; lọc nhóm/thiết bị/tên; xem ảnh gốc hoặc cây AST với tọa độ gốc và màu DESIGN.md. Đây là công cụ đối chiếu, không phải 140 trang nghiệp vụ độc lập.
+
+## Bộ lọc tìm phòng
+
+Trang chủ có dropdown địa điểm với hai tab: trường đại học/cao đẳng và khu vực. Khoảng giá gồm 10 mức và cho phép chọn nhiều khoảng; tiện ích là checkbox chọn nhiều. Kết quả nằm ngay trong trang chủ với query `search=1`; giữ đủ bộ lọc, từ khóa và số trang khi tải lại hoặc quay lại từ chi tiết phòng. Một phòng phải thuộc một trong các khoảng giá đã chọn và có đủ các tiện ích đã đánh dấu.
+
+Mỗi nhóm hiển thị tối đa 4 bài mỗi trang, phân trang dựa trên dữ liệu thực tế. `src/listings.js` cung cấp các bài ghép trọ mẫu và tổng hợp nhà trọ từ những phòng đang hiển thị. Bài mới ở trạng thái chờ duyệt chưa xuất hiện trong danh sách công khai. Thẻ ghép trọ/nhà trọ mở thông tin chi tiết ngay tại trang chủ; phòng cho thuê mở trang chi tiết phòng.
+
+Không có kết quả hiển thị trạng thái riêng với nút xóa bộ lọc. Từ khóa quá 120 ký tự, chỉ có dấu câu hoặc query bộ lọc/số trang sai hiển thị “Dữ liệu không hợp lệ”; người dùng có thể nhập lại ngay trên trang chủ. Từ khóa không phân biệt chữ hoa/thường và dấu tiếng Việt.
+
+Danh mục trường, khoảng giá và xử lý query nằm trong `src/search-filters.js`; thông tin trường liên kết với phòng qua `schoolIds` trong `src/data.js`. Đây là dữ liệu mẫu để thử lọc, không phải khoảng cách thực tế tới trường. Danh sách tên trường có liên kết nguồn trong mã; một số trường chưa có phòng mẫu nên có thể trả về danh sách trống.
 
 ## Nguồn và độ khớp
 
@@ -53,7 +63,7 @@ Chạy `npm run dev` là đủ để mở cả frontend và API tài khoản; kh
 
 API trong `server/auth.js` cung cấp `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/session`, `POST /api/auth/logout`, `PATCH /api/auth/profile`. Trình duyệt giữ cookie HttpOnly, SameSite=Lax, hạn 8 giờ; phiên nằm trong bộ nhớ server. F5 vẫn giữ đăng nhập; đăng xuất hủy phiên phía server. Khởi động lại server làm mất phiên nhưng giữ các tài khoản trong JSON. Mật khẩu và mã phiên không được ghi vào localStorage/sessionStorage.
 
-Header hiển thị đăng nhập/đăng ký khi chưa có phiên; sau đăng nhập hiển thị avatar và menu tài khoản gồm hồ sơ, tin đã lưu, quản lý bài đăng và đăng xuất. Mục quản lý nhà trọ chỉ hiện với vai trò chủ trọ; mục đăng bài tương ứng vai trò sinh viên/chủ trọ. Menu điện thoại cũng theo trạng thái và vai trò này.
+Header hiển thị đăng nhập/đăng ký khi chưa có phiên; sau đăng nhập hiển thị avatar và menu tài khoản gồm hồ sơ, tin đã lưu, quản lý bài đăng và đăng xuất. Với sinh viên, mục quản lý bài đăng trên header, menu tài khoản và menu điện thoại chỉ hiện khi tài khoản đó có ít nhất một bài ghép trọ đã gửi đăng (kể cả đang chờ duyệt); bản nháp không được tính. Xóa bài cuối cùng sẽ ẩn mục này. Chủ trọ luôn có mục quản lý bài đăng. Mục quản lý nhà trọ chỉ hiện với vai trò chủ trọ; mục đăng bài tương ứng vai trò sinh viên/chủ trọ. Menu điện thoại cũng theo trạng thái và vai trò này.
 
 Tên, email và số điện thoại cập nhật trong hồ sơ được ghi vào tài khoản JSON. Các trường hồ sơ còn lại, tin đã lưu, tương tác, bài đăng và bản nháp chữ lưu trong localStorage theo ID tài khoản (`findmyroom-demo-v1:<id>`). Đổi tài khoản sẽ đổi bộ dữ liệu cục bộ; những dữ liệu nghiệp vụ này chưa đồng bộ giữa các thiết bị.
 

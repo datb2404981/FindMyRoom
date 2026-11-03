@@ -30,7 +30,7 @@ async function submit() {
     else await login({ email: form.email, password: form.password })
     form.password = ''; form.confirm = ''
     const redirect = route.query.redirect
-    await router.replace(typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/ho-so')
+    await router.replace(typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : (signup.value ? '/ho-so' : '/'))
   } catch (error) { errors[error.field || 'submit'] = error.message }
   finally { busy.value = false }
 }

@@ -2,7 +2,6 @@ import { createApp } from "vue";
 import { createRouter, createWebHashHistory } from "vue-router";
 import App from "./App.vue";
 import Home from "./views/Home.vue";
-import Search from "./views/Search.vue";
 import Detail from "./views/Detail.vue";
 import Match from "./views/Match.vue";
 import Auth from "./views/Auth.vue";
@@ -14,10 +13,14 @@ import "./style.css";
 import { restoreSession } from "./store";
 export const router = createRouter({
   history: createWebHashHistory(),
-  scrollBehavior: () => ({ top: 0 }),
+  scrollBehavior: (to, from, saved) => {
+    if (saved) return saved;
+    if (to.path === "/" && from.path === "/" && to.query.page !== from.query.page) return { el: "#home-listings", top: 24 };
+    return { top: 0 };
+  },
   routes: [
     { path: "/", component: Home },
-    { path: "/tim-tro", component: Search },
+    { path: "/tim-tro", redirect: to => ({ path: "/", query: { ...to.query, search: "1" } }) },
     { path: "/phong/:id", component: Detail },
     { path: "/ghep-tro", component: Match },
     { path: "/dang-nhap", component: Auth },
