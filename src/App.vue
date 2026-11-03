@@ -108,12 +108,7 @@ async function logout() {
       <RouterLink to="/ghep-tro">Ghép trọ</RouterLink>
       <template v-if="state.user">
         <RouterLink to="/ho-so">Hồ sơ của tôi</RouterLink>
-<<<<<<< HEAD
-        <RouterLink to="/quan-ly/da-luu">Tin đã lưu</RouterLink>
         <RouterLink v-if="canManagePosts" to="/quan-ly/bai-dang">Quản lý bài đăng</RouterLink>
-=======
-        <RouterLink to="/quan-ly/bai-dang">Quản lý bài đăng</RouterLink>
->>>>>>> origin/ThuLam
         <RouterLink v-if="state.user.role === 'landlord'" to="/quan-ly/nha-tro">Quản lý nhà trọ</RouterLink>
         <RouterLink :to="'/dang-bai/' + (state.user.role === 'landlord' ? 'rental' : 'roommate')">{{ state.user.role === 'landlord' ? 'Đăng bài cho thuê' : 'Đăng bài ghép trọ' }}</RouterLink>
         <button type="button" :disabled="loggingOut" @click="logout">Đăng xuất</button>

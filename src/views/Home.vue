@@ -1,12 +1,6 @@
-<<<<<<< HEAD
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-=======
-﻿<script setup>
-import {ref,computed} from 'vue'
-import {useRouter} from 'vue-router'
->>>>>>> origin/ThuLam
 import Icon from '../components/Icon.vue'
 import RoomCard from '../components/RoomCard.vue'
 import ListingCard from '../components/ListingCard.vue'
@@ -74,7 +68,6 @@ function goToPage(page) {
   router.push({ path: '/', query })
 }
 </script>
-<<<<<<< HEAD
 
 <template>
   <div class="home-page">
@@ -178,6 +171,3 @@ function goToPage(page) {
 @media(max-width:800px){.home-listing-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.home-listings{padding-block:28px 35px}.home-listings-heading{align-items:flex-start;gap:12px;margin-bottom:22px}.home-listings-heading h2{font-size:24px}.home-listings-heading p{font-size:12px}.home-listings-heading .text-button{font-size:11px}.home-listing-group{padding:16px 12px;border-radius:16px;margin-bottom:20px}.listing-group-heading{gap:10px;margin-bottom:16px}.listing-group-heading h2{font-size:19px}.listing-group-icon{width:30px;height:30px}.listing-group-count{font-size:10px}.home-listing-grid{gap:12px}.home-empty-state{padding:35px 18px;min-height:260px}.home-empty-state h2{font-size:23px}.home-empty-state p{font-size:14px}.home-listing-modal{max-height:calc(100dvh - 36px)}}
 </style>
-=======
-<template><section class="hero"><img class="hero-art" src="/illustrations/city.svg" alt="" aria-hidden="true"><div class="container hero-content"><h1>Tìm phòng trọ ưng ý<br>tại TP Cần Thơ</h1><p>Kết nối an toàn, muôn vàn phòng tốt!</p><form class="search-box" @submit.prevent="search"><div class="search-input"><Icon name="search"/><input v-model="keyword" aria-label="Từ khóa tìm kiếm" placeholder="Bạn muốn tìm trọ ở đâu?"></div><div class="search-filters"><label><Icon name="pin" :size="18"/><select v-model="district" aria-label="Địa điểm"><option value="">Địa điểm</option><option v-for="d in districts" :key="d">{{d}}</option></select></label><label><Icon name="dollar" :size="18"/><select v-model="price" aria-label="Khoảng giá"><option value="">Khoảng giá</option><option value="2000000">Dưới 2 triệu</option><option value="3000000">Dưới 3 triệu</option></select></label><label><Icon name="filter" :size="18"/><select v-model="amenity" aria-label="Tiện ích"><option value="">Tiện ích</option><option v-for="a in amenities" :key="a">{{a}}</option></select></label><button class="button primary">Tìm kiếm <Icon name="arrow" :size="18"/></button></div></form></div></section><section class="container section locations"><div class="section-heading"><h2>Tìm trọ theo địa điểm</h2><div class="inline"><button class="icon-button outlined" aria-label="Địa điểm trước" @click="offset=(offset+3)%4"><Icon name="left"/></button><button class="icon-button outlined" aria-label="Địa điểm tiếp theo" @click="offset=(offset+1)%4"><Icon name="right"/></button></div></div><div class="location-grid"><RouterLink v-for="(_,i) in districts" :key="i" :to="'/tim-tro?district='+districts[(i+offset)%4]" class="location-card"><img :src="'/illustrations/district-'+((i+offset)%4+1)+'.svg'" alt="" loading="lazy"><div><h3>{{districts[(i+offset)%4]}}</h3><Icon name="diagonal" :size="18"/></div></RouterLink></div><div class="carousel-dots"><span v-for="(_,i) in districts" :key="i" :class="{active:offset===i}"></span></div></section><section class="container section featured"><div class="section-heading"><div><h2 class="desktop-title">Phòng trọ nổi bật</h2><h2 class="mobile-title">Phòng mới đăng</h2></div><span class="muted hide-mobile">Những không gian dành cho bạn</span></div><div class="mobile-room-carousel"><button class="icon-button carousel-prev" @click="roomOffset=(roomOffset+3)%4" aria-label="Phòng trước"><Icon name="left"/></button><div class="room-grid"><RoomCard v-for="room in featuredRooms" :key="room.id" :room="room"/></div><button class="icon-button carousel-next" @click="roomOffset=(roomOffset+1)%4" aria-label="Phòng tiếp theo"><Icon name="right"/></button></div><div class="center section-action"><RouterLink to="/tim-tro" class="button secondary">Xem tất cả phòng trọ <Icon name="arrow" :size="18"/></RouterLink></div></section><section class="container section"><div class="roommate-banner"><div><span class="eyebrow">Thêm một người, thêm một niềm vui</span><h2>Chỗ ở tốt.<br>Bạn ở cùng cũng vậy.</h2><p>Tìm người có cùng thói quen, cùng nhịp sống.<br>Để căn phòng trở thành nơi bạn muốn về.</p><RouterLink to="/ghep-tro" class="button primary">Tìm bạn ở ghép <Icon name="arrow" :size="18"/></RouterLink></div><img src="/illustrations/friends.svg" alt="Minh họa hai người bạn cùng chăm sóc căn phòng" loading="lazy"></div></section></template>
->>>>>>> origin/ThuLam
