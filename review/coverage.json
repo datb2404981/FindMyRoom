@@ -1,0 +1,1122 @@
+[
+  {
+    "screen": "GT-01",
+    "title": "tìm ghép trọ 1a - Desktop",
+    "reference": "/#/wireframes?screen=GT-01",
+    "featureRoute": "/#/ghep-tro",
+    "implementation": "Bộ lọc hoặc thẻ hồ sơ tương tác",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "GT-02",
+    "title": "tìm ghép trọ 1b - Desktop",
+    "reference": "/#/wireframes?screen=GT-02",
+    "featureRoute": "/#/ghep-tro",
+    "implementation": "Bộ lọc hoặc thẻ hồ sơ tương tác",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "GT-03",
+    "title": "tìm ghép trọ 2 - Desktop",
+    "reference": "/#/wireframes?screen=GT-03",
+    "featureRoute": "/#/ghep-tro",
+    "implementation": "Bộ lọc hoặc thẻ hồ sơ tương tác",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "GT-04",
+    "title": "Bộ lọc ghép trọ 1 - mobile",
+    "reference": "/#/wireframes?screen=GT-04",
+    "featureRoute": "/#/ghep-tro",
+    "implementation": "Bộ lọc hoặc thẻ hồ sơ tương tác",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "GT-05",
+    "title": "Bộ lọc ghép trọ 2 - mobile",
+    "reference": "/#/wireframes?screen=GT-05",
+    "featureRoute": "/#/ghep-tro",
+    "implementation": "Bộ lọc hoặc thẻ hồ sơ tương tác",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "GT-06",
+    "title": "Giao diện tinder ghép trọ - mobile",
+    "reference": "/#/wireframes?screen=GT-06",
+    "featureRoute": "/#/ghep-tro",
+    "implementation": "Bộ lọc hoặc thẻ hồ sơ tương tác",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "DB-01",
+    "title": "Đăng ghép trọ bước 1 - Desktop",
+    "reference": "/#/wireframes?screen=DB-01",
+    "featureRoute": "/#/dang-bai/roommate",
+    "implementation": "Form ghép trọ 4 bước và xem trước",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "DB-02",
+    "title": "Đăng ghép trọ bước 2 - Desktop",
+    "reference": "/#/wireframes?screen=DB-02",
+    "featureRoute": "/#/dang-bai/roommate",
+    "implementation": "Form ghép trọ 4 bước và xem trước",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "DB-03",
+    "title": "Đăng ghép trọ bước 3a - Desktop",
+    "reference": "/#/wireframes?screen=DB-03",
+    "featureRoute": "/#/dang-bai/roommate",
+    "implementation": "Form ghép trọ 4 bước và xem trước",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "DB-04",
+    "title": "Đăng ghép trọ bước 3b - Desktop",
+    "reference": "/#/wireframes?screen=DB-04",
+    "featureRoute": "/#/dang-bai/roommate",
+    "implementation": "Form ghép trọ 4 bước và xem trước",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "DB-05",
+    "title": "Đăng ghép trọ bước 4a - Desktop",
+    "reference": "/#/wireframes?screen=DB-05",
+    "featureRoute": "/#/dang-bai/roommate",
+    "implementation": "Form ghép trọ 4 bước và xem trước",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "DB-06",
+    "title": "tìm ghép trọ 4b - Desktop",
+    "reference": "/#/wireframes?screen=DB-06",
+    "featureRoute": "/#/dang-bai/roommate",
+    "implementation": "Form ghép trọ 4 bước và xem trước",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "DB-07",
+    "title": "Đăng ghép trọ bước 1 -mobile",
+    "reference": "/#/wireframes?screen=DB-07",
+    "featureRoute": "/#/dang-bai/roommate",
+    "implementation": "Form ghép trọ 4 bước và xem trước",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "DB-08",
+    "title": "Đăng ghép trọ bước 2 -mobile",
+    "reference": "/#/wireframes?screen=DB-08",
+    "featureRoute": "/#/dang-bai/roommate",
+    "implementation": "Form ghép trọ 4 bước và xem trước",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "DB-09",
+    "title": "Đăng ghép trọ bước 3a -mobile",
+    "reference": "/#/wireframes?screen=DB-09",
+    "featureRoute": "/#/dang-bai/roommate",
+    "implementation": "Form ghép trọ 4 bước và xem trước",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "DB-10",
+    "title": "Đăng ghép trọ bước 3b -mobile",
+    "reference": "/#/wireframes?screen=DB-10",
+    "featureRoute": "/#/dang-bai/roommate",
+    "implementation": "Form ghép trọ 4 bước và xem trước",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "DB-11",
+    "title": "Đăng ghép trọ bước 3a -mobile",
+    "reference": "/#/wireframes?screen=DB-11",
+    "featureRoute": "/#/dang-bai/roommate",
+    "implementation": "Form ghép trọ 4 bước và xem trước",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "DB-12",
+    "title": "Giao diện tinder ghép trọ - mobile",
+    "reference": "/#/wireframes?screen=DB-12",
+    "featureRoute": "/#/dang-bai/roommate",
+    "implementation": "Form ghép trọ 4 bước và xem trước",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-01",
+    "title": "Xem profile cá nhân",
+    "reference": "/#/wireframes?screen=HH-01",
+    "featureRoute": "/#/ho-so",
+    "implementation": "Hồ sơ và chỉnh sửa",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-02",
+    "title": "Trang chủ",
+    "reference": "/#/wireframes?screen=HH-02",
+    "featureRoute": "/#/ho-so",
+    "implementation": "Hồ sơ và chỉnh sửa",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-03",
+    "title": "trang chủ",
+    "reference": "/#/wireframes?screen=HH-03",
+    "featureRoute": "/#/ho-so",
+    "implementation": "Hồ sơ và chỉnh sửa",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-04",
+    "title": "Chỉnh sửa thông tin",
+    "reference": "/#/wireframes?screen=HH-04",
+    "featureRoute": "/#/ho-so",
+    "implementation": "Hồ sơ và chỉnh sửa",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-05",
+    "title": "Xác nhận lưu",
+    "reference": "/#/wireframes?screen=HH-05",
+    "featureRoute": "/#/ho-so",
+    "implementation": "Hồ sơ và chỉnh sửa",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-06",
+    "title": "Thông báo lưu thành công",
+    "reference": "/#/wireframes?screen=HH-06",
+    "featureRoute": "/#/ho-so",
+    "implementation": "Hồ sơ và chỉnh sửa",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-07",
+    "title": "Xem profile cá nhân",
+    "reference": "/#/wireframes?screen=HH-07",
+    "featureRoute": "/#/ho-so",
+    "implementation": "Hồ sơ và chỉnh sửa",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-08",
+    "title": "Chỉnh sửa thông tin",
+    "reference": "/#/wireframes?screen=HH-08",
+    "featureRoute": "/#/ho-so",
+    "implementation": "Hồ sơ và chỉnh sửa",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-09",
+    "title": "Chỉnh sửa thông tin",
+    "reference": "/#/wireframes?screen=HH-09",
+    "featureRoute": "/#/ho-so",
+    "implementation": "Hồ sơ và chỉnh sửa",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-10",
+    "title": "Chỉnh sửa thông tin",
+    "reference": "/#/wireframes?screen=HH-10",
+    "featureRoute": "/#/ho-so",
+    "implementation": "Hồ sơ và chỉnh sửa",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-11",
+    "title": "Trang chủ",
+    "reference": "/#/wireframes?screen=HH-11",
+    "featureRoute": "/#/ho-so",
+    "implementation": "Hồ sơ và chỉnh sửa",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-12",
+    "title": "Trang chủ",
+    "reference": "/#/wireframes?screen=HH-12",
+    "featureRoute": "/#/ho-so",
+    "implementation": "Hồ sơ và chỉnh sửa",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-13",
+    "title": "Trang chủ",
+    "reference": "/#/wireframes?screen=HH-13",
+    "featureRoute": "/#/ho-so",
+    "implementation": "Hồ sơ và chỉnh sửa",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-14",
+    "title": "Trang chủ",
+    "reference": "/#/wireframes?screen=HH-14",
+    "featureRoute": "/#/ho-so",
+    "implementation": "Hồ sơ và chỉnh sửa",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-15",
+    "title": "Trang chủ",
+    "reference": "/#/wireframes?screen=HH-15",
+    "featureRoute": "/#/ho-so",
+    "implementation": "Hồ sơ và chỉnh sửa",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-16",
+    "title": "Trang chủ",
+    "reference": "/#/wireframes?screen=HH-16",
+    "featureRoute": "/#/ho-so",
+    "implementation": "Hồ sơ và chỉnh sửa",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-17",
+    "title": "Trang chủ",
+    "reference": "/#/wireframes?screen=HH-17",
+    "featureRoute": "/#/ho-so",
+    "implementation": "Hồ sơ và chỉnh sửa",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-18",
+    "title": "Trang chủ",
+    "reference": "/#/wireframes?screen=HH-18",
+    "featureRoute": "/#/ho-so",
+    "implementation": "Hồ sơ và chỉnh sửa",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-19",
+    "title": "Trang chủ",
+    "reference": "/#/wireframes?screen=HH-19",
+    "featureRoute": "/#/ho-so",
+    "implementation": "Hồ sơ và chỉnh sửa",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-20",
+    "title": "trang quản lí nhà trọ",
+    "reference": "/#/wireframes?screen=HH-20",
+    "featureRoute": "/#/quan-ly/nha-tro",
+    "implementation": "CRUD nhà trọ",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-21",
+    "title": "Tạo nhà trọ",
+    "reference": "/#/wireframes?screen=HH-21",
+    "featureRoute": "/#/quan-ly/nha-tro",
+    "implementation": "CRUD nhà trọ",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-22",
+    "title": "Thông báo xác nhận xóa trọ",
+    "reference": "/#/wireframes?screen=HH-22",
+    "featureRoute": "/#/quan-ly/nha-tro",
+    "implementation": "CRUD nhà trọ",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-23",
+    "title": "Thông báo nhà trọ đã xóa và cập nhật trạng thái xóa nhà trọ",
+    "reference": "/#/wireframes?screen=HH-23",
+    "featureRoute": "/#/quan-ly/nha-tro",
+    "implementation": "CRUD nhà trọ",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-24",
+    "title": "Trang chủ(chủ trọ)",
+    "reference": "/#/wireframes?screen=HH-24",
+    "featureRoute": "/#/quan-ly/nha-tro",
+    "implementation": "CRUD nhà trọ",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-25",
+    "title": "trang chủ",
+    "reference": "/#/wireframes?screen=HH-25",
+    "featureRoute": "/#/ho-so",
+    "implementation": "Hồ sơ và chỉnh sửa",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-26",
+    "title": "Xác nhận lưu",
+    "reference": "/#/wireframes?screen=HH-26",
+    "featureRoute": "/#/ho-so",
+    "implementation": "Hồ sơ và chỉnh sửa",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-27",
+    "title": "Trang chủ",
+    "reference": "/#/wireframes?screen=HH-27",
+    "featureRoute": "/#/ho-so",
+    "implementation": "Hồ sơ và chỉnh sửa",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-28",
+    "title": "Trang chủ",
+    "reference": "/#/wireframes?screen=HH-28",
+    "featureRoute": "/#/quan-ly/nha-tro",
+    "implementation": "CRUD nhà trọ",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-29",
+    "title": "Trang chủ",
+    "reference": "/#/wireframes?screen=HH-29",
+    "featureRoute": "/#/quan-ly/nha-tro",
+    "implementation": "CRUD nhà trọ",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-30",
+    "title": "Trang chủ",
+    "reference": "/#/wireframes?screen=HH-30",
+    "featureRoute": "/#/quan-ly/nha-tro",
+    "implementation": "CRUD nhà trọ",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-31",
+    "title": "Trang chủ",
+    "reference": "/#/wireframes?screen=HH-31",
+    "featureRoute": "/#/quan-ly/nha-tro",
+    "implementation": "CRUD nhà trọ",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-32",
+    "title": "Trang chủ",
+    "reference": "/#/wireframes?screen=HH-32",
+    "featureRoute": "/#/quan-ly/nha-tro",
+    "implementation": "CRUD nhà trọ",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-33",
+    "title": "Trang chủ",
+    "reference": "/#/wireframes?screen=HH-33",
+    "featureRoute": "/#/quan-ly/nha-tro",
+    "implementation": "CRUD nhà trọ",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-34",
+    "title": "Chỉnh sửa nhà trọ",
+    "reference": "/#/wireframes?screen=HH-34",
+    "featureRoute": "/#/quan-ly/nha-tro",
+    "implementation": "CRUD nhà trọ",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-35",
+    "title": "Thông báo thành công",
+    "reference": "/#/wireframes?screen=HH-35",
+    "featureRoute": "/#/quan-ly/nha-tro",
+    "implementation": "CRUD nhà trọ",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-36",
+    "title": "Sửa/thêm ảnh",
+    "reference": "/#/wireframes?screen=HH-36",
+    "featureRoute": "/#/quan-ly/nha-tro",
+    "implementation": "CRUD nhà trọ",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-37",
+    "title": "Tạo nhà trọ",
+    "reference": "/#/wireframes?screen=HH-37",
+    "featureRoute": "/#/quan-ly/nha-tro",
+    "implementation": "CRUD nhà trọ",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-38",
+    "title": "Tạo nhà trọ",
+    "reference": "/#/wireframes?screen=HH-38",
+    "featureRoute": "/#/quan-ly/nha-tro",
+    "implementation": "CRUD nhà trọ",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-39",
+    "title": "Tạo nhà trọ",
+    "reference": "/#/wireframes?screen=HH-39",
+    "featureRoute": "/#/quan-ly/nha-tro",
+    "implementation": "CRUD nhà trọ",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-40",
+    "title": "trang quản lí nhà trọ",
+    "reference": "/#/wireframes?screen=HH-40",
+    "featureRoute": "/#/quan-ly/nha-tro",
+    "implementation": "CRUD nhà trọ",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-41",
+    "title": "Trang chủ",
+    "reference": "/#/wireframes?screen=HH-41",
+    "featureRoute": "/#/quan-ly/nha-tro",
+    "implementation": "CRUD nhà trọ",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-42",
+    "title": "Trang chủ",
+    "reference": "/#/wireframes?screen=HH-42",
+    "featureRoute": "/#/quan-ly/nha-tro",
+    "implementation": "CRUD nhà trọ",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "HH-43",
+    "title": "Tổng quan luồng Profile & Quản lý Nhà trọ (Wrapper Canvas)",
+    "reference": "/#/wireframes?screen=HH-43",
+    "featureRoute": null,
+    "implementation": "Sơ đồ tổng quan, chỉ dùng tham chiếu",
+    "parity": "Không áp dụng"
+  },
+  {
+    "screen": "MK-01",
+    "title": "Trang chủ",
+    "reference": "/#/wireframes?screen=MK-01",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-02",
+    "title": "Đăng nhập",
+    "reference": "/#/wireframes?screen=MK-02",
+    "featureRoute": "/#/dang-nhap",
+    "implementation": "Xác thực demo",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-03",
+    "title": "Đăng ký",
+    "reference": "/#/wireframes?screen=MK-03",
+    "featureRoute": "/#/dang-ky",
+    "implementation": "Xác thực demo",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-04",
+    "title": "Sửa Thông tin chung",
+    "reference": "/#/wireframes?screen=MK-04",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-05",
+    "title": "Sửa Hình ảnh",
+    "reference": "/#/wireframes?screen=MK-05",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-06",
+    "title": "Sửa Hình ảnh",
+    "reference": "/#/wireframes?screen=MK-06",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-07",
+    "title": "Sửa Tiện ích",
+    "reference": "/#/wireframes?screen=MK-07",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-08",
+    "title": "Xóa bài đăng",
+    "reference": "/#/wireframes?screen=MK-08",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-09",
+    "title": "Thông báo",
+    "reference": "/#/wireframes?screen=MK-09",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-10",
+    "title": "Đăng ký bằng Facebook",
+    "reference": "/#/wireframes?screen=MK-10",
+    "featureRoute": "/#/dang-ky",
+    "implementation": "OAuth chỉ có thông báo chưa kết nối",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-11",
+    "title": "D856132d6c81c9d6c12e6625b9e50c6a7",
+    "reference": "/#/wireframes?screen=MK-11",
+    "featureRoute": "/#/dang-nhap",
+    "implementation": "OAuth chỉ có thông báo chưa kết nối",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-12",
+    "title": "Trang chủ",
+    "reference": "/#/wireframes?screen=MK-12",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-13",
+    "title": "Xóa bài đăng",
+    "reference": "/#/wireframes?screen=MK-13",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-14",
+    "title": "Thông báo",
+    "reference": "/#/wireframes?screen=MK-14",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-15",
+    "title": "Sửa Thông tin chung",
+    "reference": "/#/wireframes?screen=MK-15",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-16",
+    "title": "Sửa Hình ảnh",
+    "reference": "/#/wireframes?screen=MK-16",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-17",
+    "title": "Sửa Tiện ích",
+    "reference": "/#/wireframes?screen=MK-17",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-18",
+    "title": "Trang chủ",
+    "reference": "/#/wireframes?screen=MK-18",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-19",
+    "title": "Xóa bài đăng",
+    "reference": "/#/wireframes?screen=MK-19",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-20",
+    "title": "Thông báo",
+    "reference": "/#/wireframes?screen=MK-20",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-21",
+    "title": "Sửa Thông tin chung",
+    "reference": "/#/wireframes?screen=MK-21",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-22",
+    "title": "Sửa Địa chỉ",
+    "reference": "/#/wireframes?screen=MK-22",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-23",
+    "title": "Sửa Hình ảnh",
+    "reference": "/#/wireframes?screen=MK-23",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-24",
+    "title": "Sửa Hình ảnh",
+    "reference": "/#/wireframes?screen=MK-24",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-25",
+    "title": "Sửa Tiện ích",
+    "reference": "/#/wireframes?screen=MK-25",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-26",
+    "title": "Trang chủ",
+    "reference": "/#/wireframes?screen=MK-26",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-27",
+    "title": "Xóa bài đăng",
+    "reference": "/#/wireframes?screen=MK-27",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-28",
+    "title": "Thông báo",
+    "reference": "/#/wireframes?screen=MK-28",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-29",
+    "title": "Sửa Thông tin chung",
+    "reference": "/#/wireframes?screen=MK-29",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-30",
+    "title": "Sửa Địa chỉ",
+    "reference": "/#/wireframes?screen=MK-30",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-31",
+    "title": "Sửa Hình ảnh",
+    "reference": "/#/wireframes?screen=MK-31",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-32",
+    "title": "Sửa Hình ảnh",
+    "reference": "/#/wireframes?screen=MK-32",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-33",
+    "title": "Sửa Tiện ích",
+    "reference": "/#/wireframes?screen=MK-33",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-34",
+    "title": "Đăng ký",
+    "reference": "/#/wireframes?screen=MK-34",
+    "featureRoute": "/#/dang-ky",
+    "implementation": "Xác thực demo",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-35",
+    "title": "Đăng nhập",
+    "reference": "/#/wireframes?screen=MK-35",
+    "featureRoute": "/#/dang-nhap",
+    "implementation": "Xác thực demo",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-36",
+    "title": "Đăng ký bằng Facebook",
+    "reference": "/#/wireframes?screen=MK-36",
+    "featureRoute": "/#/dang-ky",
+    "implementation": "OAuth chỉ có thông báo chưa kết nối",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-37",
+    "title": "Đăng nhập bằng Facebook",
+    "reference": "/#/wireframes?screen=MK-37",
+    "featureRoute": "/#/dang-nhap",
+    "implementation": "OAuth chỉ có thông báo chưa kết nối",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-38",
+    "title": "Đăng nhập bằng Google",
+    "reference": "/#/wireframes?screen=MK-38",
+    "featureRoute": "/#/dang-nhap",
+    "implementation": "OAuth chỉ có thông báo chưa kết nối",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-39",
+    "title": "Đăng ký bằng Google",
+    "reference": "/#/wireframes?screen=MK-39",
+    "featureRoute": "/#/dang-ky",
+    "implementation": "OAuth chỉ có thông báo chưa kết nối",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-40",
+    "title": "Đăng ký",
+    "reference": "/#/wireframes?screen=MK-40",
+    "featureRoute": "/#/dang-ky",
+    "implementation": "Xác thực demo",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-41",
+    "title": "Đăng nhập bằng Google",
+    "reference": "/#/wireframes?screen=MK-41",
+    "featureRoute": "/#/dang-nhap",
+    "implementation": "OAuth chỉ có thông báo chưa kết nối",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-42",
+    "title": "Nhập OTP",
+    "reference": "/#/wireframes?screen=MK-42",
+    "featureRoute": "/#/xac-thuc",
+    "implementation": "Xác thực demo",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-43",
+    "title": "Nhập OTP",
+    "reference": "/#/wireframes?screen=MK-43",
+    "featureRoute": "/#/xac-thuc",
+    "implementation": "Xác thực demo",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-44",
+    "title": "Đăng ký bằng Facebook",
+    "reference": "/#/wireframes?screen=MK-44",
+    "featureRoute": "/#/dang-ky",
+    "implementation": "OAuth chỉ có thông báo chưa kết nối",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-45",
+    "title": "Đăng ký",
+    "reference": "/#/wireframes?screen=MK-45",
+    "featureRoute": "/#/dang-ky",
+    "implementation": "Xác thực demo",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-46",
+    "title": "Bỏ",
+    "reference": "/#/wireframes?screen=MK-46",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-47",
+    "title": "Sửa Địa chỉ",
+    "reference": "/#/wireframes?screen=MK-47",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-48",
+    "title": "Sửa Hình ảnh",
+    "reference": "/#/wireframes?screen=MK-48",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-49",
+    "title": "Sửa Tiện ích",
+    "reference": "/#/wireframes?screen=MK-49",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "MK-50",
+    "title": "Trang chủ",
+    "reference": "/#/wireframes?screen=MK-50",
+    "featureRoute": "/#/quan-ly/bai-dang",
+    "implementation": "Quản lý bài đăng và chỉnh sửa theo form",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-01",
+    "title": "Trang chủ (Sinh viên)",
+    "reference": "/#/wireframes?screen=LT-01",
+    "featureRoute": "/#/",
+    "implementation": "Tìm trọ, chi tiết và bộ lọc",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-02",
+    "title": "Trang chủ",
+    "reference": "/#/wireframes?screen=LT-02",
+    "featureRoute": "/#/",
+    "implementation": "Tìm trọ, chi tiết và bộ lọc",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-03",
+    "title": "Tìm theo địa điểm 1",
+    "reference": "/#/wireframes?screen=LT-03",
+    "featureRoute": "/#/tim-tro",
+    "implementation": "Tìm trọ, chi tiết và bộ lọc",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-04",
+    "title": "Tìm theo khoảng giá",
+    "reference": "/#/wireframes?screen=LT-04",
+    "featureRoute": "/#/tim-tro",
+    "implementation": "Tìm trọ, chi tiết và bộ lọc",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-05",
+    "title": "Tìm theo tiện ích",
+    "reference": "/#/wireframes?screen=LT-05",
+    "featureRoute": "/#/tim-tro",
+    "implementation": "Tìm trọ, chi tiết và bộ lọc",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-06",
+    "title": "Tìm bằng Địa điểm",
+    "reference": "/#/wireframes?screen=LT-06",
+    "featureRoute": "/#/tim-tro",
+    "implementation": "Tìm trọ, chi tiết và bộ lọc",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-07",
+    "title": "Tìm theo khoảng giá",
+    "reference": "/#/wireframes?screen=LT-07",
+    "featureRoute": "/#/tim-tro",
+    "implementation": "Tìm trọ, chi tiết và bộ lọc",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-08",
+    "title": "Tìm theo tiện ích",
+    "reference": "/#/wireframes?screen=LT-08",
+    "featureRoute": "/#/tim-tro",
+    "implementation": "Tìm trọ, chi tiết và bộ lọc",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-09",
+    "title": "Trang chủ (Chủ trọ)",
+    "reference": "/#/wireframes?screen=LT-09",
+    "featureRoute": "/#/",
+    "implementation": "Tìm trọ, chi tiết và bộ lọc",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-10",
+    "title": "Đăng bài cho thuê 1",
+    "reference": "/#/wireframes?screen=LT-10",
+    "featureRoute": "/#/dang-bai/rental",
+    "implementation": "Form cho thuê 5 bước",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-11",
+    "title": "Đăng bài cho thuê 3a",
+    "reference": "/#/wireframes?screen=LT-11",
+    "featureRoute": "/#/dang-bai/rental",
+    "implementation": "Form cho thuê 5 bước",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-12",
+    "title": "Đăng bài cho thuê 4",
+    "reference": "/#/wireframes?screen=LT-12",
+    "featureRoute": "/#/dang-bai/rental",
+    "implementation": "Form cho thuê 5 bước",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-13",
+    "title": "Đăng bài cho thuê 3b",
+    "reference": "/#/wireframes?screen=LT-13",
+    "featureRoute": "/#/dang-bai/rental",
+    "implementation": "Form cho thuê 5 bước",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-14",
+    "title": "Trang chi tiết bài đăng",
+    "reference": "/#/wireframes?screen=LT-14",
+    "featureRoute": "/#/phong/minh-an",
+    "implementation": "Tìm trọ, chi tiết và bộ lọc",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-15",
+    "title": "Đăng bài cho thuê 1",
+    "reference": "/#/wireframes?screen=LT-15",
+    "featureRoute": "/#/dang-bai/rental",
+    "implementation": "Form cho thuê 5 bước",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-16",
+    "title": "Đăng bài cho thuê 2",
+    "reference": "/#/wireframes?screen=LT-16",
+    "featureRoute": "/#/dang-bai/rental",
+    "implementation": "Form cho thuê 5 bước",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-17",
+    "title": "Đăng bài cho thuê 3a",
+    "reference": "/#/wireframes?screen=LT-17",
+    "featureRoute": "/#/dang-bai/rental",
+    "implementation": "Form cho thuê 5 bước",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-18",
+    "title": "Đăng bài cho thuê 3b",
+    "reference": "/#/wireframes?screen=LT-18",
+    "featureRoute": "/#/dang-bai/rental",
+    "implementation": "Form cho thuê 5 bước",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-19",
+    "title": "Đăng bài cho thuê 4",
+    "reference": "/#/wireframes?screen=LT-19",
+    "featureRoute": "/#/dang-bai/rental",
+    "implementation": "Form cho thuê 5 bước",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-20",
+    "title": "Đăng bài cho thuê 5",
+    "reference": "/#/wireframes?screen=LT-20",
+    "featureRoute": "/#/dang-bai/rental",
+    "implementation": "Form cho thuê 5 bước",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-21",
+    "title": "Đăng bài cho thuê 5",
+    "reference": "/#/wireframes?screen=LT-21",
+    "featureRoute": "/#/dang-bai/rental",
+    "implementation": "Form cho thuê 5 bước",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-22",
+    "title": "Trang chi tiết bài đăng",
+    "reference": "/#/wireframes?screen=LT-22",
+    "featureRoute": "/#/phong/minh-an",
+    "implementation": "Tìm trọ, chi tiết và bộ lọc",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-23",
+    "title": "Tìm theo địa điểm 2",
+    "reference": "/#/wireframes?screen=LT-23",
+    "featureRoute": "/#/tim-tro",
+    "implementation": "Tìm trọ, chi tiết và bộ lọc",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-24",
+    "title": "Tìm kiếm (Bộ lọc)",
+    "reference": "/#/wireframes?screen=LT-24",
+    "featureRoute": "/#/tim-tro",
+    "implementation": "Tìm trọ, chi tiết và bộ lọc",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-25",
+    "title": "Tìm kiếm (Từ khóa)",
+    "reference": "/#/wireframes?screen=LT-25",
+    "featureRoute": "/#/tim-tro",
+    "implementation": "Tìm trọ, chi tiết và bộ lọc",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-26",
+    "title": "Tìm kiếm (Bộ lọc) (đánh số)",
+    "reference": "/#/wireframes?screen=LT-26",
+    "featureRoute": "/#/tim-tro",
+    "implementation": "Tìm trọ, chi tiết và bộ lọc",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-27",
+    "title": "Tìm kiếm (Bộ lọc) k tìm thấy kết quả",
+    "reference": "/#/wireframes?screen=LT-27",
+    "featureRoute": "/#/tim-tro",
+    "implementation": "Tìm trọ, chi tiết và bộ lọc",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-28",
+    "title": "Trang chủ",
+    "reference": "/#/wireframes?screen=LT-28",
+    "featureRoute": "/#/",
+    "implementation": "Tìm trọ, chi tiết và bộ lọc",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  },
+  {
+    "screen": "LT-29",
+    "title": "Tìm kiếm (Bộ lọc) k tìm thấy kết quả",
+    "reference": "/#/wireframes?screen=LT-29",
+    "featureRoute": "/#/tim-tro",
+    "implementation": "Tìm trọ, chi tiết và bộ lọc",
+    "parity": "Bản dựng tính năng cùng nhóm; chưa chứng nhận trùng khớp pixel với biến thể gốc."
+  }
+]

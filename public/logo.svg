@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1254 1254" width="1254" height="1254">
+  <rect width="1254" height="1254" fill="#FCC44B"/>
+  <g transform="translate(0,50)" fill="none" stroke="#FFFFFF" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <!-- mái nhà + hai chân tường -->
+    <path d="M501 660 V600 Q480 598 480 578 L610 447 Q628 432 646 447 L775 578 Q775 598 755 600 V660"/>
+    <!-- vòm cửa + nét cười -->
+    <path d="M638 660 V590 A45.5 45.5 0 0 0 547 590 V660 C547 700 590 718 640 718 C670 718 695 710 714 697"/>
+  </g>
+  <!-- chấm tròn -->
+  <circle cx="695" cy="667" r="27" fill="#FFFFFF"/>
+</svg>

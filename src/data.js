@@ -1,0 +1,16 @@
+export const amenities = ['Camera 24/7','Máy giặt','Tủ lạnh','Máy lạnh','Máy nước nóng','Khóa vân tay','Nhà xe','Giường/nệm','Wifi tốc độ cao','Máy lọc nước','Tủ quần áo','Báo cháy']
+export const nearby = ['Nhà thuốc','Gần chợ/BHX','Trạm xe buýt','Bệnh viện','Quán cafe','Quán ăn','Cây xăng','Giặt ủi']
+export const lifestyles = ['Giờ giấc tự do','Nam nữ ở chung','Nuôi thú cưng','Người thân qua đêm','Yên tĩnh','Ưu tiên nữ']
+export const districts = ['Ninh Kiều','Cái Răng','Bình Thủy','Ô Môn']
+export const rooms = [
+{id:'minh-an',title:'Phòng có gác, gần Đại học Cần Thơ',house:'Nhà trọ Minh An',price:1800000,area:24,people:2,district:'Ninh Kiều',address:'Hẻm 51, đường 3/2, Xuân Khánh, Ninh Kiều, Cần Thơ',amenities:['Wifi tốc độ cao','Nhà xe','Camera 24/7','Giường/nệm'],image:'/illustrations/room-1.svg',status:'Đang hiển thị',desc:'Phòng thoáng, có gác lửng và cửa sổ. Khu trọ yên tĩnh, phù hợp cho sinh viên. Đi bộ đến trường và chợ Xuân Khánh.',water:18000,electric:3500,deposit:1800000},
+{id:'an-binh',title:'Phòng studio sáng thoáng, đầy đủ tiện nghi',house:'Nhà trọ An Bình',price:2700000,area:30,people:3,district:'Ninh Kiều',address:'Nguyễn Văn Cừ nối dài, An Bình, Ninh Kiều, Cần Thơ',amenities:['Máy lạnh','Wifi tốc độ cao','Tủ lạnh','Nhà xe'],image:'/illustrations/room-2.svg',status:'Đang hiển thị',desc:'Studio có bếp riêng, cửa sổ lớn, chỗ để xe an toàn. Gần Đại học Y Dược và siêu thị.',water:18000,electric:3500,deposit:2700000},
+{id:'hung-phu',title:'Phòng trọ có ban công tại Hưng Phú',house:'Nhà trọ Hưng Phú',price:2200000,area:28,people:2,district:'Cái Răng',address:'Đường B5, Hưng Phú, Cái Răng, Cần Thơ',amenities:['Nhà xe','Giờ giấc tự do','Wifi tốc độ cao','Máy giặt'],image:'/illustrations/room-3.svg',status:'Đang hiển thị',desc:'Phòng có ban công và khu bếp. Khu dân cư an ninh, giờ giấc tự do, chủ trọ thân thiện.',water:16000,electric:3500,deposit:2200000},
+{id:'binh-thuy',title:'Phòng gác lửng trong khu trọ yên tĩnh',house:'Nhà trọ Bình Thủy',price:1500000,area:22,people:2,district:'Bình Thủy',address:'Lê Hồng Phong, Bình Thủy, Cần Thơ',amenities:['Wifi tốc độ cao','Nhà xe','Camera 24/7'],image:'/illustrations/room-4.svg',status:'Đang hiển thị',desc:'Phòng sạch sẽ, gác rộng, có khu phơi đồ. Phù hợp với sinh viên cần không gian học tập yên tĩnh.',water:15000,electric:3000,deposit:1500000}
+]
+export const people = [
+{id:'thu',name:'Lam Thư',age:20,school:'Đại học Cần Thơ',major:'Công nghệ thông tin',gender:'Nữ',price:1200000,district:'Ninh Kiều',tags:['Yên tĩnh','Không hút thuốc','Gọn gàng'],bio:'Mình đang tìm một bạn nữ ở ghép gần trường. Mình thích nấu ăn, đọc sách và giữ không gian chung sạch sẽ.',color:'#8fc8cf'},
+{id:'hieu',name:'Hoàng Hiếu',age:21,school:'Đại học Cần Thơ',major:'Kỹ thuật phần mềm',gender:'Nam',price:1000000,district:'Ninh Kiều',tags:['Giờ giấc tự do','Không hút thuốc','Thích thể thao'],bio:'Mình học kỹ thuật phần mềm, tìm bạn ở ghép tôn trọng không gian riêng và có thể chia sẻ việc nhà.',color:'#f9c54d'},
+{id:'khoa',name:'Minh Khoa',age:20,school:'Đại học Cần Thơ',major:'Hệ thống thông tin',gender:'Nam',price:900000,district:'Cái Răng',tags:['Yên tĩnh','Gọn gàng','Nuôi thú cưng'],bio:'Mình cần tìm một bạn ở ghép lâu dài. Phòng có gác và chỗ để xe, có thể chuyển vào đầu tháng.',color:'#f27058'}
+]
+export const money = n => new Intl.NumberFormat('vi-VN').format(Number(n)||0)+' đ'
