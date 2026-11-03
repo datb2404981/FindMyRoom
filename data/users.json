@@ -1,0 +1,22 @@
+{
+  "users": [
+    {
+      "id": "demo-student",
+      "name": "Phạm Hoàng Hiếu",
+      "email": "sinhvien@example.com",
+      "phone": "0903030911",
+      "role": "student",
+      "passwordHash": "scrypt:f97c6d2398ca511a2bd8e6cbb7d695fc:780196376fafcc1c3ec49a7a67ea6f4ae897e15f1f2c20591418598f11b5fe1793db12a40b23cd5bdbe14b3f8cfee2e50816c436ef7c0ec7b47f39bae5576038",
+      "createdAt": "2026-11-03T07:46:04.065Z"
+    },
+    {
+      "id": "demo-landlord",
+      "name": "Nguyễn Minh An",
+      "email": "chutro@example.com",
+      "phone": "0912345678",
+      "role": "landlord",
+      "passwordHash": "scrypt:888e40c4edcd0d3dd26e3b3c36c94f78:0521b25e686310ebb7ef35f4ebd2faf96e8ca63cf06e2b8fc89cc963221253bf82c44665710ab416dee39d3079e8783236ccbd057b960f9e4ca3cb31dc05731c",
+      "createdAt": "2026-11-03T07:46:04.199Z"
+    }
+  ]
+}

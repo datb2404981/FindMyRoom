@@ -1,6 +1,6 @@
 # FindMyRoom — website Vue 3
 
-Frontend được viết trực tiếp bằng Vue 3, Vue Router và Vite, dựa trên bộ wireframe trong thư mục cha và phong cách của `DESIGN.md`. Không dùng mô hình tạo website của OpenDesign Cloud.
+Frontend được viết trực tiếp bằng Vue 3, Vue Router và Vite, dựa trên bộ wireframe trong thư mục cha và phong cách của `DESIGN.md`. API tài khoản viết bằng Node.js, lưu tại `data/users.json`, chạy cùng Vite. Không dùng mô hình tạo website của OpenDesign Cloud.
 
 ## Chạy website
 
@@ -22,7 +22,7 @@ npm run preview
 - `/#/tim-tro`: bộ lọc kết hợp, sắp xếp theo giá, trạng thái không có kết quả và sơ đồ khu vực.
 - `/#/phong/minh-an`: chi tiết phòng, chuyển ảnh minh họa, lưu tin, yêu cầu đăng nhập khi xem liên hệ.
 - `/#/ghep-tro`: lọc theo khu vực, đối tượng, ngân sách, lối sống; xem hồ sơ, bỏ qua, quan tâm.
-- `/#/dang-nhap`, `/#/dang-ky`, `/#/xac-thuc`: form kiểm tra dữ liệu, lựa chọn sinh viên/chủ trọ, OTP demo có hạn 120 giây và giới hạn 5 lần sai.
+- `/#/dang-nhap`, `/#/dang-ky`: đăng nhập kiểm tra email/mật khẩu trong JSON, đăng ký chọn sinh viên/chủ trọ và lưu tài khoản mới. Đường dẫn cũ `/#/xac-thuc` chuyển về đăng ký; chưa gửi email xác thực.
 - `/#/ho-so`: xem, chỉnh sửa, xác nhận và lưu hồ sơ; ảnh đại diện xem trước.
 - `/#/quan-ly/nha-tro`: thêm, sửa, xóa nhà trọ dành cho chủ trọ.
 - `/#/quan-ly/bai-dang`, `/#/quan-ly/da-luu`: quản lý bài đăng và tin đã lưu.
@@ -40,9 +40,24 @@ IBM Plex Sans được đóng gói cục bộ ở 4 trọng lượng. Chưa có 
 
 Tài liệu tổng quan yêu cầu 5 bước đăng cho thuê trong khi một số wireframe desktop chỉ vẽ 4 nhãn bước. Bản ứng dụng dùng 5 bước theo luồng đặc tả, giữ nguyên phiên bản gốc trong công cụ đối chiếu. Tương tự, ràng buộc ảnh dùng 3–10 ảnh / 10 MB theo quy tắc chung thay cho nhãn 1 ảnh / 50 MB ở một vài màn hình cũ.
 
-## Dữ liệu demo
+## Tài khoản và dữ liệu kiểm thử
 
-Đăng nhập bằng email hợp lệ và mật khẩu bất kỳ ít nhất 8 ký tự; chọn sinh viên hoặc chủ trọ. OTP demo: `246810`. Không gửi email/SMS, không tạo tài khoản thật, không gọi Google/Facebook OAuth. Các nút social giải thích trạng thái chưa kết nối. Không lưu mật khẩu. Phiên đăng nhập chỉ tồn tại trong tab và mất khi tải lại; dữ liệu mẫu, hồ sơ, tin đã lưu, tương tác, bài đăng và bản nháp chữ lưu tại localStorage của trình duyệt.
+Chạy `npm run dev` là đủ để mở cả frontend và API tài khoản; không cần cài cơ sở dữ liệu. Tài khoản đọc/ghi tại [`data/users.json`](data/users.json), xem hướng dẫn tại [`data/README.md`](data/README.md).
+
+| Vai trò | Email | Mật khẩu kiểm thử |
+| --- | --- | --- |
+| Sinh viên | sinhvien@example.com | demopass123 |
+| Chủ trọ | chutro@example.com | demopass123 |
+
+Đăng ký bằng email mới sẽ thêm tài khoản vào file và đăng nhập ngay. Đăng nhập kiểm tra mật khẩu băm scrypt; email không phân biệt chữ hoa/thường và không được đăng ký trùng. Vai trò lấy từ tài khoản đã lưu. Không gửi OTP/email/SMS, không gọi Google/Facebook OAuth. Các nút social giải thích trạng thái chưa kết nối.
+
+API trong `server/auth.js` cung cấp `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/session`, `POST /api/auth/logout`, `PATCH /api/auth/profile`. Trình duyệt giữ cookie HttpOnly, SameSite=Lax, hạn 8 giờ; phiên nằm trong bộ nhớ server. F5 vẫn giữ đăng nhập; đăng xuất hủy phiên phía server. Khởi động lại server làm mất phiên nhưng giữ các tài khoản trong JSON. Mật khẩu và mã phiên không được ghi vào localStorage/sessionStorage.
+
+Header hiển thị đăng nhập/đăng ký khi chưa có phiên; sau đăng nhập hiển thị avatar và menu tài khoản gồm hồ sơ, tin đã lưu, quản lý bài đăng và đăng xuất. Mục quản lý nhà trọ chỉ hiện với vai trò chủ trọ; mục đăng bài tương ứng vai trò sinh viên/chủ trọ. Menu điện thoại cũng theo trạng thái và vai trò này.
+
+Tên, email và số điện thoại cập nhật trong hồ sơ được ghi vào tài khoản JSON. Các trường hồ sơ còn lại, tin đã lưu, tương tác, bài đăng và bản nháp chữ lưu trong localStorage theo ID tài khoản (`findmyroom-demo-v1:<id>`). Đổi tài khoản sẽ đổi bộ dữ liệu cục bộ; những dữ liệu nghiệp vụ này chưa đồng bộ giữa các thiết bị.
+
+Đây là bản chạy cục bộ với file JSON, chưa xác minh quyền sở hữu email. Cần server Node.js đang chạy để đăng nhập/đăng ký; chỉ đưa thư mục `dist` lên GitHub Pages sẽ không chạy được API ghi JSON. `npm run build` và `npm run preview` hỗ trợ xem bản build kèm API cục bộ. `data` không nằm trong `public`, không được đưa vào bản build và bị chặn tải qua Vite.
 
 Bản đồ là sơ đồ minh họa, không dùng API định vị địa chỉ. Nút lấy vị trí hiện tại chỉ yêu cầu trình duyệt cấp quyền và hiển thị tọa độ khi được cho phép. Liên kết Google Maps mở địa chỉ để xem riêng.
 
@@ -54,4 +69,4 @@ Bản đồ là sơ đồ minh họa, không dùng API định vị địa chỉ
 npm test
 ```
 
-Bộ kiểm tra Playwright xác minh luồng tìm kiếm và không kết quả, đăng nhập demo/lưu tin/hồ sơ, ghép trọ, CRUD nhà trọ, form đăng bài và tải ảnh, đủ 140 nguồn AST, cùng tràn ngang ở desktop và mobile. Khởi động `npm run dev` trước khi chạy. Nếu máy khác chưa có Chromium, chạy `npx playwright install chromium`; bỏ `executablePath` trong `playwright.config.js` để Playwright chọn trình duyệt của máy đó, hoặc truyền biến `CHROME_PATH`.
+Bộ kiểm tra API xác minh ghi tài khoản vào JSON, băm mật khẩu, đăng nhập lại sau khi tạo server mới, email trùng, hủy phiên và ghi đồng thời. Playwright tự chạy server riêng tại cổng 5174 với bản sao dữ liệu trong thư mục tạm; không sửa `data/users.json` đang dùng. Các luồng còn lại gồm tìm kiếm, hồ sơ/tin đã lưu, menu theo vai trò, ghép trọ, CRUD nhà trọ, đăng bài, 140 nguồn AST và bố cục desktop/mobile. Không cần khởi động server trước khi chạy kiểm tra. Nếu máy khác chưa có Chromium, chạy `npx playwright install chromium` hoặc truyền biến `CHROME_PATH`.

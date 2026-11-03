@@ -18,3 +18,24 @@
 
 /* Keep the supplied SVG intact; crop its generous canvas within the logo mark. */
 .brand-icon{background:#FCC44B;border:0;overflow:hidden}.brand-logo{width:100%;height:100%;max-width:none;object-fit:contain;transform:scale(2.76);flex-shrink:0}
+
+.account-menu{position:relative}
+.auth-fields{border:0;padding:0;margin:0;min-width:0}
+.account-trigger{display:flex;align-items:center;gap:10px;text-align:left;border-radius:24px;padding:3px}
+.account-trigger:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.account-trigger .avatar{flex-shrink:0}
+.account-summary{display:grid;line-height:1.4;max-width:150px}
+.account-summary strong{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.account-summary small{font-size:10px;color:var(--muted)}
+.account-dropdown{position:absolute;right:0;top:calc(100% + 12px);width:270px;max-width:calc(100vw - 32px);padding:8px;border:1px solid var(--line);border-radius:16px;background:var(--cream);box-shadow:var(--shadow);display:grid;gap:3px}
+.account-identity{display:grid;gap:2px;padding:10px 12px 14px;margin-bottom:4px;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+.account-identity strong{font-size:14px}
+.account-identity span,.account-identity small{font-size:12px;color:var(--muted)}
+.account-dropdown>a,.account-dropdown>button{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:8px;font-size:13px;text-align:left}
+.account-dropdown>a:hover,.account-dropdown>button:hover{background:var(--cream-deep)}
+.account-dropdown svg{flex-shrink:0}
+.account-dropdown>.account-logout{color:var(--error);border-top:1px solid var(--line);border-radius:0 0 8px 8px;margin-top:4px}
+.mobile-dropdown{top:100%;max-height:calc(100dvh - 140px);overflow-y:auto}
+.mobile-dropdown>button{text-align:left}
+@media(max-width:1100px){.account-summary{display:none}}
+@media(max-width:600px){.header-signup{display:none}.account-trigger{gap:5px}.account-dropdown{right:-38px}.mobile-dropdown{gap:14px}}

@@ -11,6 +11,7 @@ import Manage from "./views/Manage.vue";
 import PostForm from "./views/PostForm.vue";
 import References from "./views/References.vue";
 import "./style.css";
+import { restoreSession } from "./store";
 export const router = createRouter({
   history: createWebHashHistory(),
   scrollBehavior: () => ({ top: 0 }),
@@ -21,7 +22,7 @@ export const router = createRouter({
     { path: "/ghep-tro", component: Match },
     { path: "/dang-nhap", component: Auth },
     { path: "/dang-ky", component: Auth },
-    { path: "/xac-thuc", component: Auth },
+    { path: "/xac-thuc", redirect: to => ({ path: "/dang-ky", query: to.query }) },
     { path: "/ho-so", component: Profile },
     { path: "/quan-ly/:kind", component: Manage },
     { path: "/dang-bai/:kind", component: PostForm },
@@ -71,4 +72,4 @@ app.directive("dialog-focus", {
     el.__cleanup?.();
   },
 });
-app.use(router).mount("#app");
+restoreSession().finally(() => app.use(router).mount("#app"));

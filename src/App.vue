@@ -1,15 +1,30 @@
 <script setup>
-import { ref, watch } from "vue";
+import { ref, watch, onMounted, onUnmounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import Icon from "./components/Icon.vue";
-import { state } from "./store";
+import { state, logout as endSession } from "./store";
 const route = useRoute(),
   router = useRouter(),
-  menu = ref(false);
+  menu = ref(false),
+  accountOpen = ref(false),
+  accountRoot = ref(null),
+  accountTrigger = ref(null),
+  logoutError = ref(""),
+  loggingOut = ref(false);
+function closeAccount(event) {
+  if (!accountRoot.value?.contains(event.target)) accountOpen.value = false;
+}
+function dismissAccount() {
+  accountOpen.value = false;
+  accountTrigger.value?.focus();
+}
+onMounted(() => document.addEventListener("click", closeAccount));
+onUnmounted(() => document.removeEventListener("click", closeAccount));
 watch(
   () => route.fullPath,
   () => {
     menu.value = false;
+    accountOpen.value = false;
     document.title =
       "FindMyRoom · " +
       ({
@@ -20,9 +35,17 @@ watch(
       }[route.path] || "Không gian của bạn");
   },
 );
-function logout() {
-  state.user = null;
-  router.push("/");
+async function logout() {
+  if (loggingOut.value) return;
+  loggingOut.value = true;
+  logoutError.value = "";
+  try {
+    await endSession();
+    menu.value = false;
+    accountOpen.value = false;
+    await router.replace("/");
+  } catch (error) { logoutError.value = error.message; }
+  finally { loggingOut.value = false; }
 }
 </script>
 <template>
@@ -45,39 +68,60 @@ function logout() {
         >
       </nav>
       <div class="header-actions">
-        <RouterLink v-if="!state.user" to="/dang-nhap" class="button primary small"
-          >Đăng nhập <Icon name="arrow" :size="17" /></RouterLink
-        ><RouterLink
-          v-else
-          to="/ho-so"
-          class="avatar"
-          :aria-label="'Hồ sơ ' + state.user.name"
-          >{{
-            state.user.name
-              .split(" ")
-              .map((s) => s[0])
-              .slice(-2)
-              .join("")
-          }}</RouterLink
-        ><button
+        <template v-if="!state.user">
+          <RouterLink to="/dang-ky" class="text-button header-signup">Đăng ký</RouterLink>
+          <RouterLink to="/dang-nhap" class="button primary small"
+            >Đăng nhập <Icon name="arrow" :size="17" /></RouterLink>
+        </template>
+        <div v-else ref="accountRoot" class="account-menu" @keydown.esc.stop="dismissAccount"
+          @focusout="!$event.currentTarget.contains($event.relatedTarget) && (accountOpen = false)">
+          <button ref="accountTrigger" type="button" class="account-trigger"
+            :aria-label="'Tài khoản ' + state.user.name" :aria-expanded="accountOpen"
+            aria-controls="account-navigation" @click="accountOpen = !accountOpen; menu = false">
+            <span class="avatar" aria-hidden="true">{{ state.user.name.trim().split(/\s+/).map(s => s[0]).slice(-2).join("") }}</span>
+            <span class="account-summary"><strong>{{ state.user.name }}</strong><small>{{ state.user.role === 'landlord' ? 'Chủ trọ' : 'Sinh viên' }}</small></span>
+            <Icon name="down" :size="16" />
+          </button>
+          <nav v-if="accountOpen" id="account-navigation" class="account-dropdown" aria-label="Tài khoản">
+            <div class="account-identity"><strong>{{ state.user.name }}</strong><span>{{ state.user.email }}</span><small>{{ state.user.role === 'landlord' ? 'Chủ trọ' : 'Sinh viên' }}</small></div>
+            <RouterLink to="/ho-so"><Icon name="user" :size="18" />Hồ sơ của tôi</RouterLink>
+            <RouterLink to="/quan-ly/da-luu"><Icon name="heart" :size="18" />Tin đã lưu</RouterLink>
+            <RouterLink to="/quan-ly/bai-dang"><Icon name="grid" :size="18" />Quản lý bài đăng</RouterLink>
+            <RouterLink v-if="state.user.role === 'landlord'" to="/quan-ly/nha-tro"><Icon name="building" :size="18" />Quản lý nhà trọ</RouterLink>
+            <RouterLink :to="'/dang-bai/' + (state.user.role === 'landlord' ? 'rental' : 'roommate')"><Icon name="plus" :size="18" />{{ state.user.role === 'landlord' ? 'Đăng bài cho thuê' : 'Đăng bài ghép trọ' }}</RouterLink>
+            <button type="button" class="account-logout" :disabled="loggingOut" @click="logout"><Icon name="logout" :size="18" />Đăng xuất</button>
+          </nav>
+        </div>
+        <button
           class="icon-button mobile-menu"
-          @click="menu = !menu"
+          @click="menu = !menu; accountOpen = false"
           :aria-expanded="menu"
+          aria-controls="mobile-navigation"
           aria-label="Mở menu"
         >
           <Icon :name="menu ? 'close' : 'menu'" />
         </button>
       </div>
     </div>
-    <nav v-if="menu" class="mobile-dropdown">
-      <RouterLink to="/quan-ly/bai-dang">Quản lý bài đăng</RouterLink
-      ><RouterLink to="/quan-ly/nha-tro">Quản lý nhà trọ</RouterLink
-      ><RouterLink to="/dang-bai/roommate">Đăng bài ghép trọ</RouterLink
-      ><RouterLink to="/dang-bai/rental">Đăng bài cho thuê</RouterLink
-      ><RouterLink to="/wireframes">Đối chiếu wireframe</RouterLink
-      ><button v-if="state.user" @click="logout">Đăng xuất</button>
+    <nav v-if="menu" id="mobile-navigation" class="mobile-dropdown" aria-label="Điều hướng menu điện thoại" @keydown.esc="menu = false">
+      <RouterLink to="/tim-tro">Tìm trọ</RouterLink>
+      <RouterLink to="/ghep-tro">Ghép trọ</RouterLink>
+      <template v-if="state.user">
+        <RouterLink to="/ho-so">Hồ sơ của tôi</RouterLink>
+        <RouterLink to="/quan-ly/da-luu">Tin đã lưu</RouterLink>
+        <RouterLink to="/quan-ly/bai-dang">Quản lý bài đăng</RouterLink>
+        <RouterLink v-if="state.user.role === 'landlord'" to="/quan-ly/nha-tro">Quản lý nhà trọ</RouterLink>
+        <RouterLink :to="'/dang-bai/' + (state.user.role === 'landlord' ? 'rental' : 'roommate')">{{ state.user.role === 'landlord' ? 'Đăng bài cho thuê' : 'Đăng bài ghép trọ' }}</RouterLink>
+        <button type="button" :disabled="loggingOut" @click="logout">Đăng xuất</button>
+      </template>
+      <template v-else>
+        <RouterLink to="/dang-nhap">Đăng nhập</RouterLink>
+        <RouterLink to="/dang-ky">Đăng ký</RouterLink>
+      </template>
+      <RouterLink to="/wireframes">Đối chiếu wireframe</RouterLink>
     </nav>
   </header>
+  <p v-if="logoutError" class="container notice" role="alert">{{ logoutError }}</p>
   <main id="main" tabindex="-1"><RouterView /></main>
   <footer v-if="route.path != '/wireframes'" class="site-footer">
     <div class="container footer-grid">
@@ -114,13 +158,13 @@ function logout() {
     </div>
     <div class="container footer-bottom">
       <span>© 2026 FindMyRoom</span><span>Được làm cho những khởi đầu mới.</span
-      ><button v-if="state.user" class="text-button" @click="logout">Đăng xuất</button>
+      ><button v-if="state.user" class="text-button" :disabled="loggingOut" @click="logout">Đăng xuất</button>
     </div>
   </footer>
   <nav class="bottom-nav" aria-label="Điều hướng điện thoại">
     <RouterLink to="/"><Icon name="home" /><span>Trang chủ</span></RouterLink
     ><RouterLink to="/tim-tro"><Icon name="search" /><span>Tìm trọ</span></RouterLink
     ><RouterLink to="/ghep-tro"><Icon name="users" /><span>Ghép trọ</span></RouterLink
-    ><RouterLink to="/ho-so"><Icon name="user" /><span>Hồ sơ</span></RouterLink>
+    ><RouterLink :to="state.user ? '/ho-so' : '/dang-nhap'"><Icon name="user" /><span>{{ state.user ? 'Hồ sơ' : 'Đăng nhập' }}</span></RouterLink>
   </nav>
 </template>
