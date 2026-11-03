@@ -1,4 +1,4 @@
-import { createApp } from "vue";
+﻿import { createApp } from "vue";
 import { createRouter, createWebHashHistory } from "vue-router";
 import App from "./App.vue";
 import Home from "./views/Home.vue";
@@ -8,7 +8,7 @@ import Auth from "./views/Auth.vue";
 import Profile from "./views/Profile.vue";
 import Manage from "./views/Manage.vue";
 import PostForm from "./views/PostForm.vue";
-import References from "./views/References.vue";
+import Guide from "./views/Guide.vue";
 import "./style.css";
 import { restoreSession } from "./store";
 export const router = createRouter({
@@ -29,7 +29,8 @@ export const router = createRouter({
     { path: "/ho-so", component: Profile },
     { path: "/quan-ly/:kind", component: Manage },
     { path: "/dang-bai/:kind", component: PostForm },
-    { path: "/wireframes", component: References },
+    { path: "/huong-dan", component: Guide },
+    { path: "/wireframes", redirect: "/huong-dan" },
     { path: "/:pathMatch(.*)*", redirect: "/" },
   ],
 });

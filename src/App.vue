@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { ref, watch, onMounted, onUnmounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import Icon from "./components/Icon.vue";
@@ -31,7 +31,7 @@ watch(
         "/": "Tìm phòng trọ tại Cần Thơ",
         "/ghep-tro": "Tìm bạn ở ghép",
         "/tim-tro": "Tìm phòng trọ",
-        "/wireframes": "Đối chiếu wireframe",
+        "/huong-dan": "Hướng dẫn sử dụng",
       }[route.path] || "Không gian của bạn");
   },
 );
@@ -55,7 +55,7 @@ async function logout() {
       <RouterLink to="/" class="brand" aria-label="FindMyRoom, trang chủ"
         ><span class="brand-icon"
           ><img src="/logo.svg" alt="" class="brand-logo" width="32" height="32" /></span
-        >FindMyRoom<span class="brand-dot">.</span></RouterLink
+        >FindMyRoom</RouterLink
       >
       <nav class="desktop-nav" aria-label="Điều hướng chính">
         <RouterLink v-if="state.user?.role === 'landlord'" :to="{ path: '/', query: { search: '1' } }">Tìm trọ</RouterLink
@@ -70,7 +70,7 @@ async function logout() {
       <div class="header-actions">
         <template v-if="!state.user">
           <RouterLink to="/dang-ky" class="text-button header-signup">Đăng ký</RouterLink>
-          <RouterLink to="/dang-nhap" class="button primary small"
+          <RouterLink to="/dang-nhap" class="button primary small header-login"
             >Đăng nhập <Icon name="arrow" :size="17" /></RouterLink>
         </template>
         <div v-else ref="accountRoot" class="account-menu" @keydown.esc.stop="dismissAccount"
@@ -85,8 +85,8 @@ async function logout() {
           <nav v-if="accountOpen" id="account-navigation" class="account-dropdown" aria-label="Tài khoản">
             <div class="account-identity"><strong>{{ state.user.name }}</strong><span>{{ state.user.email }}</span><small>{{ state.user.role === 'landlord' ? 'Chủ trọ' : 'Sinh viên' }}</small></div>
             <RouterLink to="/ho-so"><Icon name="user" :size="18" />Hồ sơ của tôi</RouterLink>
-            <RouterLink to="/quan-ly/da-luu"><Icon name="heart" :size="18" />Tin đã lưu</RouterLink>
-            <RouterLink v-if="canManagePosts" to="/quan-ly/bai-dang"><Icon name="grid" :size="18" />Quản lý bài đăng</RouterLink>
+            
+            <RouterLink to="/quan-ly/bai-dang"><Icon name="grid" :size="18" />Quản lý bài đăng</RouterLink>
             <RouterLink v-if="state.user.role === 'landlord'" to="/quan-ly/nha-tro"><Icon name="building" :size="18" />Quản lý nhà trọ</RouterLink>
             <RouterLink :to="'/dang-bai/' + (state.user.role === 'landlord' ? 'rental' : 'roommate')"><Icon name="plus" :size="18" />{{ state.user.role === 'landlord' ? 'Đăng bài cho thuê' : 'Đăng bài ghép trọ' }}</RouterLink>
             <button type="button" class="account-logout" :disabled="loggingOut" @click="logout"><Icon name="logout" :size="18" />Đăng xuất</button>
@@ -108,8 +108,12 @@ async function logout() {
       <RouterLink to="/ghep-tro">Ghép trọ</RouterLink>
       <template v-if="state.user">
         <RouterLink to="/ho-so">Hồ sơ của tôi</RouterLink>
+<<<<<<< HEAD
         <RouterLink to="/quan-ly/da-luu">Tin đã lưu</RouterLink>
         <RouterLink v-if="canManagePosts" to="/quan-ly/bai-dang">Quản lý bài đăng</RouterLink>
+=======
+        <RouterLink to="/quan-ly/bai-dang">Quản lý bài đăng</RouterLink>
+>>>>>>> origin/ThuLam
         <RouterLink v-if="state.user.role === 'landlord'" to="/quan-ly/nha-tro">Quản lý nhà trọ</RouterLink>
         <RouterLink :to="'/dang-bai/' + (state.user.role === 'landlord' ? 'rental' : 'roommate')">{{ state.user.role === 'landlord' ? 'Đăng bài cho thuê' : 'Đăng bài ghép trọ' }}</RouterLink>
         <button type="button" :disabled="loggingOut" @click="logout">Đăng xuất</button>
@@ -118,12 +122,11 @@ async function logout() {
         <RouterLink to="/dang-nhap">Đăng nhập</RouterLink>
         <RouterLink to="/dang-ky">Đăng ký</RouterLink>
       </template>
-      <RouterLink to="/wireframes">Đối chiếu wireframe</RouterLink>
     </nav>
   </header>
   <p v-if="logoutError" class="container notice" role="alert">{{ logoutError }}</p>
   <main id="main" tabindex="-1"><RouterView /></main>
-  <footer v-if="route.path != '/wireframes'" class="site-footer">
+  <footer class="site-footer">
     <div class="container footer-grid">
       <div>
         <RouterLink to="/" class="brand"
@@ -134,7 +137,7 @@ async function logout() {
               class="brand-logo"
               width="32"
               height="32" /></span
-          >FindMyRoom.</RouterLink
+          >FindMyRoom</RouterLink
         >
         <p class="muted footer-intro">Một chỗ ở phù hợp.<br />Một khởi đầu an tâm.</p>
       </div>
@@ -142,23 +145,21 @@ async function logout() {
         <h4>Dịch vụ</h4>
         <RouterLink to="/tim-tro">Tìm phòng trọ</RouterLink
         ><RouterLink to="/ghep-tro">Tìm bạn ở ghép</RouterLink
-        ><RouterLink to="/dang-bai/rental">Đăng bài cho thuê</RouterLink>
+        ><RouterLink v-if="state.user && state.user.role === 'student'" to="/dang-bai/roommate">Đăng bài ghép trọ</RouterLink
+        ><RouterLink v-else to="/dang-bai/rental">Đăng bài cho thuê</RouterLink>
       </div>
       <div>
         <h4>Hỗ trợ & An toàn</h4>
         <RouterLink to="/ghep-tro?guide=1">Quy tắc ghép trọ</RouterLink
         ><RouterLink to="/tim-tro?guide=1">Cảnh báo lừa đảo</RouterLink
-        ><RouterLink to="/wireframes">Đối chiếu 140 wireframe</RouterLink>
-      </div>
+        ><RouterLink to="/huong-dan">Hướng dẫn sử dụng</RouterLink>      </div>
       <div>
         <h4>Thông tin liên lạc</h4>
         <p>Đại học Cần Thơ<br />Khu II, đường 3/2, Ninh Kiều<br />Cần Thơ, Việt Nam</p>
-        <p class="muted">Bản demo học phần CT113</p>
-      </div>
+              </div>
     </div>
     <div class="container footer-bottom">
-      <span>© 2026 FindMyRoom</span><span>Được làm cho những khởi đầu mới.</span
-      ><button v-if="state.user" class="text-button" :disabled="loggingOut" @click="logout">Đăng xuất</button>
+      <span>© 2026 FindMyRoom</span><span>Được làm cho những khởi đầu mới.</span>
     </div>
   </footer>
   <nav class="bottom-nav" :class="{ 'unified-home-nav': state.user?.role !== 'landlord' }" aria-label="Điều hướng điện thoại">
