@@ -67,3 +67,6 @@
 .footer-intro{margin-top:6px!important;line-height:1.45!important}
 
 .footer-help-button{padding:0;text-align:left;line-height:inherit}
+:is(.button.primary[href*="/dang-bai/"],.button.post-submit,.button.add-house){border-width:3px;transition:background-color .4s ease-in-out,color .4s ease-in-out,border-color .4s ease-in-out}
+:is(.button.primary[href*="/dang-bai/"],.button.post-submit,.button.add-house):is(:hover,:focus-visible){background:#fff;color:var(--gold);border-color:var(--gold);transform:none;box-shadow:none}
+:is(.button.primary[href*="/dang-bai/"],.button.post-submit,.button.add-house):active{transform:none}

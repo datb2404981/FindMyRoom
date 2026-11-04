@@ -131,14 +131,14 @@ defineExpose({ close })
 
     <div class="filter-control">
       <button :ref="el => triggers.price = el" type="button" class="filter-trigger" :class="{ 'is-active': active === 'price', 'has-value': model.prices.length }"
-        :aria-label="model.prices.length ? 'Khoảng giá: ' + model.prices.length + ' khoảng đã chọn' : 'Khoảng giá'"
+        :aria-label="model.prices.length ? 'Khoảng giá: ' + priceLabel : 'Khoảng giá'"
         :aria-expanded="active === 'price'" aria-haspopup="dialog" aria-controls="home-price-filter" @click="toggle('price')" @keydown.down.prevent="openFromKeyboard('price')">
-        <Icon name="dollar" :size="21" /><span class="trigger-label">{{ priceLabel }}</span><span v-if="model.prices.length > 1" class="filter-count">{{ model.prices.length }}</span><Icon class="filter-chevron" name="down" :size="18" />
+        <span class="currency-icon" aria-hidden="true">đ</span><span class="trigger-label">{{ priceLabel }}</span><Icon class="filter-chevron" name="down" :size="18" />
       </button>
       <section v-if="active === 'price'" id="home-price-filter" ref="panel" class="filter-popover price-popover" :class="{ 'opens-up': opensUp }" :style="{ maxHeight: popupMaxHeight }" role="dialog" aria-labelledby="home-price-heading">
-        <div class="filter-popover-heading"><h3 id="home-price-heading">Khoảng giá</h3><button type="button" class="clear-selection" aria-label="Bỏ chọn" title="Bỏ chọn tất cả khoảng giá" :disabled="!model.prices.length" @click="patch({ prices: [] })"><Icon name="reset" :size="22" /></button></div><p class="filter-hint">Giá thuê mỗi tháng · Có thể chọn nhiều khoảng</p>
+        <div class="filter-popover-heading"><h3 id="home-price-heading">Khoảng giá</h3><button type="button" class="clear-selection" aria-label="Bỏ chọn" title="Bỏ chọn khoảng giá" :disabled="!model.prices.length" @click="patch({ prices: [] })"><Icon name="reset" :size="22" /></button></div><p class="filter-hint">Giá thuê mỗi tháng · Chọn một khoảng giá</p>
         <div class="filter-checkbox-grid">
-          <label v-for="range in priceRanges" :key="range.id" class="filter-checkbox" :class="{ 'is-checked': model.prices.includes(range.id) }"><input type="checkbox" :checked="model.prices.includes(range.id)" @change="toggleChoice('prices', range.id)"><span>{{ range.label }}</span></label>
+          <label v-for="range in priceRanges" :key="range.id" class="filter-checkbox" :class="{ 'is-checked': model.prices.includes(range.id) }"><input type="radio" name="home-price-range" :value="range.id" :checked="model.prices.includes(range.id)" @change="patch({ prices: [range.id] })"><span>{{ range.label }}</span></label>
         </div>
         <div class="filter-popover-footer selection-footer"><button type="button" class="finish-filter" @click="close(true)">Xong<Icon name="check" :size="16" /></button></div>
       </section>
@@ -172,7 +172,7 @@ defineExpose({ close })
 .trigger-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .filter-chevron{margin-left:auto;transition:transform .18s}
 .filter-trigger.is-active .filter-chevron,.is-rotated{transform:rotate(180deg)}
-.currency-icon{font-size:23px;line-height:1;font-weight:600;width:21px;text-align:center}
+.currency-icon{font-size:20px;line-height:1;font-weight:400;width:21px;text-align:center}
 .filter-count{display:grid;place-items:center;min-width:22px;height:22px;padding:0 5px;border-radius:999px;background:var(--cream-deep);font-size:12px;font-weight:600;flex-shrink:0}
 .hero-search-filters>.search-submit{min-height:50px;padding:0 22px;font-size:15px;gap:14px;white-space:nowrap}
 .filter-popover{display:flex;flex-direction:column;position:absolute;z-index:30;top:calc(100% + 12px);width:430px;max-width:calc(100vw - 48px);padding:20px;border:1px solid #b9b9ad;border-radius:20px;background:var(--cream);box-shadow:0 14px 38px #1314141f;text-align:left;animation:appear .18s ease-out}

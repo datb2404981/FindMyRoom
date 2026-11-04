@@ -78,7 +78,7 @@ export function validateField(key,value){
  if(!v)return 'Vui lòng điền thông tin này.'
  if(/email/i.test(key)&&!/^\S+@\S+\.\S+$/.test(v))return 'Email chưa đúng định dạng.'
  if(/phone|zalo/i.test(key)&&!/^(03|05|07|08|09)\d{8}$/.test(v))return 'Nhập số điện thoại Việt Nam gồm 10 chữ số.'
- if(/price|perPerson|area|people|electric|water|deposit|count|internet|other/i.test(key)&&(!Number.isFinite(Number(v))||Number(v)<=0))return 'Giá trị phải lớn hơn 0.'
+ if(/price|perPerson|area|people|electric|water|deposit|count|internet/i.test(key)&&(!Number.isFinite(Number(v))||Number(v)<=0))return 'Giá trị phải lớn hơn 0.'
  if(key==='moveIn'&&v<new Date().toLocaleDateString('en-CA'))return 'Ngày chuyển vào không được ở quá khứ.'
  return ''
 }

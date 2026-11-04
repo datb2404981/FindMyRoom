@@ -1,8 +1,9 @@
-﻿import { createApp } from "vue";
+import { createApp } from "vue";
 import { createRouter, createWebHashHistory } from "vue-router";
 import App from "./App.vue";
 import Home from "./views/Home.vue";
 import Detail from "./views/Detail.vue";
+import HouseDetail from "./views/HouseDetail.vue";
 import Match from "./views/Match.vue";
 import Auth from "./views/Auth.vue";
 import Profile from "./views/Profile.vue";
@@ -22,6 +23,7 @@ export const router = createRouter({
     { path: "/", component: Home },
     { path: "/tim-tro", redirect: to => ({ path: "/", query: { ...to.query, search: "1" } }) },
     { path: "/phong/:id", component: Detail },
+    { path: "/nha-tro/:id", component: HouseDetail, meta: { landlordOnly: true } },
     { path: "/ghep-tro", component: Match },
     { path: "/dang-nhap", component: Auth },
     { path: "/dang-ky", component: Auth },
@@ -34,11 +36,10 @@ export const router = createRouter({
     { path: "/:pathMatch(.*)*", redirect: "/" },
   ],
 });
-router.beforeEach((to, from, next) => {
-  if (to.path === "/" && state.user?.role === "landlord") {
-    return next("/quan-ly/nha-tro");
-  }
-  next();
+router.beforeEach(to => {
+  if (to.meta.landlordOnly && !state.user) return { path: '/dang-nhap', query: { redirect: to.fullPath } };
+  if (to.meta.landlordOnly && state.user?.role !== 'landlord') return '/ho-so';
+  if (state.user?.role === 'landlord' && (to.path === '/' || to.path === '/ghep-tro')) return '/quan-ly/bai-dang';
 });
 const app = createApp(App);
 app.directive("dialog-focus", {

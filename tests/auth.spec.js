@@ -40,7 +40,7 @@ test('switching accounts separates profiles and saved rooms', async ({ page }) =
   await page.getByRole('navigation', { name: 'Tài khoản', exact: true }).getByRole('button', { name: 'Đăng xuất', exact: true }).click()
   await expect(page.locator('header').getByRole('link', { name: 'Đăng nhập', exact: true })).toBeVisible()
   await signIn(page, 'chutro@example.com')
-  await expect(page).toHaveURL(/#\/$/)
+  await expect(page).toHaveURL(/quan-ly\/nha-tro/)
   await page.goto('/#/ho-so')
   await expect(page.getByLabel('Họ và tên', { exact: true })).toHaveValue('Nguyễn Minh An')
   await page.goto('/#/quan-ly/da-luu')

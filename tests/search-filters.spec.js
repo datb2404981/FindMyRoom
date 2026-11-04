@@ -3,6 +3,28 @@ import { test, expect } from '@playwright/test'
 const filters = page => page.locator('.hero-search-filters')
 const search = page => filters(page).getByRole('button', { name: 'Tìm kiếm', exact: true }).click()
 
+test('all nine district areas can be selected and retained after reload', async ({ page }) => {
+  await page.goto('/#/')
+  for (const name of ['Ninh Kiều','Cái Răng','Bình Thủy','Ô Môn','Thốt Nốt','Phong Điền','Cờ Đỏ','Thới Lai','Vĩnh Thạnh']) {
+    await filters(page).getByRole('button', { name: /^Địa điểm/ }).click()
+    const dialog = page.getByRole('dialog', { name: 'Chọn địa điểm' })
+    await dialog.getByRole('tab', { name: 'Theo khu vực', exact: true }).click()
+    await dialog.getByRole('button', { name, exact: true }).click()
+    await search(page)
+    expect(new URLSearchParams(page.url().split('?')[1]).get('district')).toBe(name)
+    await expect(page.getByRole('alert')).toHaveCount(0)
+    await page.reload()
+    await expect(filters(page).getByRole('button', { name: 'Địa điểm: ' + name, exact: true })).toBeVisible()
+  }
+  await page.goto('/#/')
+  await expect(page.locator('.location-card')).toHaveCount(4)
+  await page.locator('.location-grid').scrollIntoViewIfNeeded()
+  for (let index = 0; index < 9; index++) {
+    await page.getByRole('button', { name: 'Địa điểm tiếp theo', exact: true }).click()
+    await expect.poll(() => page.locator('.location-card img').evaluateAll(images => images.every(img => img.complete && img.naturalWidth > 0))).toBeTruthy()
+  }
+})
+
 test('school and multiple amenities survive navigation, applying filters and reload', async ({ page }) => {
   await page.goto('/#/')
   await filters(page).getByRole('button', { name: 'Địa điểm', exact: true }).click()
@@ -59,20 +81,22 @@ test('area selection is distinct from school selection and can be changed in res
   expect(page.url()).not.toContain('district=')
 })
 
-test('ten price bands allow multiple choices while amenities require all checked values', async ({ page }) => {
+test('ten price bands allow only one choice while amenities require all checked values', async ({ page }) => {
   await page.goto('/#/')
   await filters(page).getByRole('button', { name: 'Khoảng giá', exact: true }).click()
   const price = page.getByRole('dialog', { name: 'Khoảng giá', exact: true })
-  await expect(price.getByRole('checkbox')).toHaveCount(10)
-  await price.getByRole('checkbox', { name: '1,5 – 2 triệu', exact: true }).check()
-  await price.getByRole('checkbox', { name: '2,5 – 3 triệu', exact: true }).check()
+  await expect(price.getByRole('radio')).toHaveCount(10)
+  await price.getByRole('radio', { name: '1,5 – 2 triệu', exact: true }).check()
+  await price.getByRole('radio', { name: '2,5 – 3 triệu', exact: true }).check()
+  await expect(price.getByRole('radio', { name: '1,5 – 2 triệu', exact: true })).not.toBeChecked()
+  await expect(price.locator('input:checked')).toHaveCount(1)
   await price.getByRole('button', { name: 'Xong', exact: true }).click()
   await search(page)
-  await expect(page.locator('.room-card')).toHaveCount(3)
+  await expect(page.locator('.room-card')).toHaveCount(1)
   await page.reload()
   await filters(page).getByRole('button', { name: /^Khoảng giá:/ }).click()
-  await expect(price.getByRole('checkbox', { name: '1,5 – 2 triệu', exact: true })).toBeChecked()
-  await expect(price.getByRole('checkbox', { name: '2,5 – 3 triệu', exact: true })).toBeChecked()
+  await expect(price.getByRole('radio', { name: '1,5 – 2 triệu', exact: true })).not.toBeChecked()
+  await expect(price.getByRole('radio', { name: '2,5 – 3 triệu', exact: true })).toBeChecked()
   await page.keyboard.press('Escape')
   await filters(page).getByRole('button', { name: 'Tiện ích', exact: true }).click()
   const amenities = page.getByRole('dialog', { name: 'Tiện ích', exact: true })
@@ -86,6 +110,10 @@ test('ten price bands allow multiple choices while amenities require all checked
   await expect(page.locator('.room-card')).toHaveCount(4)
   expect(page.url()).not.toContain('amenity=')
   expect(page.url()).not.toContain('prices=')
+  await page.goto('/#/?search=1&prices=1_5m-2m&prices=2_5m-3m')
+  await filters(page).getByRole('button', { name: /^Khoảng giá:/ }).click()
+  await expect(price.locator('input:checked')).toHaveCount(1)
+  await expect(price.getByRole('radio', { name: '1,5 – 2 triệu', exact: true })).toBeChecked()
 })
 
 test('dropdowns support keyboard dismissal, clear selection and stay inside responsive widths', async ({ page }) => {

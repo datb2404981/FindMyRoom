@@ -30,7 +30,7 @@ const values = value => (Array.isArray(value) ? value : value ? [value] : []).fi
 
 export function filtersFromQuery(query) {
   const school = schools.find(school => school.id === values(query.school)[0])?.id || ''
-  let prices = values(query.prices).filter(id => priceRanges.some(range => range.id === id))
+  let prices = values(query.prices).filter(id => priceRanges.some(range => range.id === id)).slice(0, 1)
   // Keep older links with a maximum price usable.
   if (!prices.length && Number(query.price) > 0) prices = priceRanges.filter(range => range.max <= Number(query.price)).map(range => range.id)
   return {
@@ -46,7 +46,7 @@ export function queryFromFilters(filters, keyword = '') {
     ...(keyword.trim() ? { q: keyword.trim() } : {}),
     ...(filters.school ? { school: filters.school } : {}),
     ...(!filters.school && filters.district ? { district: filters.district } : {}),
-    ...(filters.prices.length ? { prices: [...filters.prices] } : {}),
+    ...(filters.prices.length ? { prices: filters.prices.slice(0, 1) } : {}),
     ...(filters.amenities.length ? { amenity: [...filters.amenities] } : {}),
   }
 }

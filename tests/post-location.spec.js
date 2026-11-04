@@ -6,7 +6,7 @@ async function locationStep(page, context) {
   await page.goto('/#/dang-bai/roommate')
   await page.getByLabel('Tiêu đề bài đăng *', { exact: true }).fill('Tìm bạn ở ghép gần trường')
   await page.getByLabel('Ngày có thể chuyển vào *', { exact: true }).fill(new Date(Date.now() + 86400000).toISOString().slice(0, 10))
-  for (const [label, value] of [['Diện tích (m²) *', '24'], ['Tiền trọ (VND) *', '1800000'], ['Dự kiến giá/người (VND) *', '900000'], ['Tiền điện (VND/kWh) *', '3500'], ['Tiền nước (VND/m³) *', '18000']]) await page.getByLabel(label, { exact: true }).fill(value)
+  for (const [label, value] of [['Diện tích (m²) *', '24'], ['Tiền trọ (đ) *', '1800000'], ['Dự kiến giá/người (đ) *', '900000'], ['Tiền điện (đ/kWh) *', '3500'], ['Tiền nước (đ/m³) *', '18000']]) await page.getByLabel(label, { exact: true }).fill(value)
   await expect(page.getByLabel('Mô tả chi tiết', { exact: true })).toHaveValue('')
   await page.getByRole('button', { name: 'Tiếp theo', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Vị trí & Địa lý', exact: true })).toBeVisible()
