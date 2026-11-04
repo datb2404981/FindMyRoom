@@ -1,0 +1,102 @@
+[
+  {
+    "account_id": "ACC000001",
+    "student_code": "SV00000001",
+    "major": "Công nghệ thông tin",
+    "gender": "Nữ",
+    "date_of_birth": "2004-02-11",
+    "academic_year": 1,
+    "student_verified_at": "2026-10-01T14:30:45+07:00",
+    "university_id": "UNI000001"
+  },
+  {
+    "account_id": "ACC000002",
+    "student_code": "SV00000002",
+    "major": "Kỹ thuật phần mềm",
+    "gender": "Nam",
+    "date_of_birth": "2005-03-12",
+    "academic_year": 2,
+    "student_verified_at": "2026-10-02T14:30:45+07:00",
+    "university_id": "UNI000002"
+  },
+  {
+    "account_id": "ACC000003",
+    "student_code": "SV00000003",
+    "major": "Hệ thống thông tin",
+    "gender": "Nữ",
+    "date_of_birth": "2006-04-13",
+    "academic_year": 3,
+    "student_verified_at": "2026-10-03T14:30:45+07:00",
+    "university_id": "UNI000003"
+  },
+  {
+    "account_id": "ACC000004",
+    "student_code": "SV00000004",
+    "major": "Kế toán",
+    "gender": "Nam",
+    "date_of_birth": "2003-05-14",
+    "academic_year": 4,
+    "student_verified_at": "2026-10-04T14:30:45+07:00",
+    "university_id": "UNI000004"
+  },
+  {
+    "account_id": "ACC000005",
+    "student_code": "SV00000005",
+    "major": "Quản trị kinh doanh",
+    "gender": "Nữ",
+    "date_of_birth": "2004-06-15",
+    "academic_year": 1,
+    "student_verified_at": "2026-10-05T14:30:45+07:00",
+    "university_id": "UNI000005"
+  },
+  {
+    "account_id": "ACC000006",
+    "student_code": "SV00000006",
+    "major": "Marketing",
+    "gender": "Nam",
+    "date_of_birth": "2005-07-16",
+    "academic_year": 2,
+    "student_verified_at": "2026-10-06T14:30:45+07:00",
+    "university_id": "UNI000006"
+  },
+  {
+    "account_id": "ACC000007",
+    "student_code": "SV00000007",
+    "major": "Ngôn ngữ Anh",
+    "gender": "Nữ",
+    "date_of_birth": "2006-08-17",
+    "academic_year": 3,
+    "student_verified_at": "2026-10-07T14:30:45+07:00",
+    "university_id": "UNI000007"
+  },
+  {
+    "account_id": "ACC000008",
+    "student_code": "SV00000008",
+    "major": "Luật",
+    "gender": "Nam",
+    "date_of_birth": "2003-09-18",
+    "academic_year": 4,
+    "student_verified_at": "2026-10-08T14:30:45+07:00",
+    "university_id": "UNI000001"
+  },
+  {
+    "account_id": "ACC000009",
+    "student_code": "SV00000009",
+    "major": "Tài chính ngân hàng",
+    "gender": "Nữ",
+    "date_of_birth": "2004-01-19",
+    "academic_year": 1,
+    "student_verified_at": "2026-10-09T14:30:45+07:00",
+    "university_id": "UNI000002"
+  },
+  {
+    "account_id": "ACC000010",
+    "student_code": "SV00000010",
+    "major": "Kỹ thuật điện",
+    "gender": "Nam",
+    "date_of_birth": "2005-02-20",
+    "academic_year": 2,
+    "student_verified_at": "2026-10-10T14:30:45+07:00",
+    "university_id": "UNI000003"
+  }
+]

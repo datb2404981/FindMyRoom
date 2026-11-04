@@ -1,0 +1,82 @@
+[
+  {
+    "review_id": "REV0000001",
+    "boarding_house_id": "BH00000001",
+    "student_code": "SV00000001",
+    "rating": 5,
+    "content": "Phòng sạch sẽ, chủ trọ hỗ trợ nhanh và khu vực khá yên tĩnh.",
+    "reviewed_at": "2026-10-25T14:30:45+07:00"
+  },
+  {
+    "review_id": "REV0000002",
+    "boarding_house_id": "BH00000002",
+    "student_code": "SV00000002",
+    "rating": 4,
+    "content": "Vị trí thuận tiện, chỗ để xe rộng nhưng phòng hơi nóng.",
+    "reviewed_at": "2026-10-26T14:30:45+07:00"
+  },
+  {
+    "review_id": "REV0000003",
+    "boarding_house_id": "BH00000003",
+    "student_code": "SV00000003",
+    "rating": 5,
+    "content": "Phòng thoáng, nhà vệ sinh sạch và các khoản phí rõ ràng.",
+    "reviewed_at": "2026-10-27T14:30:45+07:00"
+  },
+  {
+    "review_id": "REV0000004",
+    "boarding_house_id": "BH00000004",
+    "student_code": "SV00000004",
+    "rating": 4,
+    "content": "Khu trọ an ninh tốt, đôi lúc đường vào hơi đông.",
+    "reviewed_at": "2026-10-28T14:30:45+07:00"
+  },
+  {
+    "review_id": "REV0000005",
+    "boarding_house_id": "BH00000005",
+    "student_code": "SV00000005",
+    "rating": 5,
+    "content": "Giá thuê hợp lý, không gian chung được giữ sạch sẽ.",
+    "reviewed_at": "2026-10-29T14:30:45+07:00"
+  },
+  {
+    "review_id": "REV0000006",
+    "boarding_house_id": "BH00000006",
+    "student_code": "SV00000006",
+    "rating": 4,
+    "content": "Chủ trọ thân thiện, phòng đủ tiện nghi cơ bản.",
+    "reviewed_at": "2026-10-30T14:30:45+07:00"
+  },
+  {
+    "review_id": "REV0000007",
+    "boarding_house_id": "BH00000007",
+    "student_code": "SV00000007",
+    "rating": 5,
+    "content": "Phòng khá rộng và sáng, buổi tối tương đối yên tĩnh.",
+    "reviewed_at": "2026-10-31T14:30:45+07:00"
+  },
+  {
+    "review_id": "REV0000008",
+    "boarding_house_id": "BH00000008",
+    "student_code": "SV00000008",
+    "rating": 3,
+    "content": "Gần chợ, đi lại tiện nhưng chỗ để xe hơi nhỏ.",
+    "reviewed_at": "2026-11-01T14:30:45+07:00"
+  },
+  {
+    "review_id": "REV0000009",
+    "boarding_house_id": "BH00000009",
+    "student_code": "SV00000009",
+    "rating": 5,
+    "content": "Khu trọ sạch sẽ, internet ổn định và giờ giấc thuận tiện.",
+    "reviewed_at": "2026-11-02T14:30:45+07:00"
+  },
+  {
+    "review_id": "REV0000010",
+    "boarding_house_id": "BH00000010",
+    "student_code": "SV00000010",
+    "rating": 4,
+    "content": "Phòng ở ổn, chủ trọ phản hồi nhanh khi cần hỗ trợ.",
+    "reviewed_at": "2026-11-03T14:30:45+07:00"
+  }
+]

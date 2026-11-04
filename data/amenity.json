@@ -1,0 +1,122 @@
+[
+  {
+    "amenity_id": "AM00000008",
+    "amenity_name": "Camera 24/7",
+    "category": "Tiện ích nội khu",
+    "description": "Camera giám sát hoạt động 24 giờ mỗi ngày."
+  },
+  {
+    "amenity_id": "AM00000002",
+    "amenity_name": "Máy giặt",
+    "category": "Tiện ích nội khu",
+    "description": "Có máy giặt phục vụ người thuê."
+  },
+  {
+    "amenity_id": "AM00000003",
+    "amenity_name": "Tủ lạnh",
+    "category": "Tiện ích nội khu",
+    "description": "Có tủ lạnh bảo quản thực phẩm."
+  },
+  {
+    "amenity_id": "AM00000001",
+    "amenity_name": "Máy lạnh",
+    "category": "Tiện ích nội khu",
+    "description": "Có máy điều hòa không khí."
+  },
+  {
+    "amenity_id": "AM00000004",
+    "amenity_name": "Máy nước nóng",
+    "category": "Tiện ích nội khu",
+    "description": "Có máy cung cấp nước nóng."
+  },
+  {
+    "amenity_id": "AM00000009",
+    "amenity_name": "Khóa vân tay",
+    "category": "Tiện ích nội khu",
+    "description": "Cửa ra vào sử dụng khóa vân tay."
+  },
+  {
+    "amenity_id": "AM00000007",
+    "amenity_name": "Nhà xe",
+    "category": "Tiện ích nội khu",
+    "description": "Có khu vực để xe cho người thuê."
+  },
+  {
+    "amenity_id": "AM00000011",
+    "amenity_name": "Giường/nệm",
+    "category": "Tiện ích nội khu",
+    "description": "Có giường hoặc nệm cho người thuê."
+  },
+  {
+    "amenity_id": "AM00000012",
+    "amenity_name": "Wifi tốc độ cao",
+    "category": "Tiện ích nội khu",
+    "description": "Có kết nối Wifi tốc độ cao."
+  },
+  {
+    "amenity_id": "AM00000013",
+    "amenity_name": "Máy lọc nước",
+    "category": "Tiện ích nội khu",
+    "description": "Có máy lọc nước sử dụng chung."
+  },
+  {
+    "amenity_id": "AM00000014",
+    "amenity_name": "Tủ quần áo",
+    "category": "Tiện ích nội khu",
+    "description": "Có tủ để quần áo."
+  },
+  {
+    "amenity_id": "AM00000015",
+    "amenity_name": "Báo cháy",
+    "category": "Tiện ích nội khu",
+    "description": "Có thiết bị cảnh báo cháy."
+  },
+  {
+    "amenity_id": "AM00000016",
+    "amenity_name": "Nhà thuốc",
+    "category": "Tiện ích ngoại khu",
+    "description": "Gần nhà thuốc."
+  },
+  {
+    "amenity_id": "AM00000017",
+    "amenity_name": "Gần chợ/BHX",
+    "category": "Tiện ích ngoại khu",
+    "description": "Gần chợ hoặc cửa hàng Bách Hóa Xanh."
+  },
+  {
+    "amenity_id": "AM00000018",
+    "amenity_name": "Trạm xe buýt",
+    "category": "Tiện ích ngoại khu",
+    "description": "Gần trạm xe buýt."
+  },
+  {
+    "amenity_id": "AM00000019",
+    "amenity_name": "Bệnh viện",
+    "category": "Tiện ích ngoại khu",
+    "description": "Gần bệnh viện."
+  },
+  {
+    "amenity_id": "AM00000020",
+    "amenity_name": "Nam nữ ở chung",
+    "category": "Khác",
+    "description": "Cho phép nam và nữ ở chung khu trọ."
+  },
+  {
+    "amenity_id": "AM00000021",
+    "amenity_name": "Ưu tiên nữ",
+    "category": "Khác",
+    "description": "Ưu tiên người thuê là nữ."
+  },
+  {
+    "amenity_id": "AM00000022",
+    "amenity_name": "Yên tĩnh",
+    "category": "Khác",
+    "description": "Không gian sống yên tĩnh."
+  },
+  {
+    "amenity_id": "AM00000023",
+    "amenity_name": "Nuôi thú cưng",
+    "category": "Khác",
+    "description": "Cho phép nuôi thú cưng."
+  }
+]
