@@ -2,7 +2,7 @@
 import { computed, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Icon from '../components/Icon.vue'
-import { login, register, validateField } from '../store'
+import { login, register, validateField, state } from '../store'
 
 const route = useRoute(), router = useRouter()
 const signup = computed(() => route.path === '/dang-ky')
@@ -30,7 +30,8 @@ async function submit() {
     else await login({ email: form.email, password: form.password })
     form.password = ''; form.confirm = ''
     const redirect = route.query.redirect
-    await router.replace(typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : (signup.value ? '/ho-so' : '/'))
+    const fallback = state.user?.role === 'landlord' ? '/quan-ly/nha-tro' : '/'
+    await router.replace(typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : (signup.value ? '/ho-so' : fallback))
   } catch (error) { errors[error.field || 'submit'] = error.message }
   finally { busy.value = false }
 }
