@@ -11,6 +11,9 @@ import { emptyFilters, filtersFromQuery, queryFromFilters, matchesFilters, searc
 import { publicRentals, publicRoommates, housesFromRooms, searchableText } from '../listings'
 
 const route = useRoute(), router = useRouter()
+watch(() => state.user?.role, role => {
+  if (role === 'landlord') router.replace('/quan-ly/nha-tro')
+}, { immediate: true })
 const keyword = ref(''), filters = ref(emptyFilters()), offset = ref(0), roomOffset = ref(0), selectedListing = ref(null)
 const filterControl = ref(null)
 const listingDialog = ref(null)

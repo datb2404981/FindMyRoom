@@ -55,20 +55,20 @@ async function logout() {
   <a class="skip-link" href="#main">Đến nội dung chính</a>
   <header class="site-header">
     <div class="header-inner">
-      <RouterLink to="/" class="brand" aria-label="FindMyRoom, trang chủ"
+      <RouterLink :to="state.user?.role === 'landlord' ? '/quan-ly/nha-tro' : '/'" class="brand" aria-label="FindMyRoom, trang chủ"
         ><span class="brand-icon"
           ><img src="/logo.svg" alt="" class="brand-logo" width="32" height="32" /></span
         >FindMyRoom<span class="brand-dot">.</span></RouterLink
       >
       <nav class="desktop-nav" aria-label="Điều hướng chính">
-        <RouterLink v-if="state.user?.role === 'landlord'" :to="{ path: '/', query: { search: '1' } }">Tìm trọ</RouterLink
-        ><RouterLink to="/ghep-tro">Ghép trọ</RouterLink
-        ><template v-if="state.user"
-          ><RouterLink v-if="canManagePosts" to="/quan-ly/bai-dang">Quản lý bài đăng</RouterLink
-          ><RouterLink v-if="state.user.role === 'landlord'" to="/quan-ly/nha-tro"
-            >Quản lý nhà trọ</RouterLink
-          ></template
-        >
+        <template v-if="state.user?.role === 'landlord'">
+          <RouterLink to="/quan-ly/bai-dang">Quản lý bài đăng</RouterLink>
+        </template>
+        <template v-else>
+          <RouterLink to="/">Tìm trọ</RouterLink>
+          <RouterLink to="/ghep-tro">Ghép trọ</RouterLink>
+          <RouterLink v-if="canManagePosts" to="/quan-ly/bai-dang">Quản lý bài đăng</RouterLink>
+        </template>
       </nav>
       <div class="header-actions">
         <template v-if="!state.user">
@@ -88,7 +88,7 @@ async function logout() {
           <nav v-if="accountOpen" id="account-navigation" class="account-dropdown" aria-label="Tài khoản">
             <div class="account-identity"><strong>{{ state.user.name }}</strong><span>{{ state.user.email }}</span><small>{{ state.user.role === 'landlord' ? 'Chủ trọ' : 'Sinh viên' }}</small></div>
             <RouterLink to="/ho-so"><Icon name="user" :size="18" />Hồ sơ của tôi</RouterLink>
-            <RouterLink to="/quan-ly/da-luu"><Icon name="heart" :size="18" />Tin đã lưu</RouterLink>
+            <RouterLink v-if="state.user.role !== 'landlord'" to="/quan-ly/da-luu"><Icon name="heart" :size="18" />Tin đã lưu</RouterLink>
             <RouterLink v-if="canManagePosts" to="/quan-ly/bai-dang"><Icon name="grid" :size="18" />Quản lý bài đăng</RouterLink>
             <RouterLink v-if="state.user.role === 'landlord'" to="/quan-ly/nha-tro"><Icon name="building" :size="18" />Quản lý nhà trọ</RouterLink>
             <RouterLink :to="'/dang-bai/' + (state.user.role === 'landlord' ? 'rental' : 'roommate')"><Icon name="plus" :size="18" />{{ state.user.role === 'landlord' ? 'Đăng bài cho thuê' : 'Đăng bài ghép trọ' }}</RouterLink>
@@ -107,19 +107,27 @@ async function logout() {
       </div>
     </div>
     <nav v-if="menu" id="mobile-navigation" class="mobile-dropdown" aria-label="Điều hướng menu điện thoại" @keydown.esc="menu = false">
-      <RouterLink to="/">Trang chủ</RouterLink>
-      <RouterLink to="/ghep-tro">Ghép trọ</RouterLink>
-      <template v-if="state.user">
+      <template v-if="state.user?.role === 'landlord'">
+        <RouterLink to="/quan-ly/nha-tro">Quản lý nhà trọ</RouterLink>
+        <RouterLink to="/quan-ly/bai-dang">Quản lý bài đăng</RouterLink>
         <RouterLink to="/ho-so">Hồ sơ của tôi</RouterLink>
-        <RouterLink to="/quan-ly/da-luu">Tin đã lưu</RouterLink>
-        <RouterLink v-if="canManagePosts" to="/quan-ly/bai-dang">Quản lý bài đăng</RouterLink>
-        <RouterLink v-if="state.user.role === 'landlord'" to="/quan-ly/nha-tro">Quản lý nhà trọ</RouterLink>
-        <RouterLink :to="'/dang-bai/' + (state.user.role === 'landlord' ? 'rental' : 'roommate')">{{ state.user.role === 'landlord' ? 'Đăng bài cho thuê' : 'Đăng bài ghép trọ' }}</RouterLink>
+        <RouterLink to="/dang-bai/rental">Đăng bài cho thuê</RouterLink>
         <button type="button" :disabled="loggingOut" @click="logout">Đăng xuất</button>
       </template>
       <template v-else>
-        <RouterLink to="/dang-nhap">Đăng nhập</RouterLink>
-        <RouterLink to="/dang-ky">Đăng ký</RouterLink>
+        <RouterLink to="/">Trang chủ</RouterLink>
+        <RouterLink to="/ghep-tro">Ghép trọ</RouterLink>
+        <template v-if="state.user">
+          <RouterLink to="/ho-so">Hồ sơ của tôi</RouterLink>
+          <RouterLink to="/quan-ly/da-luu">Tin đã lưu</RouterLink>
+          <RouterLink v-if="canManagePosts" to="/quan-ly/bai-dang">Quản lý bài đăng</RouterLink>
+          <RouterLink to="/dang-bai/roommate">Đăng bài ghép trọ</RouterLink>
+          <button type="button" :disabled="loggingOut" @click="logout">Đăng xuất</button>
+        </template>
+        <template v-else>
+          <RouterLink to="/dang-nhap">Đăng nhập</RouterLink>
+          <RouterLink to="/dang-ky">Đăng ký</RouterLink>
+        </template>
       </template>
       <RouterLink to="/wireframes">Đối chiếu wireframe</RouterLink>
     </nav>
@@ -129,7 +137,7 @@ async function logout() {
   <footer v-if="route.path != '/wireframes'" class="site-footer">
     <div class="container footer-grid">
       <div>
-        <RouterLink to="/" class="brand"
+        <RouterLink :to="state.user?.role === 'landlord' ? '/quan-ly/nha-tro' : '/'" class="brand"
           ><span class="brand-icon"
             ><img
               src="/logo.svg"
@@ -149,16 +157,9 @@ async function logout() {
       </div>
       <div>
         <h4>Hỗ trợ & An toàn</h4>
-<<<<<<< Updated upstream
-        <RouterLink to="/ghep-tro?guide=1">Quy tắc ghép trọ</RouterLink
-        ><RouterLink to="/tim-tro?guide=1">Cảnh báo lừa đảo</RouterLink
-        ><RouterLink to="/wireframes">Đối chiếu 140 wireframe</RouterLink>
-      </div>
-=======
         <button type="button" class="footer-help-button" @click="footerTopic = 'roommate'">Quy tắc ghép trọ</button>
         <button type="button" class="footer-help-button" @click="footerTopic = 'safety'">Cảnh báo lừa đảo</button>
         <RouterLink to="/huong-dan">Hướng dẫn sử dụng</RouterLink>      </div>
->>>>>>> Stashed changes
       <div>
         <h4>Thông tin liên lạc</h4>
         <p>Đại học Cần Thơ<br />Khu II, đường 3/2, Ninh Kiều<br />Cần Thơ, Việt Nam</p>

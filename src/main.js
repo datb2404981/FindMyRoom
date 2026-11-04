@@ -10,7 +10,7 @@ import Manage from "./views/Manage.vue";
 import PostForm from "./views/PostForm.vue";
 import References from "./views/References.vue";
 import "./style.css";
-import { restoreSession } from "./store";
+import { restoreSession, state } from "./store";
 export const router = createRouter({
   history: createWebHashHistory(),
   scrollBehavior: (to, from, saved) => {
@@ -32,6 +32,12 @@ export const router = createRouter({
     { path: "/wireframes", component: References },
     { path: "/:pathMatch(.*)*", redirect: "/" },
   ],
+});
+router.beforeEach((to, from, next) => {
+  if (to.path === "/" && state.user?.role === "landlord") {
+    return next("/quan-ly/nha-tro");
+  }
+  next();
 });
 const app = createApp(App);
 app.directive("dialog-focus", {
