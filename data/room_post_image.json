@@ -1,0 +1,101 @@
+[
+  {
+    "room_post_image_id": "RPI0000001",
+    "room_post_id": "RP00000001",
+    "images_url": [
+      "https://images.pexels.com/photos/6444255/pexels-photo-6444255.jpeg",
+      "https://images.pexels.com/photos/7533839/pexels-photo-7533839.jpeg",
+      "https://images.pexels.com/photos/34961506/pexels-photo-34961506.jpeg"
+    ]
+  },
+  {
+    "room_post_image_id": "RPI0000002",
+    "room_post_id": "RP00000002",
+    "images_url": [
+      "https://images.pexels.com/photos/10649527/pexels-photo-10649527.jpeg",
+      "https://images.pexels.com/photos/20854915/pexels-photo-20854915.jpeg",
+      "https://images.pexels.com/photos/8112351/pexels-photo-8112351.jpeg",
+      "https://images.pexels.com/photos/12222276/pexels-photo-12222276.jpeg"
+    ]
+  },
+  {
+    "room_post_image_id": "RPI0000003",
+    "room_post_id": "RP00000003",
+    "images_url": [
+      "https://images.pexels.com/photos/12222276/pexels-photo-12222276.jpeg",
+      "https://images.pexels.com/photos/6444974/pexels-photo-6444974.jpeg",
+      "https://images.pexels.com/photos/5425123/pexels-photo-5425123.jpeg",
+      "https://images.pexels.com/photos/6436775/pexels-photo-6436775.jpeg",
+      "https://images.pexels.com/photos/34964418/pexels-photo-34964418.jpeg"
+    ]
+  },
+  {
+    "room_post_image_id": "RPI0000004",
+    "room_post_id": "RP00000004",
+    "images_url": [
+      "https://images.pexels.com/photos/6436775/pexels-photo-6436775.jpeg",
+      "https://images.pexels.com/photos/34964418/pexels-photo-34964418.jpeg",
+      "https://images.pexels.com/photos/12700517/pexels-photo-12700517.jpeg"
+    ]
+  },
+  {
+    "room_post_image_id": "RPI0000005",
+    "room_post_id": "RP00000005",
+    "images_url": [
+      "https://images.pexels.com/photos/6444255/pexels-photo-6444255.jpeg",
+      "https://images.pexels.com/photos/7533839/pexels-photo-7533839.jpeg",
+      "https://images.pexels.com/photos/34961506/pexels-photo-34961506.jpeg",
+      "https://images.pexels.com/photos/10649527/pexels-photo-10649527.jpeg"
+    ]
+  },
+  {
+    "room_post_image_id": "RPI0000006",
+    "room_post_id": "RP00000006",
+    "images_url": [
+      "https://images.pexels.com/photos/10649527/pexels-photo-10649527.jpeg",
+      "https://images.pexels.com/photos/20854915/pexels-photo-20854915.jpeg",
+      "https://images.pexels.com/photos/8112351/pexels-photo-8112351.jpeg",
+      "https://images.pexels.com/photos/12222276/pexels-photo-12222276.jpeg",
+      "https://images.pexels.com/photos/6444974/pexels-photo-6444974.jpeg"
+    ]
+  },
+  {
+    "room_post_image_id": "RPI0000007",
+    "room_post_id": "RP00000007",
+    "images_url": [
+      "https://images.pexels.com/photos/12222276/pexels-photo-12222276.jpeg",
+      "https://images.pexels.com/photos/6444974/pexels-photo-6444974.jpeg",
+      "https://images.pexels.com/photos/5425123/pexels-photo-5425123.jpeg"
+    ]
+  },
+  {
+    "room_post_image_id": "RPI0000008",
+    "room_post_id": "RP00000008",
+    "images_url": [
+      "https://images.pexels.com/photos/6436775/pexels-photo-6436775.jpeg",
+      "https://images.pexels.com/photos/34964418/pexels-photo-34964418.jpeg",
+      "https://images.pexels.com/photos/12700517/pexels-photo-12700517.jpeg",
+      "https://images.pexels.com/photos/6444255/pexels-photo-6444255.jpeg"
+    ]
+  },
+  {
+    "room_post_image_id": "RPI0000009",
+    "room_post_id": "RP00000009",
+    "images_url": [
+      "https://images.pexels.com/photos/6444255/pexels-photo-6444255.jpeg",
+      "https://images.pexels.com/photos/7533839/pexels-photo-7533839.jpeg",
+      "https://images.pexels.com/photos/34961506/pexels-photo-34961506.jpeg",
+      "https://images.pexels.com/photos/10649527/pexels-photo-10649527.jpeg",
+      "https://images.pexels.com/photos/20854915/pexels-photo-20854915.jpeg"
+    ]
+  },
+  {
+    "room_post_image_id": "RPI0000010",
+    "room_post_id": "RP00000010",
+    "images_url": [
+      "https://images.pexels.com/photos/10649527/pexels-photo-10649527.jpeg",
+      "https://images.pexels.com/photos/20854915/pexels-photo-20854915.jpeg",
+      "https://images.pexels.com/photos/8112351/pexels-photo-8112351.jpeg"
+    ]
+  }
+]

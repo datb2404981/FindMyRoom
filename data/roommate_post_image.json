@@ -1,0 +1,101 @@
+[
+  {
+    "roommate_post_image_id": "RMI0000001",
+    "roommate_post_id": "RMP0000001",
+    "images_url": [
+      "https://images.pexels.com/photos/6444255/pexels-photo-6444255.jpeg",
+      "https://images.pexels.com/photos/7533839/pexels-photo-7533839.jpeg",
+      "https://images.pexels.com/photos/34961506/pexels-photo-34961506.jpeg"
+    ]
+  },
+  {
+    "roommate_post_image_id": "RMI0000002",
+    "roommate_post_id": "RMP0000002",
+    "images_url": [
+      "https://images.pexels.com/photos/10649527/pexels-photo-10649527.jpeg",
+      "https://images.pexels.com/photos/20854915/pexels-photo-20854915.jpeg",
+      "https://images.pexels.com/photos/8112351/pexels-photo-8112351.jpeg",
+      "https://images.pexels.com/photos/6444255/pexels-photo-6444255.jpeg"
+    ]
+  },
+  {
+    "roommate_post_image_id": "RMI0000003",
+    "roommate_post_id": "RMP0000003",
+    "images_url": [
+      "https://images.pexels.com/photos/12222276/pexels-photo-12222276.jpeg",
+      "https://images.pexels.com/photos/6444974/pexels-photo-6444974.jpeg",
+      "https://images.pexels.com/photos/5425123/pexels-photo-5425123.jpeg",
+      "https://images.pexels.com/photos/6444255/pexels-photo-6444255.jpeg",
+      "https://images.pexels.com/photos/7533839/pexels-photo-7533839.jpeg"
+    ]
+  },
+  {
+    "roommate_post_image_id": "RMI0000004",
+    "roommate_post_id": "RMP0000004",
+    "images_url": [
+      "https://images.pexels.com/photos/6436775/pexels-photo-6436775.jpeg",
+      "https://images.pexels.com/photos/34964418/pexels-photo-34964418.jpeg",
+      "https://images.pexels.com/photos/12700517/pexels-photo-12700517.jpeg"
+    ]
+  },
+  {
+    "roommate_post_image_id": "RMI0000005",
+    "roommate_post_id": "RMP0000005",
+    "images_url": [
+      "https://images.pexels.com/photos/6444255/pexels-photo-6444255.jpeg",
+      "https://images.pexels.com/photos/7533839/pexels-photo-7533839.jpeg",
+      "https://images.pexels.com/photos/34961506/pexels-photo-34961506.jpeg",
+      "https://images.pexels.com/photos/10649527/pexels-photo-10649527.jpeg"
+    ]
+  },
+  {
+    "roommate_post_image_id": "RMI0000006",
+    "roommate_post_id": "RMP0000006",
+    "images_url": [
+      "https://images.pexels.com/photos/10649527/pexels-photo-10649527.jpeg",
+      "https://images.pexels.com/photos/20854915/pexels-photo-20854915.jpeg",
+      "https://images.pexels.com/photos/8112351/pexels-photo-8112351.jpeg",
+      "https://images.pexels.com/photos/6444255/pexels-photo-6444255.jpeg",
+      "https://images.pexels.com/photos/7533839/pexels-photo-7533839.jpeg"
+    ]
+  },
+  {
+    "roommate_post_image_id": "RMI0000007",
+    "roommate_post_id": "RMP0000007",
+    "images_url": [
+      "https://images.pexels.com/photos/12222276/pexels-photo-12222276.jpeg",
+      "https://images.pexels.com/photos/6444974/pexels-photo-6444974.jpeg",
+      "https://images.pexels.com/photos/5425123/pexels-photo-5425123.jpeg"
+    ]
+  },
+  {
+    "roommate_post_image_id": "RMI0000008",
+    "roommate_post_id": "RMP0000008",
+    "images_url": [
+      "https://images.pexels.com/photos/6436775/pexels-photo-6436775.jpeg",
+      "https://images.pexels.com/photos/34964418/pexels-photo-34964418.jpeg",
+      "https://images.pexels.com/photos/12700517/pexels-photo-12700517.jpeg",
+      "https://images.pexels.com/photos/6444255/pexels-photo-6444255.jpeg"
+    ]
+  },
+  {
+    "roommate_post_image_id": "RMI0000009",
+    "roommate_post_id": "RMP0000009",
+    "images_url": [
+      "https://images.pexels.com/photos/6444255/pexels-photo-6444255.jpeg",
+      "https://images.pexels.com/photos/7533839/pexels-photo-7533839.jpeg",
+      "https://images.pexels.com/photos/34961506/pexels-photo-34961506.jpeg",
+      "https://images.pexels.com/photos/10649527/pexels-photo-10649527.jpeg",
+      "https://images.pexels.com/photos/20854915/pexels-photo-20854915.jpeg"
+    ]
+  },
+  {
+    "roommate_post_image_id": "RMI0000010",
+    "roommate_post_id": "RMP0000010",
+    "images_url": [
+      "https://images.pexels.com/photos/10649527/pexels-photo-10649527.jpeg",
+      "https://images.pexels.com/photos/20854915/pexels-photo-20854915.jpeg",
+      "https://images.pexels.com/photos/8112351/pexels-photo-8112351.jpeg"
+    ]
+  }
+]

@@ -1,0 +1,51 @@
+[
+  {
+    "university_id": "UNI000001",
+    "university_name": "Đại học Cần Thơ",
+    "uni_address": "Khu II, đường 3/2, phường Ninh Kiều, thành phố Cần Thơ",
+    "uni_latitude": 10.030201981080138, 
+    "uni_longitude": 105.77055630602803
+  },
+  {
+    "university_id": "UNI000002",
+    "university_name": "Trường Đại học Y Dược Cần Thơ",
+    "uni_address": "179 Nguyễn Văn Cừ, phường Tân An, thành phố Cần Thơ",
+    "uni_latitude": 10.034860404091884, 
+    "uni_longitude": 105.75566398060165
+  },
+  {
+    "university_id": "UNI000003",
+    "university_name": "Trường Đại học Kỹ thuật - Công nghệ Cần Thơ",
+    "uni_address": "256 Nguyễn Văn Cừ, phường Cái Khế, thành phố Cần Thơ",
+    "uni_latitude": 10.046875682359017, 
+    "uni_longitude": 105.76801998534887
+  },
+  {
+    "university_id": "UNI000004",
+    "university_name": "Trường Đại học Tây Đô",
+    "uni_address": "68 đường Trần Chiên, phường Cái Răng, thành phố Cần Thơ",
+    "uni_latitude": 9.99910778801542, 
+    "uni_longitude": 105.75993997869426
+  },
+  {
+    "university_id": "UNI000005",
+    "university_name": "Trường Đại học Nam Cần Thơ",
+    "uni_address": "168 Nguyễn Văn Cừ nối dài, phường An Bình, thành phố Cần Thơ",
+    "uni_latitude": 10.007719261127319, 
+    "uni_longitude": 105.7229391485274
+  },
+  {
+    "university_id": "UNI000006",
+    "university_name": "Trường Đại học Võ Trường Toản",
+    "uni_address": "Quốc lộ 1A, xã Thạnh Xuân, thành phố Cần Thơ",
+    "uni_latitude": 9.959195883794504, 
+    "uni_longitude": 105.73718750246043
+  },
+  {
+    "university_id": "UNI000007",
+    "university_name": "Trường Đại học FPT - Phân hiệu Cần Thơ",
+    "uni_address": "600 Nguyễn Văn Cừ nối dài, phường An Bình, thành phố Cần Thơ",
+    "uni_latitude": 10.012481701856741, 
+    "uni_longitude": 105.73236858505322
+  }
+]

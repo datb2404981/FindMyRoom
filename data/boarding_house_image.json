@@ -1,0 +1,101 @@
+[
+  {
+    "house_image_id": "HI00000001",
+    "boarding_house_id": "BH00000001",
+    "images_url": [
+      "https://images.pexels.com/photos/6444255/pexels-photo-6444255.jpeg",
+      "https://images.pexels.com/photos/7533839/pexels-photo-7533839.jpeg",
+      "https://images.pexels.com/photos/34961506/pexels-photo-34961506.jpeg"
+    ]
+  },
+  {
+    "house_image_id": "HI00000002",
+    "boarding_house_id": "BH00000002",
+    "images_url": [
+      "https://images.pexels.com/photos/10649527/pexels-photo-10649527.jpeg",
+      "https://images.pexels.com/photos/20854915/pexels-photo-20854915.jpeg",
+      "https://images.pexels.com/photos/8112351/pexels-photo-8112351.jpeg",
+      "https://images.pexels.com/photos/12222276/pexels-photo-12222276.jpeg"
+    ]
+  },
+  {
+    "house_image_id": "HI00000003",
+    "boarding_house_id": "BH00000003",
+    "images_url": [
+      "https://images.pexels.com/photos/12222276/pexels-photo-12222276.jpeg",
+      "https://images.pexels.com/photos/6444974/pexels-photo-6444974.jpeg",
+      "https://images.pexels.com/photos/5425123/pexels-photo-5425123.jpeg",
+      "https://images.pexels.com/photos/6436775/pexels-photo-6436775.jpeg",
+      "https://images.pexels.com/photos/34964418/pexels-photo-34964418.jpeg"
+    ]
+  },
+  {
+    "house_image_id": "HI00000004",
+    "boarding_house_id": "BH00000004",
+    "images_url": [
+      "https://images.pexels.com/photos/6436775/pexels-photo-6436775.jpeg",
+      "https://images.pexels.com/photos/34964418/pexels-photo-34964418.jpeg",
+      "https://images.pexels.com/photos/12700517/pexels-photo-12700517.jpeg"
+    ]
+  },
+  {
+    "house_image_id": "HI00000005",
+    "boarding_house_id": "BH00000005",
+    "images_url": [
+      "https://images.pexels.com/photos/6444255/pexels-photo-6444255.jpeg",
+      "https://images.pexels.com/photos/7533839/pexels-photo-7533839.jpeg",
+      "https://images.pexels.com/photos/34961506/pexels-photo-34961506.jpeg",
+      "https://images.pexels.com/photos/10649527/pexels-photo-10649527.jpeg"
+    ]
+  },
+  {
+    "house_image_id": "HI00000006",
+    "boarding_house_id": "BH00000006",
+    "images_url": [
+      "https://images.pexels.com/photos/10649527/pexels-photo-10649527.jpeg",
+      "https://images.pexels.com/photos/20854915/pexels-photo-20854915.jpeg",
+      "https://images.pexels.com/photos/8112351/pexels-photo-8112351.jpeg",
+      "https://images.pexels.com/photos/12222276/pexels-photo-12222276.jpeg",
+      "https://images.pexels.com/photos/6444974/pexels-photo-6444974.jpeg"
+    ]
+  },
+  {
+    "house_image_id": "HI00000007",
+    "boarding_house_id": "BH00000007",
+    "images_url": [
+      "https://images.pexels.com/photos/12222276/pexels-photo-12222276.jpeg",
+      "https://images.pexels.com/photos/6444974/pexels-photo-6444974.jpeg",
+      "https://images.pexels.com/photos/5425123/pexels-photo-5425123.jpeg"
+    ]
+  },
+  {
+    "house_image_id": "HI00000008",
+    "boarding_house_id": "BH00000008",
+    "images_url": [
+      "https://images.pexels.com/photos/6436775/pexels-photo-6436775.jpeg",
+      "https://images.pexels.com/photos/34964418/pexels-photo-34964418.jpeg",
+      "https://images.pexels.com/photos/12700517/pexels-photo-12700517.jpeg",
+      "https://images.pexels.com/photos/6444255/pexels-photo-6444255.jpeg"
+    ]
+  },
+  {
+    "house_image_id": "HI00000009",
+    "boarding_house_id": "BH00000009",
+    "images_url": [
+      "https://images.pexels.com/photos/6444255/pexels-photo-6444255.jpeg",
+      "https://images.pexels.com/photos/7533839/pexels-photo-7533839.jpeg",
+      "https://images.pexels.com/photos/34961506/pexels-photo-34961506.jpeg",
+      "https://images.pexels.com/photos/10649527/pexels-photo-10649527.jpeg",
+      "https://images.pexels.com/photos/20854915/pexels-photo-20854915.jpeg"
+    ]
+  },
+  {
+    "house_image_id": "HI00000010",
+    "boarding_house_id": "BH00000010",
+    "images_url": [
+      "https://images.pexels.com/photos/10649527/pexels-photo-10649527.jpeg",
+      "https://images.pexels.com/photos/20854915/pexels-photo-20854915.jpeg",
+      "https://images.pexels.com/photos/8112351/pexels-photo-8112351.jpeg"
+    ]
+  }
+]

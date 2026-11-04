@@ -1,0 +1,322 @@
+[
+  {
+    "room_post_id": "RP00000001",
+    "amenity_id": "AM00000003"
+  },
+  {
+    "room_post_id": "RP00000001",
+    "amenity_id": "AM00000004"
+  },
+  {
+    "room_post_id": "RP00000001",
+    "amenity_id": "AM00000009"
+  },
+  {
+    "room_post_id": "RP00000001",
+    "amenity_id": "AM00000007"
+  },
+  {
+    "room_post_id": "RP00000001",
+    "amenity_id": "AM00000012"
+  },
+  {
+    "room_post_id": "RP00000001",
+    "amenity_id": "AM00000014"
+  },
+  {
+    "room_post_id": "RP00000001",
+    "amenity_id": "AM00000015"
+  },
+  {
+    "room_post_id": "RP00000001",
+    "amenity_id": "AM00000017"
+  },
+  {
+    "room_post_id": "RP00000001",
+    "amenity_id": "AM00000019"
+  },
+  {
+    "room_post_id": "RP00000001",
+    "amenity_id": "AM00000020"
+  },
+  {
+    "room_post_id": "RP00000002",
+    "amenity_id": "AM00000008"
+  },
+  {
+    "room_post_id": "RP00000002",
+    "amenity_id": "AM00000001"
+  },
+  {
+    "room_post_id": "RP00000002",
+    "amenity_id": "AM00000007"
+  },
+  {
+    "room_post_id": "RP00000002",
+    "amenity_id": "AM00000011"
+  },
+  {
+    "room_post_id": "RP00000002",
+    "amenity_id": "AM00000012"
+  },
+  {
+    "room_post_id": "RP00000002",
+    "amenity_id": "AM00000017"
+  },
+  {
+    "room_post_id": "RP00000002",
+    "amenity_id": "AM00000021"
+  },
+  {
+    "room_post_id": "RP00000003",
+    "amenity_id": "AM00000009"
+  },
+  {
+    "room_post_id": "RP00000003",
+    "amenity_id": "AM00000007"
+  },
+  {
+    "room_post_id": "RP00000003",
+    "amenity_id": "AM00000011"
+  },
+  {
+    "room_post_id": "RP00000003",
+    "amenity_id": "AM00000012"
+  },
+  {
+    "room_post_id": "RP00000003",
+    "amenity_id": "AM00000014"
+  },
+  {
+    "room_post_id": "RP00000003",
+    "amenity_id": "AM00000016"
+  },
+  {
+    "room_post_id": "RP00000003",
+    "amenity_id": "AM00000018"
+  },
+  {
+    "room_post_id": "RP00000003",
+    "amenity_id": "AM00000019"
+  },
+  {
+    "room_post_id": "RP00000003",
+    "amenity_id": "AM00000023"
+  },
+  {
+    "room_post_id": "RP00000004",
+    "amenity_id": "AM00000008"
+  },
+  {
+    "room_post_id": "RP00000004",
+    "amenity_id": "AM00000002"
+  },
+  {
+    "room_post_id": "RP00000004",
+    "amenity_id": "AM00000001"
+  },
+  {
+    "room_post_id": "RP00000004",
+    "amenity_id": "AM00000004"
+  },
+  {
+    "room_post_id": "RP00000004",
+    "amenity_id": "AM00000007"
+  },
+  {
+    "room_post_id": "RP00000004",
+    "amenity_id": "AM00000012"
+  },
+  {
+    "room_post_id": "RP00000004",
+    "amenity_id": "AM00000015"
+  },
+  {
+    "room_post_id": "RP00000004",
+    "amenity_id": "AM00000020"
+  },
+  {
+    "room_post_id": "RP00000005",
+    "amenity_id": "AM00000002"
+  },
+  {
+    "room_post_id": "RP00000005",
+    "amenity_id": "AM00000009"
+  },
+  {
+    "room_post_id": "RP00000005",
+    "amenity_id": "AM00000007"
+  },
+  {
+    "room_post_id": "RP00000005",
+    "amenity_id": "AM00000011"
+  },
+  {
+    "room_post_id": "RP00000005",
+    "amenity_id": "AM00000012"
+  },
+  {
+    "room_post_id": "RP00000005",
+    "amenity_id": "AM00000014"
+  },
+  {
+    "room_post_id": "RP00000005",
+    "amenity_id": "AM00000017"
+  },
+  {
+    "room_post_id": "RP00000005",
+    "amenity_id": "AM00000021"
+  },
+  {
+    "room_post_id": "RP00000006",
+    "amenity_id": "AM00000002"
+  },
+  {
+    "room_post_id": "RP00000006",
+    "amenity_id": "AM00000007"
+  },
+  {
+    "room_post_id": "RP00000006",
+    "amenity_id": "AM00000011"
+  },
+  {
+    "room_post_id": "RP00000006",
+    "amenity_id": "AM00000012"
+  },
+  {
+    "room_post_id": "RP00000006",
+    "amenity_id": "AM00000014"
+  },
+  {
+    "room_post_id": "RP00000006",
+    "amenity_id": "AM00000015"
+  },
+  {
+    "room_post_id": "RP00000007",
+    "amenity_id": "AM00000002"
+  },
+  {
+    "room_post_id": "RP00000007",
+    "amenity_id": "AM00000001"
+  },
+  {
+    "room_post_id": "RP00000007",
+    "amenity_id": "AM00000007"
+  },
+  {
+    "room_post_id": "RP00000007",
+    "amenity_id": "AM00000012"
+  },
+  {
+    "room_post_id": "RP00000007",
+    "amenity_id": "AM00000013"
+  },
+  {
+    "room_post_id": "RP00000007",
+    "amenity_id": "AM00000015"
+  },
+  {
+    "room_post_id": "RP00000007",
+    "amenity_id": "AM00000016"
+  },
+  {
+    "room_post_id": "RP00000007",
+    "amenity_id": "AM00000017"
+  },
+  {
+    "room_post_id": "RP00000007",
+    "amenity_id": "AM00000020"
+  },
+  {
+    "room_post_id": "RP00000007",
+    "amenity_id": "AM00000023"
+  },
+  {
+    "room_post_id": "RP00000008",
+    "amenity_id": "AM00000008"
+  },
+  {
+    "room_post_id": "RP00000008",
+    "amenity_id": "AM00000009"
+  },
+  {
+    "room_post_id": "RP00000008",
+    "amenity_id": "AM00000007"
+  },
+  {
+    "room_post_id": "RP00000008",
+    "amenity_id": "AM00000011"
+  },
+  {
+    "room_post_id": "RP00000008",
+    "amenity_id": "AM00000012"
+  },
+  {
+    "room_post_id": "RP00000008",
+    "amenity_id": "AM00000015"
+  },
+  {
+    "room_post_id": "RP00000008",
+    "amenity_id": "AM00000019"
+  },
+  {
+    "room_post_id": "RP00000008",
+    "amenity_id": "AM00000021"
+  },
+  {
+    "room_post_id": "RP00000008",
+    "amenity_id": "AM00000023"
+  },
+  {
+    "room_post_id": "RP00000009",
+    "amenity_id": "AM00000009"
+  },
+  {
+    "room_post_id": "RP00000009",
+    "amenity_id": "AM00000007"
+  },
+  {
+    "room_post_id": "RP00000009",
+    "amenity_id": "AM00000012"
+  },
+  {
+    "room_post_id": "RP00000009",
+    "amenity_id": "AM00000015"
+  },
+  {
+    "room_post_id": "RP00000009",
+    "amenity_id": "AM00000018"
+  },
+  {
+    "room_post_id": "RP00000009",
+    "amenity_id": "AM00000023"
+  },
+  {
+    "room_post_id": "RP00000010",
+    "amenity_id": "AM00000002"
+  },
+  {
+    "room_post_id": "RP00000010",
+    "amenity_id": "AM00000004"
+  },
+  {
+    "room_post_id": "RP00000010",
+    "amenity_id": "AM00000007"
+  },
+  {
+    "room_post_id": "RP00000010",
+    "amenity_id": "AM00000012"
+  },
+  {
+    "room_post_id": "RP00000010",
+    "amenity_id": "AM00000013"
+  },
+  {
+    "room_post_id": "RP00000010",
+    "amenity_id": "AM00000020"
+  },
+  {
+    "room_post_id": "RP00000010",
+    "amenity_id": "AM00000022"
+  }
+]
