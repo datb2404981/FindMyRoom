@@ -2,6 +2,7 @@
 import { ref, watch, onMounted, onUnmounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import Icon from "./components/Icon.vue";
+import FooterInfoModal from "./components/FooterInfoModal.vue";
 import { state, canManagePosts, logout as endSession } from "./store";
 const route = useRoute(),
   router = useRouter(),
@@ -10,7 +11,8 @@ const route = useRoute(),
   accountRoot = ref(null),
   accountTrigger = ref(null),
   logoutError = ref(""),
-  loggingOut = ref(false);
+  loggingOut = ref(false),
+  footerTopic = ref("");
 function closeAccount(event) {
   if (!accountRoot.value?.contains(event.target)) accountOpen.value = false;
 }
@@ -25,6 +27,7 @@ watch(
   () => {
     menu.value = false;
     accountOpen.value = false;
+    footerTopic.value = "";
     document.title =
       "FindMyRoom · " +
       ({
@@ -146,10 +149,16 @@ async function logout() {
       </div>
       <div>
         <h4>Hỗ trợ & An toàn</h4>
+<<<<<<< Updated upstream
         <RouterLink to="/ghep-tro?guide=1">Quy tắc ghép trọ</RouterLink
         ><RouterLink to="/tim-tro?guide=1">Cảnh báo lừa đảo</RouterLink
         ><RouterLink to="/wireframes">Đối chiếu 140 wireframe</RouterLink>
       </div>
+=======
+        <button type="button" class="footer-help-button" @click="footerTopic = 'roommate'">Quy tắc ghép trọ</button>
+        <button type="button" class="footer-help-button" @click="footerTopic = 'safety'">Cảnh báo lừa đảo</button>
+        <RouterLink to="/huong-dan">Hướng dẫn sử dụng</RouterLink>      </div>
+>>>>>>> Stashed changes
       <div>
         <h4>Thông tin liên lạc</h4>
         <p>Đại học Cần Thơ<br />Khu II, đường 3/2, Ninh Kiều<br />Cần Thơ, Việt Nam</p>
@@ -167,4 +176,5 @@ async function logout() {
     ><RouterLink to="/ghep-tro"><Icon name="users" /><span>Ghép trọ</span></RouterLink
     ><RouterLink :to="state.user ? '/ho-so' : '/dang-nhap'"><Icon name="user" /><span>{{ state.user ? 'Hồ sơ' : 'Đăng nhập' }}</span></RouterLink>
   </nav>
+  <FooterInfoModal v-if="footerTopic" :kind="footerTopic" @close="footerTopic = ''" />
 </template>
