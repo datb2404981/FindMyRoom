@@ -133,7 +133,7 @@ defineExpose({ close })
       <button :ref="el => triggers.price = el" type="button" class="filter-trigger" :class="{ 'is-active': active === 'price', 'has-value': model.prices.length }"
         :aria-label="model.prices.length ? 'Khoảng giá: ' + priceLabel : 'Khoảng giá'"
         :aria-expanded="active === 'price'" aria-haspopup="dialog" aria-controls="home-price-filter" @click="toggle('price')" @keydown.down.prevent="openFromKeyboard('price')">
-        <span class="currency-icon" aria-hidden="true">đ</span><span class="trigger-label">{{ priceLabel }}</span><Icon class="filter-chevron" name="down" :size="18" />
+        <span class="currency-icon" aria-hidden="true">$</span><span class="trigger-label">{{ priceLabel }}</span><Icon class="filter-chevron" name="down" :size="18" />
       </button>
       <section v-if="active === 'price'" id="home-price-filter" ref="panel" class="filter-popover price-popover" :class="{ 'opens-up': opensUp }" :style="{ maxHeight: popupMaxHeight }" role="dialog" aria-labelledby="home-price-heading">
         <div class="filter-popover-heading"><h3 id="home-price-heading">Khoảng giá</h3><button type="button" class="clear-selection" aria-label="Bỏ chọn" title="Bỏ chọn khoảng giá" :disabled="!model.prices.length" @click="patch({ prices: [] })"><Icon name="reset" :size="22" /></button></div><p class="filter-hint">Giá thuê mỗi tháng · Chọn một khoảng giá</p>

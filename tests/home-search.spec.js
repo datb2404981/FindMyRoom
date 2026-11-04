@@ -12,7 +12,7 @@ test('student home keeps its landing content and searches only rental rooms on t
   await expect(page.locator('.locations')).toBeVisible()
   await expect(page.locator('.featured')).toBeVisible()
   await expect(page.locator('.group-rentals .room-card')).toHaveCount(4)
-  await expect(page.locator('.currency-icon')).toHaveText('đ')
+  await expect(page.locator('.currency-icon')).toHaveText('$')
   await expect(page.locator('.group-rentals .room-card').first().locator('.price')).toContainText('1.800.000 đ')
   await expect(page.locator('.group-roommates')).toHaveCount(0)
   await expect(page.locator('.group-houses')).toHaveCount(0)

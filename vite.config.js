@@ -4,7 +4,7 @@ import { jsonAuthPlugin } from './server/auth.js'
 export default defineConfig({
   plugins: [jsonAuthPlugin(), vue()],
   server: {
-    port: 5175,
+    port: 5173,
     fs: { deny: ['.env', '.env.*', '*.{crt,pem,key,p12,pfx,cer,der}', '.npmrc', '.yarnrc.yml', '**/.git/**', '**/data/**', '**/server/**'] }
   },
 })
