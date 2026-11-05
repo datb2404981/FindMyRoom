@@ -56,12 +56,12 @@ async function logout() {
 </script>
 <template>
   <a class="skip-link" href="#main">Đến nội dung chính</a>
-  <header class="site-header">
+  <header v-if="!['/dang-nhap', '/dang-ky'].includes(route.path)" class="site-header">
     <div class="header-inner">
       <RouterLink :to="state.user?.role === 'landlord' ? '/quan-ly/bai-dang' : '/'" class="brand" aria-label="FindMyRoom, trang chủ"
         ><span class="brand-icon"
           ><img src="/logo.svg" alt="" class="brand-logo" width="32" height="32" /></span
-        >FindMyRoom<span class="brand-dot">.</span></RouterLink
+        >FindMyRoom</RouterLink
       >
       <nav class="desktop-nav" aria-label="Điều hướng chính">
         <RouterLink v-if="state.user?.role !== 'landlord'" to="/ghep-tro">Ghép trọ</RouterLink
@@ -139,7 +139,7 @@ async function logout() {
               class="brand-logo"
               width="32"
               height="32" /></span
-          >FindMyRoom<span class="brand-dot">.</span></RouterLink
+          >FindMyRoom</RouterLink
         >
         <p class="muted footer-intro">Một chỗ ở phù hợp.<br />Một khởi đầu an tâm.</p>
       </div>
@@ -167,7 +167,7 @@ async function logout() {
       <span>© 2026 FindMyRoom</span><span>Được làm cho những khởi đầu mới.</span><button v-if="state.user" class="text-button" :disabled="loggingOut" @click="logout">Đăng xuất</button>
     </div>
   </footer>
-  <nav class="bottom-nav unified-home-nav" aria-label="Điều hướng điện thoại">
+  <nav v-if="!['/dang-nhap', '/dang-ky'].includes(route.path)" class="bottom-nav unified-home-nav" aria-label="Điều hướng điện thoại">
     <RouterLink :to="state.user?.role === 'landlord' ? '/quan-ly/bai-dang' : '/'"><Icon :name="state.user?.role === 'landlord' ? 'grid' : 'home'" /><span>{{ state.user?.role === 'landlord' ? 'Bài đăng' : 'Trang chủ' }}</span></RouterLink
     ><RouterLink v-if="state.user?.role === 'landlord'" to="/quan-ly/nha-tro"><Icon name="building" /><span>Nhà trọ</span></RouterLink
     ><RouterLink v-if="state.user?.role !== 'landlord'" to="/ghep-tro"><Icon name="users" /><span>Ghép trọ</span></RouterLink
