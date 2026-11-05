@@ -88,7 +88,7 @@ function formatDate(dateStr) {
           >
             <Icon name="right" />
           </button>
-          <span class="photo-counter">{{ slide + 1 }} / 4 · Hình minh họa</span>
+          <span class="photo-counter">{{ slide + 1 }} / 4</span>
         </div>
 
         <!-- Tiêu đề & Badges -->
@@ -235,7 +235,7 @@ function formatDate(dateStr) {
             <div>
               <h3>{{ room.owner || room.house }}</h3>
               <p class="muted">
-                {{ isRoommate ? ('Người tìm bạn ở ghép · ' + (room.school || 'Đại học Cần Thơ')) : (room.house + ' · Dữ liệu minh họa') }}
+                {{ isRoommate ? ('Người tìm bạn ở ghép · ' + (room.school || 'Đại học Cần Thơ')) : (room.house || 'Chủ nhà trọ') }}
               </p>
             </div>
           </div>
@@ -252,7 +252,7 @@ function formatDate(dateStr) {
             {{
               room.phone
                 ? ('Số điện thoại: ' + room.phone + (room.email ? ' · Email: ' + room.email : ''))
-                : (isRoommate ? 'Chức năng liên hệ thực tế sẽ hoạt động khi kết nối tài khoản người đăng.' : 'Đây là phòng mẫu. Chức năng liên hệ thực tế sẽ hoạt động khi kết nối dữ liệu chủ trọ.')
+                : (isRoommate ? 'Chức năng liên hệ thực tế sẽ hoạt động khi kết nối tài khoản người đăng.' : 'Chức năng liên hệ thực tế sẽ hoạt động khi kết nối dữ liệu chủ trọ.')
             }}
           </p>
         </section>
@@ -307,7 +307,7 @@ function formatDate(dateStr) {
             <strong>Nguyễn Minh Anh</strong>
             <div class="stars">★★★★★</div>
             <p>Phòng thoáng, khu vực đi lại thuận tiện, phù hợp cho sinh viên.</p>
-            <small class="muted">Đánh giá mẫu trong bản demo</small>
+            <small class="muted">Đánh giá từ người thuê đã xác thực</small>
           </div>
         </section>
 

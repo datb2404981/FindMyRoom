@@ -5,7 +5,7 @@ import { ArrowDown, ArrowUp, Coins } from '@lucide/vue'
 import Icon from '../components/Icon.vue'
 import RoomCard from '../components/RoomCard.vue'
 import SearchFilters from '../components/SearchFilters.vue'
-import { rooms, districts } from '../data'
+import { districts } from '../data'
 import { state } from '../store'
 import { emptyFilters, filtersFromQuery, queryFromFilters, matchesFilters, searchQueryError } from '../search-filters'
 import { publicRentals, searchableText } from '../listings'
@@ -34,16 +34,20 @@ watch([loadMoreTrigger, mobileLimit, isMobile], ([element]) => {
   loadObserver?.disconnect()
   if (element && isMobile.value) loadObserver?.observe(element)
 }, { flush: 'post' })
-const districtImages = ['ninh-kieu', 'cai-rang', 'binh-thuy', 'o-mon', 'thot-not', 'phong-dien', 'co-do', '', 'vinh-thanh']
+const districtImages = ['ninh-kieu', 'cai-rang', 'binh-thuy', 'o-mon', 'thot-not', 'phong-dien', 'co-do', 'thoi-lai', 'vinh-thanh']
 const searchKeys = ['search', 'q', 'school', 'district', 'prices', 'amenity', 'price', 'page']
 const isSearching = computed(() => searchKeys.some(key => Object.hasOwn(route.query, key)))
 const queryError = computed(() => searchQueryError(route.query))
 const hasCriteria = computed(() => searchKeys.some(key => !['search', 'page'].includes(key) && Object.hasOwn(route.query, key)))
 const appliedFilters = computed(() => filtersFromQuery(route.query))
 const appliedKeyword = computed(() => searchableText({ title: typeof route.query.q === 'string' ? route.query.q.trim() : '' }))
-const rentals = computed(() => publicRentals(state.posts))
+const rentals = computed(() => {
+  const listings = new Map(publicRentals(state.posts).map(room => [room.id, room]))
+  for (const post of state.posts) if (post.kind === 'rental') listings.set(post.id, post)
+  return [...listings.values()].filter(room => room.status === 'Còn phòng')
+})
 const priceOrder = computed(() => ['asc', 'desc'].includes(route.query.sort) ? route.query.sort : '')
-const featuredRooms = computed(() => rooms.slice(0, 6))
+const featuredRooms = computed(() => rentals.value.slice(0, 6))
 function scrollTrack(track, direction) {
   if (!track) return
   const card = track.firstElementChild
@@ -114,7 +118,7 @@ function goToPage(page) {
           <button type="button" class="icon-button featured-arrow featured-arrow-next" aria-label="Địa điểm tiếp theo" aria-controls="location-track" @click="scrollTrack(locationTrack, 1)"><Icon name="right" /></button>
         </div>
       </section>
-      <section class="container section featured">
+      <section v-if="featuredRooms.length" class="container section featured">
         <div class="section-heading"><h2>Phòng trọ nổi bật</h2></div>
         <div class="featured-carousel">
           <button type="button" class="icon-button featured-arrow featured-arrow-prev" aria-label="Cuộn đến phòng trước" aria-controls="featured-rooms" @click="scrollTrack(featuredTrack, -1)"><Icon name="left" /></button>
