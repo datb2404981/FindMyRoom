@@ -122,6 +122,7 @@ const cardStyle=computed(()=>{
 
 function triggerSwipe(dir){
  if(isSwipingOut.value)return
+ if(dir===1&&!canGoBack.value)return
  isDragging.value=false
  activePointerId=null
  window.removeEventListener('scroll',onWindowScroll)
@@ -133,12 +134,8 @@ function triggerSwipe(dir){
  setTimeout(()=>{
   if(dir===-1){
    skip()
-  }else{
-   if(canGoBack.value){
-    goBack()
-   }else{
-    skip()
-   }
+  }else if(canGoBack.value){
+   goBack()
   }
   isSwipingOut.value=false
   dragX.value=0
@@ -168,7 +165,15 @@ function onPointerMove(e){
  if(activePointerId===null||e.pointerId!==activePointerId)return
  if(!isDragging.value||isSwipingOut.value)return
 
- dragX.value=e.clientX-startX
+ const deltaX=e.clientX-startX
+
+ // Nếu ở hồ sơ đầu tiên (chưa có người trước đó), không cho kéo từ trái sang phải
+ if(!canGoBack.value&&deltaX>0){
+  dragX.value=0
+  return
+ }
+
+ dragX.value=deltaX
 
  if(e.cancelable){
   e.preventDefault()
@@ -181,6 +186,7 @@ function onPointerMove(e){
 
  // Khi kéo sang khoảng 40px thì card mờ dần và ẩn đi luôn
  if(Math.abs(dragX.value)>=40){
+  if(dragX.value>0&&!canGoBack.value)return
   triggerSwipe(dragX.value>0?1:-1)
  }
 }
@@ -196,6 +202,12 @@ function onPointerUp(e){
  if(isSwipingOut.value)return
 
  if(!isDragging.value){
+  dragX.value=0
+  return
+ }
+
+ if(dragX.value>0&&!canGoBack.value){
+  isDragging.value=false
   dragX.value=0
   return
  }
@@ -325,9 +337,9 @@ async function begin(){
               <Icon name="close" :size="18" />
               <span>BỎ QUA</span>
             </div>
-            <div v-if="isDragging && dragX > 15" :class="['swipe-hint', canGoBack ? 'back' : 'pass']">
-              <Icon :name="canGoBack ? 'back' : 'close'" :size="18" />
-              <span>{{ canGoBack ? 'QUAY LẠI' : 'BỎ QUA' }}</span>
+            <div v-if="isDragging && dragX > 15 && canGoBack" class="swipe-hint back">
+              <Icon name="back" :size="18" />
+              <span>QUAY LẠI</span>
             </div>
 
             <div class="person-portrait" :style="{ background: current.color }">
