@@ -38,7 +38,7 @@
 .mobile-dropdown{top:100%;max-height:calc(100dvh - 140px);overflow-y:auto}
 .mobile-dropdown>button{text-align:left}
 @media(max-width:1100px){.account-summary{display:none}}
-@media(max-width:600px){.header-signup{display:none}.account-trigger{gap:5px}.account-dropdown{right:-38px}.mobile-dropdown{gap:14px}}
+@media(max-width:600px){.header-signup{display:none!important}.account-trigger{gap:5px}.account-dropdown{right:-38px}.mobile-dropdown{gap:14px}}
 
 /* Let search popovers extend over the next section without clipping them. */
 .hero:has(.hero-search-filters){overflow:visible;z-index:2}
@@ -53,6 +53,7 @@
 .header-signup{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:9px 18px;border-radius:999px;font-size:13.5px;font-weight:600;text-decoration:none!important;color:var(--ink);border:1px solid transparent;transition:all .2s ease}
 .header-signup:hover{background:var(--cream-deep);color:var(--ink)}
 .header-login{min-height:40px!important;padding:9px 18px!important;font-size:13.5px!important;box-shadow:0 1px 3px rgba(19,20,20,.08)}
+@media(max-width:768px){.header-login{min-height:36px!important;padding:8px 12px!important;font-size:11px!important}}
 /* Clean Nav Links: No background, no underline, bold text on hover/active */
 .desktop-nav a{padding:8px 6px!important;font-weight:500;text-decoration:none!important;color:var(--muted);background:transparent!important;transition:color .2s ease,font-weight .2s ease}
 .desktop-nav a:hover{color:var(--ink);background:transparent!important;font-weight:700}

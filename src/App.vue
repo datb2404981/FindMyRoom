@@ -47,7 +47,9 @@ async function logout() {
     await endSession();
     menu.value = false;
     accountOpen.value = false;
-    await router.replace("/");
+    if (!['/dang-nhap', '/dang-ky'].includes(router.currentRoute.value.path)) {
+      await router.replace("/");
+    }
   } catch (error) { logoutError.value = error.message; }
   finally { loggingOut.value = false; }
 }

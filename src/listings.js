@@ -1,12 +1,28 @@
 import { people, rooms } from './data'
 
 // Public sample posts, separate from the private drafts and matching candidates.
-export const roommateListings = [
-  { ...rooms[0], id: 'ghep-thu', kind: 'roommate', title: 'Tìm bạn nữ ở ghép gần Đại học Cần Thơ', owner: people[0].name, price: people[0].price, people: 1, desc: people[0].bio, roomId: rooms[0].id, status: 'Đang tìm bạn' },
-  { ...rooms[1], id: 'ghep-hieu', kind: 'roommate', title: 'Tìm bạn ở ghép phòng đầy đủ tiện nghi', owner: people[1].name, price: people[1].price, people: 1, desc: people[1].bio, roomId: rooms[1].id, status: 'Đang tìm bạn' },
-  { ...rooms[2], id: 'ghep-khoa', kind: 'roommate', title: 'Tìm bạn ở ghép tại Hưng Phú, Cái Răng', owner: people[2].name, price: people[2].price, people: 1, desc: people[2].bio, roomId: rooms[2].id, status: 'Đang tìm bạn' },
-  { ...rooms[3], id: 'ghep-mai', kind: 'roommate', title: 'Tìm bạn ở ghép khu trọ yên tĩnh Bình Thủy', owner: 'Ngọc Mai', price: 850_000, people: 1, desc: 'Mình muốn tìm một bạn ở ghép lâu dài, giữ không gian chung gọn gàng và tôn trọng giờ học của nhau.', roomId: rooms[3].id, status: 'Đang tìm bạn' },
-]
+export const roommateListings = people.map((person, index) => {
+  const room = rooms[index % rooms.length]
+  const specificIds = ['ghep-thu', 'ghep-hieu', 'ghep-khoa', 'ghep-mai']
+  const specificTitles = [
+    'Tìm bạn nữ ở ghép gần Đại học Cần Thơ',
+    'Tìm bạn ở ghép phòng đầy đủ tiện nghi',
+    'Tìm bạn ở ghép tại Hưng Phú, Cái Răng',
+    'Tìm bạn ở ghép khu trọ yên tĩnh Bình Thủy',
+  ]
+  return {
+    ...room,
+    id: specificIds[index] || `ghep-${person.id}`,
+    kind: 'roommate',
+    title: specificTitles[index] || `Tìm bạn ở ghép tại ${person.district} (${person.name})`,
+    owner: person.name,
+    price: person.price,
+    people: 1,
+    desc: person.bio,
+    roomId: room.id,
+    status: 'Đang tìm bạn',
+  }
+})
 
 export function publicRentals(posts = []) {
   const listings = new Map(rooms.map(room => [room.id, room]))

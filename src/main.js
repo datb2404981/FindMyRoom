@@ -10,6 +10,7 @@ import Profile from "./views/Profile.vue";
 import Manage from "./views/Manage.vue";
 import PostForm from "./views/PostForm.vue";
 import Guide from "./views/Guide.vue";
+import References from "./views/References.vue";
 import "./style.css";
 import { restoreSession, state } from "./store";
 export const router = createRouter({
@@ -32,7 +33,7 @@ export const router = createRouter({
     { path: "/quan-ly/:kind", component: Manage },
     { path: "/dang-bai/:kind", component: PostForm },
     { path: "/huong-dan", component: Guide },
-    { path: "/wireframes", redirect: "/huong-dan" },
+    { path: "/wireframes", component: References },
     { path: "/:pathMatch(.*)*", redirect: "/" },
   ],
 });

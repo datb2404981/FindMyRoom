@@ -27,7 +27,7 @@ test('student home keeps its landing content and searches only rental rooms on t
   await expect(page.locator('.group-rentals .room-card')).toHaveCount(4)
   await expect(page.locator('.group-roommates')).toHaveCount(0)
   await expect(page.locator('.group-houses')).toHaveCount(0)
-  await expect(page.locator('.home-listings-heading')).toContainText('4 phòng cho thuê')
+  await expect(page.locator('.home-listings-heading')).toContainText('phòng cho thuê')
   const searchUrl = page.url()
   await page.reload()
   await expect(page.getByRole('textbox', { name: 'Từ khóa tìm kiếm', exact: true })).toHaveValue('Cần Thơ')

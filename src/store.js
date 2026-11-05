@@ -1,11 +1,11 @@
 import { computed, reactive, watch } from 'vue'
-import { rooms } from './data'
+import { rooms, boardingHouses } from './data'
 
 const key = 'findmyroom-demo-v1'
 const defaults = () => ({
   profile: { name: '', studentId: '', birth: '', gender: 'Nam', school: 'Đại học Cần Thơ', major: '', phone: '', zalo: '', email: '', address: 'Cần Thơ', bio: '' },
   favorites: [], likes: [], passed: [],
-  houses: [{ id: 'minh-an', name: 'Nhà trọ Minh An', address: 'Nguyễn Văn Cừ, An Bình, Ninh Kiều, Cần Thơ', rooms: 36, status: 'Đang hoạt động', desc: 'Trọ sạch sẽ, thoáng mát, an ninh tốt' }],
+  houses: boardingHouses.slice(0, 1),
   posts: rooms.slice(0, 3).map(room => ({ ...room, kind: 'rental' })),
   drafts: { roommate: {}, rental: {} },
 })
