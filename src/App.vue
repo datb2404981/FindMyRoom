@@ -12,7 +12,8 @@ const route = useRoute(),
   accountTrigger = ref(null),
   logoutError = ref(""),
   loggingOut = ref(false),
-  footerTopic = ref("");
+  footerTopic = ref(""),
+  isAuthRoleStep = ref(false);
 function closeAccount(event) {
   if (!accountRoot.value?.contains(event.target)) accountOpen.value = false;
 }
@@ -28,6 +29,7 @@ watch(
     menu.value = false;
     accountOpen.value = false;
     footerTopic.value = "";
+    isAuthRoleStep.value = false;
     document.title =
       "FindMyRoom · " +
       ({
@@ -127,8 +129,8 @@ async function logout() {
     </nav>
   </header>
   <p v-if="logoutError" class="container notice" role="alert">{{ logoutError }}</p>
-  <main id="main" tabindex="-1"><RouterView /></main>
-  <footer v-if="route.path !== '/wireframes'" class="site-footer">
+  <main id="main" tabindex="-1"><RouterView @role-step="isAuthRoleStep = $event" /></main>
+  <footer v-if="route.path !== '/wireframes' && !isAuthRoleStep" class="site-footer">
     <div class="container footer-grid">
       <div>
         <RouterLink :to="state.user?.role === 'landlord' ? '/quan-ly/bai-dang' : '/'" class="brand"
@@ -162,9 +164,6 @@ async function logout() {
         <p>Đại học Cần Thơ<br />Khu II, đường 3/2, Ninh Kiều<br />Cần Thơ, Việt Nam</p>
         <p class="muted">Bản demo học phần CT113</p>
               </div>
-    </div>
-    <div class="container footer-bottom">
-      <span>© 2026 FindMyRoom</span><span>Được làm cho những khởi đầu mới.</span><button v-if="state.user" class="text-button" :disabled="loggingOut" @click="logout">Đăng xuất</button>
     </div>
   </footer>
   <nav v-if="!['/dang-nhap', '/dang-ky'].includes(route.path)" class="bottom-nav unified-home-nav" aria-label="Điều hướng điện thoại">

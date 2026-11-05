@@ -103,3 +103,24 @@ test('account files and hashes cannot be read by the browser', async ({ request 
   expect(data.user).not.toHaveProperty('passwordHash')
   expect(data.user).not.toHaveProperty('password')
 })
+
+test('registration allows selecting role after signup and redirects accordingly', async ({ page }) => {
+  await page.goto('/#/dang-ky')
+  const email = `landlord-${Date.now()}@example.com`
+  await page.getByLabel('Họ và tên *', { exact: true }).fill('Chủ Trọ Mới')
+  await page.getByLabel('Email *', { exact: true }).fill(email)
+  await page.getByLabel('Số điện thoại *', { exact: true }).fill('0987654321')
+  await page.getByLabel('Mật khẩu *', { exact: true }).fill('demopass123')
+  await page.getByLabel('Xác nhận mật khẩu *', { exact: true }).fill('demopass123')
+  await page.getByRole('checkbox').check()
+  await page.locator('form').getByRole('button', { name: 'Đăng ký', exact: true }).click()
+
+  // Màn hình chọn role xuất hiện sau khi đăng ký thành công
+  await expect(page.getByText('Bạn muốn tham gia với tư cách')).toBeVisible()
+  await page.getByRole('radio', { name: 'Chủ Trọ' }).click()
+
+  // Chuyển hướng tới trang quản lý nhà trọ
+  await expect(page).toHaveURL(/quan-ly\/nha-tro/)
+  const role = await page.evaluate(() => localStorage.getItem('findmyroom:role'))
+  expect(role).toBe('landlord')
+})

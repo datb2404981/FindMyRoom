@@ -2,12 +2,22 @@
 import { computed, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Icon from '../components/Icon.vue'
-import { login, register, validateField, state } from '../store'
+import { login, register, validateField, state, updateAccount } from '../store'
 
 const route = useRoute(), router = useRouter()
 const signup = computed(() => route.path === '/dang-ky')
 const visible = ref(false), confirmVisible = ref(false), busy = ref(false), info = ref('')
-const form = reactive({ name: '', email: '', phone: '', password: '', confirm: '', terms: false })
+const roleStep = ref(false)
+const selectedRole = ref('')
+const emit = defineEmits(['role-step'])
+const form = reactive({
+  name: '',
+  email: '',
+  phone: '',
+  password: '',
+  confirm: '',
+  terms: false
+})
 const errors = reactive({})
 const rememberedAccountsKey = 'findmyroom:remembered-emails'
 const remember = ref(false)
@@ -30,11 +40,34 @@ function updateRememberedAccounts() {
     rememberedAccounts.value = emails
   } catch { /* Remembering an email must not prevent a successful login. */ }
 }
+watch(roleStep, (val) => {
+  emit('role-step', val)
+})
+
 watch(() => route.path, () => {
   Object.keys(errors).forEach(key => delete errors[key])
   form.password = ''; form.confirm = ''; info.value = ''
   visible.value = false; confirmVisible.value = false
+  roleStep.value = false
 })
+
+async function chooseRole(role) {
+  selectedRole.value = role
+  busy.value = true
+  try {
+    if (state.user && state.user.role !== role) {
+      await updateAccount({ ...state.profile, role })
+    }
+    const redirect = route.query.redirect
+    const fallback = role === 'landlord' ? '/quan-ly/nha-tro' : '/'
+    await router.replace(typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : (role === 'landlord' ? '/quan-ly/nha-tro' : '/ho-so'))
+  } catch (error) {
+    info.value = error.message || 'Không thể cập nhật vai trò.'
+  } finally {
+    busy.value = false
+  }
+}
+
 async function submit() {
   if (busy.value) return
   Object.keys(errors).forEach(key => delete errors[key])
@@ -48,22 +81,100 @@ async function submit() {
   if (Object.keys(errors).length) return
   busy.value = true
   try {
-    if (signup.value) await register({ name: form.name, email: form.email, phone: form.phone, password: form.password, role: 'student', terms: form.terms })
-    else {
+    if (signup.value) {
+      await register({ name: form.name, email: form.email, phone: form.phone, password: form.password, role: 'student', terms: form.terms })
+      form.password = ''; form.confirm = ''
+      roleStep.value = true
+    } else {
       await login({ email: form.email, password: form.password })
       updateRememberedAccounts()
+      form.password = ''; form.confirm = ''
+      const redirect = route.query.redirect
+      const fallback = state.user?.role === 'landlord' ? '/quan-ly/nha-tro' : '/'
+      await router.replace(typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : fallback)
     }
-    form.password = ''; form.confirm = ''
-    const redirect = route.query.redirect
-    const fallback = state.user?.role === 'landlord' ? '/quan-ly/nha-tro' : '/'
-    await router.replace(typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : (signup.value ? '/ho-so' : fallback))
   } catch (error) { errors[error.field || 'submit'] = error.message }
   finally { busy.value = false }
 }
 </script>
 
 <template>
-  <div class="auth-page" :class="{ 'auth-signup': signup }">
+  <!-- KHI ĐĂNG KÝ XONG -> CHUYỂN QUA MÀN HÌNH CHỌN ROLE TOÀN TRANG TRẮNG CĂN GIỮA CHUẨN WIREFRAME -->
+  <div v-if="roleStep" class="role-standalone-page">
+    <RouterLink to="/" class="brand role-standalone-brand" aria-label="FindMyRoom, trang chủ">
+      <span class="brand-icon"><img src="/logo.svg" alt="" class="brand-logo" width="32" height="32"></span>FindMyRoom
+    </RouterLink>
+
+    <div class="role-standalone-card" role="radiogroup" aria-label="Bạn muốn tham gia với tư cách">
+      <h1 class="role-standalone-title">Bạn muốn tham gia với tư cách</h1>
+      <div class="role-standalone-options">
+        <button
+          type="button"
+          class="role-card-box role-student"
+          :class="{ selected: selectedRole === 'student' }"
+          :disabled="busy"
+          @click="chooseRole('student')"
+          role="radio"
+          :aria-checked="selectedRole === 'student'"
+          aria-label="Sinh Viên"
+        >
+          <div class="role-card-badge">Tìm phòng & Ở ghép</div>
+          <div class="role-card-icon-wrapper student-theme">
+            <svg class="student-avatar-svg" viewBox="0 0 100 100" width="60" height="60" aria-hidden="true">
+              <!-- Mũ tốt nghiệp (Graduation Cap) -->
+              <polygon points="50,14 88,28 50,42 12,28" fill="#131414" />
+              <path d="M50 42 L50 49 Q50 56 68 56 L72 56 L72 34" fill="#131414" />
+              <!-- Dây tua rua mũ (Tassel) màu vàng thương hiệu -->
+              <path d="M22 32 Q20 40 20 48" stroke="#f9c54d" stroke-width="2.5" fill="none" stroke-linecap="round" />
+              <circle cx="20" cy="51" r="3" fill="#f9c54d" />
+              <!-- Đầu & Mặt người -->
+              <circle cx="50" cy="52" r="19" fill="#131414" />
+              <!-- Thân áo tốt nghiệp / Áo sinh viên -->
+              <path d="M24 88 C24 71 36 68 50 68 C64 68 76 71 76 88 Z" fill="#131414" />
+              <!-- Cổ áo / V-neck màu xanh Cyan năng động -->
+              <polygon points="50,78 40,68 60,68" fill="#8fc8cf" />
+            </svg>
+          </div>
+          <span class="role-card-text">Sinh Viên</span>
+          <span class="role-card-sub">Tìm phòng · Ghép trọ</span>
+        </button>
+
+        <span class="role-card-or">OR</span>
+
+        <button
+          type="button"
+          class="role-card-box role-landlord"
+          :class="{ selected: selectedRole === 'landlord' }"
+          :disabled="busy"
+          @click="chooseRole('landlord')"
+          role="radio"
+          :aria-checked="selectedRole === 'landlord'"
+          aria-label="Chủ Trọ"
+        >
+          <div class="role-card-badge landlord-badge">Quản lý & Cho thuê</div>
+          <div class="role-card-icon-wrapper landlord-theme">
+            <svg class="landlord-avatar-svg" viewBox="0 0 100 100" width="60" height="60" aria-hidden="true">
+              <!-- Đầu & Tóc chủ trọ -->
+              <circle cx="50" cy="38" r="18" fill="#131414" />
+              <!-- Thân áo vest / Blazer sang trọng lịch sự -->
+              <path d="M22 86 C22 68 34 62 50 62 C66 62 78 68 78 86 Z" fill="#131414" />
+              <!-- Cà vạt / Ve áo màu vàng Gold chủ trọ -->
+              <polygon points="50,62 44,72 50,84 56,72" fill="#f9c54d" />
+              <!-- Huy hiệu chìa khóa trao phòng / Ngôi nhà nhỏ nổi bật -->
+              <circle cx="73" cy="72" r="14" fill="#f9c54d" stroke="#131414" stroke-width="2" />
+              <path d="M69 72 L73 68 L77 72 V76 H69 Z" fill="#131414" />
+            </svg>
+          </div>
+          <span class="role-card-text">Chủ Trọ</span>
+          <span class="role-card-sub">Đăng tin · Quản lý trọ</span>
+        </button>
+      </div>
+      <p v-if="busy" class="role-loading-text">Đang chuyển tiếp…</p>
+    </div>
+  </div>
+
+  <!-- GIAO DIỆN ĐĂNG NHẬP / ĐĂNG KÝ BÌNH THƯỜNG -->
+  <div v-else class="auth-page" :class="{ 'auth-signup': signup }">
     <div class="auth-illustration">
       <img src="/illustrations/friends.svg" alt="Những người bạn cùng xây dựng không gian sống">
       <div class="auth-intro">
@@ -76,6 +187,7 @@ async function submit() {
       <RouterLink to="/" class="brand auth-brand" aria-label="FindMyRoom, trang chủ">
         <span class="brand-icon"><img src="/logo.svg" alt="" class="brand-logo" width="32" height="32"></span>FindMyRoom
       </RouterLink>
+
       <h1>{{ signup ? 'Tạo tài khoản mới' : 'Chào mừng trở lại' }}</h1>
       <form @submit.prevent="submit" novalidate :aria-busy="busy">
         <fieldset :disabled="busy" class="auth-fields">
@@ -135,6 +247,229 @@ async function submit() {
 </template>
 
 <style scoped>
+/* Giao diện trang chọn role toàn màn hình căn giữa chuẩn Wireframe MK-44 & DESIGN.md */
+.role-standalone-page {
+  min-height: 100svh;
+  width: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cream, #faf7f0);
+  padding: 60px 24px 40px;
+  box-sizing: border-box;
+}
+
+.role-standalone-brand {
+  position: absolute;
+  top: 28px;
+  left: clamp(20px, 4vw, 48px);
+  z-index: 10;
+  text-decoration: none;
+}
+
+.role-standalone-card {
+  width: 100%;
+  max-width: 640px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid var(--ink, #131414);
+  border-radius: 16px;
+  padding: 52px 48px 56px;
+  box-sizing: border-box;
+  text-align: center;
+  box-shadow: 0 4px 6px -1px rgba(19, 20, 20, 0.05), 0 2px 4px -2px rgba(19, 20, 20, 0.05);
+}
+
+.role-standalone-title {
+  font-family: 'PP Pangram Sans', 'IBM Plex Sans', sans-serif;
+  font-size: clamp(26px, 3vw, 34px);
+  font-weight: 700;
+  color: var(--ink, #131414);
+  line-height: 1.25;
+  margin: 0 0 44px;
+  letter-spacing: -0.02em;
+}
+
+.role-standalone-options {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+}
+
+.role-card-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 195px;
+  min-height: 205px;
+  padding: 24px 16px 20px;
+  background: #ffffff;
+  border: 1.5px solid var(--ink, #131414);
+  border-radius: 16px;
+  cursor: pointer;
+  box-shadow: 4px 4px 0px 0px rgba(19, 20, 20, 0.85);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.2s ease,
+              border-color 0.2s ease;
+  color: var(--ink, #131414);
+  box-sizing: border-box;
+  position: relative;
+}
+
+.role-card-badge {
+  position: absolute;
+  top: -11px;
+  background: var(--cyan, #8fc8cf);
+  color: var(--ink, #131414);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--ink, #131414);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.landlord-badge {
+  background: var(--gold, #f9c54d);
+}
+
+.role-card-icon-wrapper {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  border: 1.5px solid var(--ink, #131414);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease;
+}
+
+.student-theme {
+  background: #e6f4f6;
+}
+
+.landlord-theme {
+  background: #fdf5df;
+}
+
+.role-card-box:hover {
+  transform: translateY(-5px) scale(1.02);
+  border-color: var(--ink, #131414);
+}
+
+.role-card-box.role-student:hover {
+  box-shadow: 6px 6px 0px 0px #38a5b2;
+  background: #f5fbfc;
+}
+
+.role-card-box.role-student:hover .role-card-icon-wrapper {
+  transform: scale(1.08) rotate(-3deg);
+  background: #d4eef2;
+}
+
+.role-card-box.role-landlord:hover {
+  box-shadow: 6px 6px 0px 0px var(--gold, #f9c54d);
+  background: #fffdf5;
+}
+
+.role-card-box.role-landlord:hover .role-card-icon-wrapper {
+  transform: scale(1.08) rotate(3deg);
+  background: #faebc3;
+}
+
+.role-card-box:active {
+  transform: translateY(2px) scale(0.98);
+  box-shadow: 2px 2px 0px 0px var(--ink, #131414);
+}
+
+.role-card-box.selected {
+  border-width: 2.5px;
+  box-shadow: 5px 5px 0px 0px var(--gold, #f9c54d);
+}
+
+.role-card-text {
+  font-family: 'PP Pangram Sans', 'IBM Plex Sans', sans-serif;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--ink, #131414);
+  letter-spacing: -0.01em;
+}
+
+.role-card-sub {
+  font-size: 12px;
+  color: var(--muted, #647076);
+  margin-top: 4px;
+}
+
+.role-card-or {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--muted, #647076);
+  user-select: none;
+  letter-spacing: 0.05em;
+  background: var(--cream, #faf7f0);
+  border: 1px solid var(--line, rgba(19, 20, 20, 0.15));
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.role-loading-text {
+  margin-top: 28px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted, #647076);
+}
+
+@media (max-width: 600px) {
+  .role-standalone-page {
+    padding: 24px 16px;
+    min-height: calc(100svh - 68px);
+  }
+  .role-standalone-card {
+    padding: 36px 20px 40px;
+    border-radius: 14px;
+  }
+  .role-standalone-title {
+    margin-bottom: 32px;
+  }
+  .role-standalone-options {
+    gap: 16px;
+  }
+  .role-card-box {
+    width: 136px;
+    height: 142px;
+    padding: 16px 10px;
+    box-shadow: 3px 3px 0px 0px rgba(19, 20, 20, 0.85);
+  }
+  .role-card-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 4px 4px 0px 0px var(--gold, #f9c54d);
+  }
+  .role-card-icon :deep(svg) {
+    width: 42px;
+    height: 42px;
+  }
+  .role-card-text {
+    font-size: 15px;
+  }
+  .role-card-or {
+    font-size: 14px;
+  }
+}
+
 .auth-page {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

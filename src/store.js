@@ -40,6 +40,15 @@ function applyUser(user) {
   })
   hydrating = false
   persist()
+  try {
+    if (user) {
+      localStorage.setItem('findmyroom:user', JSON.stringify(user))
+      localStorage.setItem('findmyroom:role', user.role)
+    } else {
+      localStorage.removeItem('findmyroom:user')
+      localStorage.removeItem('findmyroom:role')
+    }
+  } catch {}
 }
 
 async function authRequest(path, body, method = 'POST') {
@@ -67,9 +76,15 @@ export async function logout() {
   applyUser(null)
 }
 export async function updateAccount(profile) {
-  const user = await authRequest('profile', { name: profile.name, email: profile.email, phone: profile.phone }, 'PATCH')
+  const payload = { name: profile.name, email: profile.email, phone: profile.phone }
+  if (profile.role) payload.role = profile.role
+  const user = await authRequest('profile', payload, 'PATCH')
   Object.assign(state.profile, profile, { name: user.name, email: user.email, phone: user.phone })
   state.user = user
+  try {
+    localStorage.setItem('findmyroom:user', JSON.stringify(user))
+    localStorage.setItem('findmyroom:role', user.role)
+  } catch {}
 }
 
 export function toggleFavorite(id){const i=state.favorites.indexOf(id);i<0?state.favorites.push(id):state.favorites.splice(i,1)}

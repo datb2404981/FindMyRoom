@@ -111,3 +111,6 @@
   border-color: transparent;
   color: #fff;
 }
+
+html, body, * { scrollbar-width: none !important; }
+html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar { display: none !important; }
