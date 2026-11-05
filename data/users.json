@@ -71,6 +71,15 @@
       "role": "student",
       "passwordHash": "scrypt:6985091dff50662b276d3d4f4ed3f4d3:a91e74ff416442e827e212e9f4aa74469e0ef173642588fae244c2dc736bbb17da9f89393564d78492cad63c1fd0ceffd6e59ee86a88b35509ad64130f07c538",
       "createdAt": "2026-11-05T14:28:02.148Z"
+    },
+    {
+      "id": "66a436d0-e02e-4a01-8373-fc82de79b203",
+      "name": "Nguyễn Đạt",
+      "email": "dat092006@gmail.com",
+      "phone": "0912345678",
+      "role": "landlord",
+      "passwordHash": "scrypt:396e118f13d1fd38cc46dd618d7d5cb2:f8ec11af1b3ecd5f3efc411577201d9f0f38070b26c0eba8843300517fea2cb8e89f7c0f88032b33afc9677eb96904d59b4fe82b837d5b42c80b20c161f46269",
+      "createdAt": "2026-11-05T14:55:40.398Z"
     }
   ]
 }

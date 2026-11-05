@@ -8,6 +8,10 @@ const route = useRoute(), router = useRouter()
 const signup = computed(() => route.path === '/dang-ky')
 const visible = ref(false), confirmVisible = ref(false), busy = ref(false), info = ref('')
 const roleStep = ref(false)
+const otpStep = ref(false)
+const otpDigits = reactive(['', '', '', '', '', ''])
+const otpInputs = ref([])
+const otpError = ref('')
 const selectedRole = ref('')
 const emit = defineEmits(['role-step'])
 const form = reactive({
@@ -49,7 +53,76 @@ watch(() => route.path, () => {
   form.password = ''; form.confirm = ''; info.value = ''
   visible.value = false; confirmVisible.value = false
   roleStep.value = false
+  otpStep.value = false
+  otpError.value = ''
+  for (let i = 0; i < 6; i++) otpDigits[i] = ''
 })
+
+const maskedEmail = computed(() => {
+  const email = form.email.trim()
+  if (!email || !email.includes('@')) return 'user*@gmail.com**'
+  const [user, domain] = email.split('@')
+  const visibleLen = Math.min(4, Math.floor(user.length / 2)) || 1
+  return `${user.slice(0, visibleLen)}***@${domain}`
+})
+
+function handleOtpInput(index, event) {
+  const val = event.target.value
+  otpError.value = ''
+  if (!val) {
+    otpDigits[index] = ''
+    return
+  }
+  // If user pasted or typed multiple digits
+  const cleaned = val.replace(/\D/g, '')
+  if (cleaned.length > 1) {
+    const chars = cleaned.split('')
+    for (let i = 0; i < 6; i++) {
+      if (chars[i]) otpDigits[i] = chars[i]
+    }
+    const nextIdx = Math.min(chars.length, 5)
+    otpInputs.value[nextIdx]?.focus()
+    return
+  }
+  otpDigits[index] = cleaned.slice(-1)
+  if (cleaned && index < 5) {
+    otpInputs.value[index + 1]?.focus()
+  }
+}
+
+function handleOtpKeydown(index, event) {
+  if (event.key === 'Backspace' && !otpDigits[index] && index > 0) {
+    otpInputs.value[index - 1]?.focus()
+  }
+}
+
+function handleOtpPaste(event) {
+  const pasteData = event.clipboardData?.getData('text') || ''
+  const cleaned = pasteData.replace(/\D/g, '').slice(0, 6)
+  if (cleaned) {
+    event.preventDefault()
+    for (let i = 0; i < 6; i++) {
+      otpDigits[i] = cleaned[i] || ''
+    }
+    const targetIdx = Math.min(cleaned.length, 5)
+    otpInputs.value[targetIdx]?.focus()
+  }
+}
+
+function confirmOtp() {
+  const code = otpDigits.join('').trim()
+  if (!code) {
+    otpError.value = 'Vui lòng nhập mã xác thực OTP.'
+    return
+  }
+  // Cho phép nhập mã số bất kỳ như user yêu cầu
+  otpStep.value = false
+  roleStep.value = true
+}
+
+function closeOtp() {
+  otpStep.value = false
+}
 
 async function chooseRole(role) {
   selectedRole.value = role
@@ -84,7 +157,12 @@ async function submit() {
     if (signup.value) {
       await register({ name: form.name, email: form.email, phone: form.phone, password: form.password, role: 'student', terms: form.terms })
       form.password = ''; form.confirm = ''
-      roleStep.value = true
+      otpStep.value = true
+      otpError.value = ''
+      for (let i = 0; i < 6; i++) otpDigits[i] = ''
+      setTimeout(() => {
+        otpInputs.value[0]?.focus()
+      }, 50)
     } else {
       await login({ email: form.email, password: form.password })
       updateRememberedAccounts()
@@ -243,6 +321,45 @@ async function submit() {
       <p class="center auth-switch">{{ signup ? 'Đã có tài khoản?' : 'Chưa có tài khoản?' }} <RouterLink :to="{ path: signup ? '/dang-nhap' : '/dang-ky', query: route.query }">{{ signup ? 'Đăng nhập ngay' : 'Đăng ký ngay' }}</RouterLink></p>
       <p v-if="info" class="notice" role="status">{{ info }}</p>
     </section>
+
+    <!-- POPUP NHẬP MÃ XÁC THỰC OTP -->
+    <div v-if="otpStep" class="otp-modal-backdrop" @click.self="closeOtp">
+      <div class="otp-modal-card" role="dialog" aria-modal="true" aria-labelledby="otp-title">
+        <button type="button" class="otp-modal-close" @click="closeOtp" aria-label="Đóng popup">
+          <Icon name="x" :size="20" />
+        </button>
+
+        <h2 id="otp-title" class="otp-title">Nhập mã xác thực</h2>
+        <p class="otp-description">
+          Chúng tôi đã gửi mã xác thực đến <strong>{{ maskedEmail }}</strong>. Hãy kiểm tra hộp thư của bạn.
+        </p>
+
+        <form @submit.prevent="confirmOtp" class="otp-form">
+          <div class="otp-inputs-grid" @paste="handleOtpPaste">
+            <input
+              v-for="(_, index) in 6"
+              :key="index"
+              :ref="el => (otpInputs[index] = el)"
+              v-model="otpDigits[index]"
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              autocomplete="one-time-code"
+              class="otp-digit-input"
+              :aria-label="'Số thứ ' + (index + 1)"
+              @input="handleOtpInput(index, $event)"
+              @keydown="handleOtpKeydown(index, $event)"
+            />
+          </div>
+
+          <p v-if="otpError" class="otp-error-message" role="alert">{{ otpError }}</p>
+
+          <button type="submit" class="button primary otp-submit-button">
+            Xác nhận
+          </button>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
