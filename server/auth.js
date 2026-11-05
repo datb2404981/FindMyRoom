@@ -6,6 +6,7 @@ import { promisify } from 'node:util'
 
 const scrypt = promisify(scryptCallback)
 const defaultUsersFile = fileURLToPath(new URL('../data/users.json', import.meta.url))
+const defaultReviewsFile = fileURLToPath(new URL('../data/house-reviews.json', import.meta.url))
 const cookieName = 'findmyroom_session'
 const sessionDuration = 8 * 60 * 60 * 1000
 
@@ -60,9 +61,34 @@ async function readBody(req) {
   } catch { throw fail(400, 'Dữ liệu JSON không hợp lệ.') }
 }
 
-export function createAuthMiddleware({ usersFile = defaultUsersFile } = {}) {
+export function createAuthMiddleware({ usersFile = defaultUsersFile, reviewsFile = defaultReviewsFile } = {}) {
   const sessions = new Map()
   let writes = Promise.resolve()
+  let reviewWrites = Promise.resolve()
+
+  async function readReviews() {
+    try {
+      const reviews = JSON.parse(await readFile(reviewsFile, 'utf8'))
+      if (!Array.isArray(reviews)) throw new Error('Invalid reviews file')
+      return reviews
+    } catch (error) {
+      if (error.code === 'ENOENT') return []
+      throw error
+    }
+  }
+
+  function addReview(review) {
+    const task = reviewWrites.then(async () => {
+      const reviews = await readReviews()
+      reviews.push(review)
+      const temporaryFile = `${reviewsFile}.${randomUUID()}.tmp`
+      await mkdir(dirname(reviewsFile), { recursive: true })
+      await writeFile(temporaryFile, JSON.stringify(reviews, null, 2) + '\n', { mode: 0o600 })
+      await rename(temporaryFile, reviewsFile)
+    })
+    reviewWrites = task.catch(() => {})
+    return task
+  }
 
   async function readUsers() {
     const data = JSON.parse(await readFile(usersFile, 'utf8'))
@@ -112,14 +138,31 @@ export function createAuthMiddleware({ usersFile = defaultUsersFile } = {}) {
   }
 
   return async (req, res, next) => {
-    const path = new URL(req.url, 'http://localhost').pathname
-    if (!path.startsWith('/api/auth/')) return next()
+    const url = new URL(req.url, 'http://localhost')
+    const path = url.pathname
+    if (!path.startsWith('/api/auth/') && path !== '/api/house-reviews') return next()
     const reply = (status, data) => {
       res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' })
       res.end(JSON.stringify(data))
     }
     try {
       if (req.method !== 'GET' && req.headers.origin && new URL(req.headers.origin).host !== req.headers.host) throw fail(403, 'Nguồn yêu cầu không hợp lệ.')
+      if (path === '/api/house-reviews' && req.method === 'GET') {
+        const houseId = url.searchParams.get('houseId')
+        if (!houseId || !/^[\w-]{1,160}$/.test(houseId)) throw fail(400, 'Mã nhà trọ không hợp lệ.')
+        return reply(200, { reviews: (await readReviews()).filter(review => review.houseId === houseId).reverse() })
+      }
+      if (path === '/api/house-reviews' && req.method === 'POST') {
+        const user = await currentUser(req)
+        if (!user) throw fail(401, 'Vui lòng đăng nhập để bình luận.')
+        const body = await readBody(req)
+        if (typeof body.houseId !== 'string' || !/^[\w-]{1,160}$/.test(body.houseId)) throw fail(400, 'Mã nhà trọ không hợp lệ.')
+        const content = typeof body.content === 'string' ? body.content.trim() : ''
+        if (!content || content.length > 1000) throw fail(400, 'Bình luận cần từ 1 đến 1000 ký tự.')
+        const review = { id: randomUUID(), houseId: body.houseId, author: user.name, content, createdAt: new Date().toISOString() }
+        await addReview(review)
+        return reply(201, { review })
+      }
       if (path === '/api/auth/session' && req.method === 'GET') {
         const user = await currentUser(req)
         return reply(200, { user: user ? publicUser(user) : null })
@@ -165,12 +208,12 @@ export function createAuthMiddleware({ usersFile = defaultUsersFile } = {}) {
       }
       reply(404, { message: 'Không tìm thấy API.' })
     } catch (error) {
-      reply(error.status || 503, { message: error.status ? error.message : 'Không đọc hoặc ghi được dữ liệu tài khoản. Kiểm tra file data/users.json.', ...(error.field ? { field: error.field } : {}) })
+      reply(error.status || 503, { message: error.status ? error.message : path === '/api/house-reviews' ? 'Không thể đọc hoặc lưu bình luận. Vui lòng thử lại.' : 'Không đọc hoặc ghi được dữ liệu tài khoản. Kiểm tra file data/users.json.', ...(error.field ? { field: error.field } : {}) })
     }
   }
 }
 
 export function jsonAuthPlugin() {
-  const install = server => { server.middlewares.use(createAuthMiddleware({ usersFile: process.env.AUTH_USERS_FILE || defaultUsersFile })) }
+  const install = server => { server.middlewares.use(createAuthMiddleware({ usersFile: process.env.AUTH_USERS_FILE || defaultUsersFile, reviewsFile: process.env.HOUSE_REVIEWS_FILE || defaultReviewsFile })) }
   return { name: 'findmyroom-json-auth', configureServer: install, configurePreviewServer: install }
 }

@@ -6,6 +6,7 @@ import { createServer } from 'vite'
 // Browser tests write only to a temporary copy, never to the user's accounts.
 const directory = await mkdtemp(join(tmpdir(), 'findmyroom-test-'))
 process.env.AUTH_USERS_FILE = join(directory, 'users.json')
+process.env.HOUSE_REVIEWS_FILE = join(directory, 'house-reviews.json')
 await copyFile(new URL('../data/users.json', import.meta.url), process.env.AUTH_USERS_FILE)
 const server = await createServer({ server: { host: '127.0.0.1', port: 5174, strictPort: true } })
 async function stop() {

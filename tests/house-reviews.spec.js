@@ -1,0 +1,45 @@
+import { test, expect } from '@playwright/test'
+
+test('comments belong to the house and are visible to other visitors', async ({ page, browser }) => {
+  await page.goto('/#/dang-nhap')
+  await page.getByLabel('Email *', { exact: true }).fill('sinhvien@example.com')
+  await page.getByLabel('Mật khẩu *', { exact: true }).fill('demopass123')
+  await page.locator('form').getByRole('button', { name: 'Đăng nhập', exact: true }).click()
+  await expect(page).not.toHaveURL(/dang-nhap/)
+  await page.goto('/#/phong/minh-an')
+  await expect(page.getByLabel('Viết bình luận')).toBeVisible()
+  await page.getByLabel('Viết bình luận').fill('Nhà trọ sạch sẽ và yên tĩnh.')
+  await page.getByRole('button', { name: 'Gửi bình luận' }).click()
+  await expect(page.locator('.house-review')).toContainText('Nhà trọ sạch sẽ và yên tĩnh.')
+  await page.reload()
+  await expect(page.locator('.house-review')).toContainText('Nhà trọ sạch sẽ và yên tĩnh.')
+
+  const visitor = await browser.newContext()
+  const other = await visitor.newPage()
+  await other.goto('/#/phong/minh-an')
+  await expect(other.locator('.house-review')).toContainText('Nhà trọ sạch sẽ và yên tĩnh.')
+  await expect(other.getByRole('link', { name: 'Đăng nhập để bình luận' })).toBeVisible()
+  await other.evaluate(() => {
+    const key = 'findmyroom-demo-v1'
+    const data = JSON.parse(localStorage.getItem(key))
+    data.posts.push({ ...data.posts[0], id: 'same-house-test', title: 'Phòng khác cùng nhà', kind: 'rental' })
+    localStorage.setItem(key, JSON.stringify(data))
+  })
+  await other.goto('/#/phong/same-house-test')
+  await other.reload()
+  await expect(other.locator('.house-review')).toContainText('Nhà trọ sạch sẽ và yên tĩnh.')
+  await other.goto('/#/phong/hung-phu')
+  await expect(other.getByText('Chưa có bình luận nào. Hãy là người đầu tiên chia sẻ.')).toBeVisible()
+  await expect(other.locator('.house-review')).toHaveCount(0)
+  await other.goto('/#/phong/ghep-thu')
+  await expect(other.getByRole('heading', { name: 'Bình luận về nhà trọ' })).toHaveCount(0)
+  await visitor.close()
+})
+
+test('comment API validates input and requires login', async ({ request }) => {
+  expect((await request.post('/api/house-reviews', { data: { houseId: 'minh-an', content: 'Xin chào' } })).status()).toBe(401)
+  expect((await request.get('/api/house-reviews?houseId=bad%2Fid')).status()).toBe(400)
+  expect((await request.post('/api/auth/login', { data: { email: 'sinhvien@example.com', password: 'demopass123' } })).ok()).toBeTruthy()
+  expect((await request.post('/api/house-reviews', { data: { houseId: 'minh-an', content: '   ' } })).status()).toBe(400)
+  expect((await request.post('/api/house-reviews', { data: { houseId: 'minh-an', content: 'a'.repeat(1001) } })).status()).toBe(400)
+})

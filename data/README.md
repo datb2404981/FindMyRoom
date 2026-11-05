@@ -14,3 +14,5 @@ Mỗi tài khoản có `id`, `name`, `email`, `phone`, `role`, `passwordHash` v�
 Email không phân biệt chữ hoa/thường và không được trùng. Vai trò đăng nhập lấy từ file, không lấy từ lựa chọn trên trình duyệt. Đăng xuất hủy phiên phía server, không xóa tài khoản trong file. Khởi động lại server giữ tài khoản đã đăng ký nhưng cần đăng nhập lại.
 
 Các tài khoản trong file ban đầu là dữ liệu mẫu. Bộ kiểm tra tự tạo bản sao tạm của file, nên chạy `npm test` không thêm hay sửa tài khoản trong file đang dùng.
+
+Bình luận nhà trọ được server lưu theo `houseId` trong `data/house-reviews.json`, dùng chung cho các tài khoản và được giữ lại khi khởi động lại server. File này chứa dữ liệu người dùng, không được đưa vào Git; cần sao lưu nếu chuyển máy hoặc triển khai lại. Chức năng yêu cầu server Vite của dự án (`npm run dev` hoặc `npm run preview`), không hoạt động khi chỉ phục vụ thư mục `dist` như trang tĩnh.
