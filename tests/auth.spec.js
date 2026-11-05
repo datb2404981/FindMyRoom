@@ -30,12 +30,10 @@ test('registration rejects an existing email and preserves the form', async ({ p
   await expect(page).toHaveURL(/dang-ky/)
 })
 
-test('switching accounts separates profiles and saved rooms', async ({ page }) => {
+test('switching accounts separates profiles and redirects legacy saved route', async ({ page }) => {
   await signIn(page, 'sinhvien@example.com')
   await expect(page).toHaveURL(/#\/$/)
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Tìm phòng trọ')
-  await page.goto('/#/tim-tro')
-  await page.locator('.room-card').first().getByRole('button', { name: 'Lưu tin', exact: true }).click()
   await page.locator('header').getByRole('button', { name: /^Tài khoản / }).click()
   await page.getByRole('navigation', { name: 'Tài khoản', exact: true }).getByRole('button', { name: 'Đăng xuất', exact: true }).click()
   await expect(page.locator('header').getByRole('link', { name: 'Đăng nhập', exact: true })).toBeVisible()
@@ -44,11 +42,9 @@ test('switching accounts separates profiles and saved rooms', async ({ page }) =
   await page.goto('/#/ho-so')
   await expect(page.getByLabel('Họ và tên', { exact: true })).toHaveValue('Nguyễn Minh An')
   await page.goto('/#/quan-ly/da-luu')
-  await expect(page.locator('.room-card')).toHaveCount(0)
+  await expect(page).toHaveURL(/quan-ly\/bai-dang/)
   await signIn(page, 'sinhvien@example.com')
   await expect(page).toHaveURL(/#\/$/)
-  await page.goto('/#/quan-ly/da-luu')
-  await expect(page.locator('.room-card')).toHaveCount(1)
 })
 
 test('switching auth pages clears passwords and resets their visibility', async ({ page }) => {

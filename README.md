@@ -25,7 +25,7 @@ npm run preview
 - `/#/dang-nhap`, `/#/dang-ky`: đăng nhập kiểm tra email/mật khẩu trong JSON, đăng ký chọn sinh viên/chủ trọ và lưu tài khoản mới. Đường dẫn cũ `/#/xac-thuc` chuyển về đăng ký; chưa gửi email xác thực.
 - `/#/ho-so`: xem, chỉnh sửa, xác nhận và lưu hồ sơ; ảnh đại diện xem trước.
 - `/#/quan-ly/nha-tro`: thêm, sửa, xóa nhà trọ dành cho chủ trọ.
-- `/#/quan-ly/bai-dang`, `/#/quan-ly/da-luu`: quản lý bài đăng và tin đã lưu.
+- `/#/quan-ly/bai-dang`: quản lý bài đăng.
 - `/#/dang-bai/roommate`: 4 bước thông tin, vị trí, hình ảnh, tiện ích; xem trước và đăng.
 - `/#/dang-bai/rental`: 5 bước cho thuê, gồm xem trước; kiểm tra dữ liệu trước khi qua bước, giữ bản nháp khi quay lại.
 - `/#/wireframes`: danh mục 140 màn hình; lọc nhóm/thiết bị/tên; xem ảnh gốc hoặc cây AST với tọa độ gốc và màu DESIGN.md. Đây là công cụ đối chiếu, không phải 140 trang nghiệp vụ độc lập.
@@ -63,9 +63,9 @@ Chạy `npm run dev` là đủ để mở cả frontend và API tài khoản; kh
 
 API trong `server/auth.js` cung cấp `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/session`, `POST /api/auth/logout`, `PATCH /api/auth/profile`. Trình duyệt giữ cookie HttpOnly, SameSite=Lax, hạn 8 giờ; phiên nằm trong bộ nhớ server. F5 vẫn giữ đăng nhập; đăng xuất hủy phiên phía server. Khởi động lại server làm mất phiên nhưng giữ các tài khoản trong JSON. Mật khẩu và mã phiên không được ghi vào localStorage/sessionStorage.
 
-Header hiển thị đăng nhập/đăng ký khi chưa có phiên; sau đăng nhập hiển thị avatar và menu tài khoản gồm hồ sơ, tin đã lưu, quản lý bài đăng và đăng xuất. Với sinh viên, mục quản lý bài đăng trên header, menu tài khoản và menu điện thoại chỉ hiện khi tài khoản đó có ít nhất một bài ghép trọ đã gửi đăng (kể cả đang chờ duyệt); bản nháp không được tính. Xóa bài cuối cùng sẽ ẩn mục này. Chủ trọ luôn có mục quản lý bài đăng. Mục quản lý nhà trọ chỉ hiện với vai trò chủ trọ; mục đăng bài tương ứng vai trò sinh viên/chủ trọ. Menu điện thoại cũng theo trạng thái và vai trò này.
+Header hiển thị đăng nhập/đăng ký khi chưa có phiên; sau đăng nhập hiển thị avatar và menu tài khoản gồm hồ sơ, quản lý bài đăng và đăng xuất. Với sinh viên, mục quản lý bài đăng trên header, menu tài khoản và menu điện thoại chỉ hiện khi tài khoản đó có ít nhất một bài ghép trọ đã gửi đăng (kể cả đang chờ duyệt); bản nháp không được tính. Xóa bài cuối cùng sẽ ẩn mục này. Chủ trọ luôn có mục quản lý bài đăng. Mục quản lý nhà trọ chỉ hiện với vai trò chủ trọ; mục đăng bài tương ứng vai trò sinh viên/chủ trọ. Menu điện thoại cũng theo trạng thái và vai trò này.
 
-Tên, email và số điện thoại cập nhật trong hồ sơ được ghi vào tài khoản JSON. Các trường hồ sơ còn lại, tin đã lưu, tương tác, bài đăng và bản nháp chữ lưu trong localStorage theo ID tài khoản (`findmyroom-demo-v1:<id>`). Đổi tài khoản sẽ đổi bộ dữ liệu cục bộ; những dữ liệu nghiệp vụ này chưa đồng bộ giữa các thiết bị.
+Tên, email và số điện thoại cập nhật trong hồ sơ được ghi vào tài khoản JSON. Các trường hồ sơ còn lại, tương tác, bài đăng và bản nháp chữ lưu trong localStorage theo ID tài khoản (`findmyroom-demo-v1:<id>`). Đổi tài khoản sẽ đổi bộ dữ liệu cục bộ; những dữ liệu nghiệp vụ này chưa đồng bộ giữa các thiết bị.
 
 Đây là bản chạy cục bộ với file JSON, chưa xác minh quyền sở hữu email. Cần server Node.js đang chạy để đăng nhập/đăng ký; chỉ đưa thư mục `dist` lên GitHub Pages sẽ không chạy được API ghi JSON. `npm run build` và `npm run preview` hỗ trợ xem bản build kèm API cục bộ. `data` không nằm trong `public`, không được đưa vào bản build và bị chặn tải qua Vite.
 
@@ -79,4 +79,4 @@ Bản đồ là sơ đồ minh họa, không dùng API định vị địa chỉ
 npm test
 ```
 
-Bộ kiểm tra API xác minh ghi tài khoản vào JSON, băm mật khẩu, đăng nhập lại sau khi tạo server mới, email trùng, hủy phiên và ghi đồng thời. Playwright tự chạy server riêng tại cổng 5174 với bản sao dữ liệu trong thư mục tạm; không sửa `data/users.json` đang dùng. Các luồng còn lại gồm tìm kiếm, hồ sơ/tin đã lưu, menu theo vai trò, ghép trọ, CRUD nhà trọ, đăng bài, 140 nguồn AST và bố cục desktop/mobile. Không cần khởi động server trước khi chạy kiểm tra. Nếu máy khác chưa có Chromium, chạy `npx playwright install chromium` hoặc truyền biến `CHROME_PATH`.
+Bộ kiểm tra API xác minh ghi tài khoản vào JSON, băm mật khẩu, đăng nhập lại sau khi tạo server mới, email trùng, hủy phiên và ghi đồng thời. Playwright tự chạy server riêng tại cổng 5174 với bản sao dữ liệu trong thư mục tạm; không sửa `data/users.json` đang dùng. Các luồng còn lại gồm tìm kiếm, hồ sơ, menu theo vai trò, ghép trọ, CRUD nhà trọ, đăng bài, 140 nguồn AST và bố cục desktop/mobile. Không cần khởi động server trước khi chạy kiểm tra. Nếu máy khác chưa có Chromium, chạy `npx playwright install chromium` hoặc truyền biến `CHROME_PATH`.

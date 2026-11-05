@@ -10,17 +10,41 @@ export const roommateListings = people.map((person, index) => {
     'Tìm bạn ở ghép tại Hưng Phú, Cái Răng',
     'Tìm bạn ở ghép khu trọ yên tĩnh Bình Thủy',
   ]
+  const moveInDates = ['2026-11-20', '2026-12-01', '2026-11-25', '2026-12-05']
+  const perPersonPrice = Number(person.price) || 1200000
+  const totalRoomPrice = Math.round(perPersonPrice * 2)
+
   return {
     ...room,
     id: specificIds[index] || `ghep-${person.id}`,
     kind: 'roommate',
     title: specificTitles[index] || `Tìm bạn ở ghép tại ${person.district} (${person.name})`,
     owner: person.name,
-    price: person.price,
+    gender: person.gender || 'Nữ',
+    school: person.school || 'Đại học Cần Thơ',
+    major: person.major || 'Công nghệ thông tin',
+    age: person.age || 20,
+    price: totalRoomPrice,
+    perPerson: perPersonPrice,
     people: 1,
+    area: room.area || 24,
+    moveIn: moveInDates[index % moveInDates.length],
+    electric: room.electric || 3500,
+    water: room.water || 18000,
+    internet: room.internet || 100000,
+    other: 'Rác & dịch vụ: 25.000 đ/tháng',
+    deposit: undefined,
     desc: person.bio,
+    habits: 'Giữ vệ sinh chung, tôn trọng giờ giấc sinh hoạt và không gian riêng tư.',
     roomId: room.id,
+    personId: person.id,
     status: 'Đang tìm bạn',
+    phone: person.phone || '0912 345 678',
+    email: person.email || `${person.id}@example.com`,
+    tags: person.tags || ['Yên tĩnh', 'Không hút thuốc'],
+    amenities: person.amenities || room.amenities || ['Wifi tốc độ cao', 'Máy giặt', 'Nhà xe'],
+    nearby: ['Gần chợ/BHX', 'Bệnh viện', 'Quán cafe', 'Cây xăng'],
+    lifestyles: person.tags || ['Yên tĩnh', 'Không hút thuốc', 'Gọn gàng'],
   }
 })
 
