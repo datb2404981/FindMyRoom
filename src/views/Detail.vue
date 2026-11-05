@@ -15,6 +15,16 @@ const room = computed(() => {
   return all.find((r) => r.id === id || r.personId === id || r.id === `ghep-${id}`);
 });
 const isRoommate = computed(() => room.value?.kind === "roommate");
+const gallery = computed(() => {
+  const r = room.value;
+  if (!r) return [];
+  if (r.images && r.images.length) {
+    if (r.images.length >= 4) return r.images;
+    const fillers = Array.from({ length: 4 - r.images.length }, (_, i) => `/illustrations/room-${((r.images.length + i) % 4) + 1}.svg`);
+    return [...r.images, ...fillers];
+  }
+  return [r.image, "/illustrations/room-2.svg", "/illustrations/room-3.svg", "/illustrations/room-4.svg"];
+});
 const houseId = computed(() =>
   !isRoommate.value && typeof room.value?.houseId === "string" ? room.value.houseId : "",
 );
@@ -179,33 +189,31 @@ function formatDate(dateStr) {
         <!-- Ảnh bài đăng -->
         <div class="detail-photo">
           <img
-            :src="
-              slide === 0 ? room.image : '/illustrations/room-' + (slide + 1) + '.svg'
-            "
+            :src="gallery[slide] || room.image"
             :alt="room.title + ' — góc nhìn ' + (slide + 1)"
           />
           <button
             class="icon-button photo-prev"
             aria-label="Ảnh trước"
-            @click="slide = (slide + 3) % 4"
+            @click="slide = (slide + gallery.length - 1) % gallery.length"
           >
             <Icon name="left" />
           </button>
           <button
             class="icon-button photo-next"
             aria-label="Ảnh tiếp theo"
-            @click="slide = (slide + 1) % 4"
+            @click="slide = (slide + 1) % gallery.length"
           >
             <Icon name="right" />
           </button>
-          <span class="photo-counter">{{ slide + 1 }} / 4</span>
+          <span class="photo-counter">{{ slide + 1 }} / {{ gallery.length }}</span>
         </div>
 
         <!-- Tiêu đề & Badges -->
         <div class="section-heading detail-title">
           <div>
             <div class="detail-badges">
-              <span class="badge">{{ room.status || "Đang mở" }}</span>
+              <span class="badge" :class="{ 'available-badge': room.status === 'Còn phòng' }">{{ room.status || "Đang mở" }}</span>
               <span v-if="isRoommate" class="badge roommate-tag">Tìm người ở ghép</span>
               <span v-if="room.school" class="badge school-tag">{{ room.school }}</span>
             </div>
@@ -358,7 +366,6 @@ function formatDate(dateStr) {
                 }}</time>
               </div>
               <div v-if="review.rating" class="review-stars" :aria-label="review.rating + ' trên 5 sao'"><Icon v-for="star in 5" :key="star" name="star" :size="20" :class="{ filled: star <= review.rating }" /></div>
-              <p v-if="review.sample" class="review-sample">Dữ liệu mẫu</p>
               <div v-if="review.images?.length" class="review-images"><img v-for="(image, index) in review.images" :key="index" :src="image" :alt="'Ảnh đánh giá của ' + review.author" loading="lazy"></div>
               <p>{{ review.content }}</p>
             </div>
@@ -590,13 +597,19 @@ function formatDate(dateStr) {
 </template>
 
 <style scoped>
+.detail-badges .available-badge{background:#276b50;color:#fff}
+.detail-photo .icon-button{width:44px;height:44px}
+@media(hover:hover){.detail-photo .icon-button{opacity:0;transition:opacity .2s,background-color .2s}.detail-photo .icon-button::before{content:'';position:absolute;inset:-30px -12px}.detail-photo .icon-button:hover,.detail-photo .icon-button:focus-visible{opacity:1}}
+@media(prefers-reduced-motion:reduce){.detail-photo .icon-button{transition:none}}
+.detail-grid > section,.detail-grid > aside{min-width:0}
+.detail-title > div{min-width:0}
+.detail-title h1,.detail-title .location,.house-preview + h3,.review-heading strong{overflow-wrap:anywhere}
 .review-stars{display:flex;gap:3px;color:#d8d3c5;margin-top:8px}
 .review-stars .filled{color:#ffb703;fill:#ffb703;filter:drop-shadow(0 1px 2px rgba(255,183,3,0.35))}
 .rating-choice{border:0;padding:0;margin:0;display:flex;gap:2px;color:#d8d3c5}
 .rating-choice .filled{color:#ffb703;fill:#ffb703;filter:drop-shadow(0 1px 2px rgba(255,183,3,0.4))}
 .review-images{display:flex;gap:8px;overflow-x:auto;margin-top:12px}
 .review-images img{width:150px;height:100px;object-fit:cover;border-radius:10px;flex:none}
-.house-review .review-sample{font-size:12px;color:#526065;margin-top:4px}
 .rating-row{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
 .rating-caption{align-self:flex-end;padding-bottom:12px;font-size:13px;color:#526065}
 .rating-choice legend{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:8px}
@@ -642,8 +655,6 @@ function formatDate(dateStr) {
   display: grid;
   gap: 10px;
   margin-top: 24px;
-  padding: 24px 0 0;
-  border-top: 1px solid var(--line);
 }
 .review-form label {
   font-size: 14px;
@@ -810,6 +821,16 @@ function formatDate(dateStr) {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 @media (max-width: 600px) {
+  .detail-grid{gap:28px}
+  .detail-title{gap:12px}
+  .detail-title h1{font-size:24px!important;line-height:1.3}
+  .detail-price{font-size:24px}
+  .detail-grid aside{min-width:0}
+  .detail-grid .contact-card{padding:18px}
+  .contact-actions,.profile-contact-actions{display:flex;flex-wrap:wrap}
+  .contact-actions .button,.profile-contact-actions .button{min-height:44px;white-space:normal}
+  .review-actions .button{min-height:44px}
+  .map-external{line-height:1.5;overflow-wrap:anywhere}
   .spec-grid,
   .cost-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -21,9 +21,78 @@ const card=computed(()=>({id:'draft',title:draft.title||'Tiêu đề bài đăng
 function validate(){Object.keys(errors).forEach(k=>delete errors[k]);if(step.value===1){for(const [key,label,type,required] of fields.value){if(required){const err=validateField(key,draft[key]);if(err)errors[key]=err}else if(draft[key]!==''&&type==='number'&&(!Number.isFinite(Number(draft[key]))||Number(draft[key])<0))errors[key]='Giá trị không được âm.'}}if(step.value===2){for(const k of ['ward','street'])if(!draft[k].trim())errors[k]='Vui lòng điền địa chỉ.'}if(step.value===3&&images.value.length<3)errors.images='Cần ít nhất 3 ảnh và tối đa 10 ảnh.';if(Object.keys(errors).length){requestAnimationFrame(()=>document.querySelector('[aria-invalid="true"]')?.focus());return false}return true}
 function next(){if(validate()){step.value++;window.scrollTo({top:0,behavior:'smooth'})}}
 function back(){step.value=Math.max(1,step.value-1);Object.keys(errors).forEach(k=>delete errors[k])}
-function upload(e){dragging.value=false;uploadError.value='';const files=[...(e.dataTransfer?.files||e.target.files||[])];for(const file of files){if(images.value.length>=10){uploadError.value='Chỉ được tải tối đa 10 ảnh.';break}if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>10*1024*1024){uploadError.value='Chỉ nhận JPG, PNG, WEBP tối đa 10 MB mỗi ảnh.';continue}images.value.push({id:crypto.randomUUID(),file,url:URL.createObjectURL(file)})}if(e.target.type==='file')e.target.value='';if(images.value.length>=3)delete errors.images}
+async function compressImageFile(file, maxWidth = 1000, quality = 0.75) {
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const result = reader.result
+      if (typeof window === 'undefined' || !window.Image) return resolve(result)
+      const img = new Image()
+      img.onload = () => {
+        let w = img.width, h = img.height
+        if (!w || !h) return resolve(result)
+        if (w > maxWidth || h > maxWidth) {
+          if (w > h) { h = Math.round((h * maxWidth) / w); w = maxWidth }
+          else { w = Math.round((w * maxWidth) / h); h = maxWidth }
+        }
+        try {
+          const canvas = document.createElement('canvas')
+          canvas.width = w; canvas.height = h
+          const ctx = canvas.getContext('2d')
+          ctx.drawImage(img, 0, 0, w, h)
+          resolve(canvas.toDataURL('image/jpeg', quality))
+        } catch { resolve(result) }
+      }
+      img.onerror = () => resolve(result)
+      img.src = result
+    }
+    reader.onerror = () => resolve('')
+    reader.readAsDataURL(file)
+  })
+}
+async function upload(e){
+  dragging.value=false;uploadError.value=''
+  const files=[...(e.dataTransfer?.files||e.target.files||[])]
+  for(const file of files){
+    if(images.value.length>=10){uploadError.value='Chỉ được tải tối đa 10 ảnh.';break}
+    if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>10*1024*1024){
+      uploadError.value='Chỉ nhận JPG, PNG, WEBP tối đa 10 MB mỗi ảnh.'
+      continue
+    }
+    const blobUrl = URL.createObjectURL(file)
+    const base64Promise = compressImageFile(file)
+    images.value.push({id:crypto.randomUUID(),file,url:blobUrl,base64Promise})
+  }
+  if(e.target.type==='file')e.target.value=''
+  if(images.value.length>=3)delete errors.images
+}
 function removeImage(i){URL.revokeObjectURL(images.value[i].url);images.value.splice(i,1)}
-function publish(){if(!validate())return;if(images.value.length<3){step.value=3;errors.images='Vui lòng tải lại ít nhất 3 ảnh cho bài đăng.';return}const house=state.houses.find(h=>h.id===draft.houseId);const post={...draft,...card.value,id:route.query.edit||'post-'+Date.now(),kind:kind.value,ownerId:state.user.id,status:'Chờ duyệt',house:house?.name||draft.house,houseId:draft.houseId,image:'/illustrations/room-1.svg'};const index=state.posts.findIndex(p=>p.id===post.id);if(index>=0)state.posts[index]=post;else state.posts.unshift(post);state.drafts[kind.value]={};success.value=true;preview.value=false;window.scrollTo({top:0})}
+async function publish(){
+  if(!validate())return
+  if(images.value.length<3){step.value=3;errors.images='Vui lòng tải lại ít nhất 3 ảnh cho bài đăng.';return}
+  const house=state.houses.find(h=>h.id===draft.houseId)
+  const convertedPhotos = await Promise.all(images.value.map(async im => {
+    if (im.base64Promise) return await im.base64Promise
+    return im.url
+  }))
+  const mainImage = convertedPhotos[0] || '/illustrations/room-1.svg'
+  const post={
+    ...draft,
+    ...card.value,
+    id:route.query.edit||'post-'+Date.now(),
+    kind:kind.value,
+    ownerId:state.user.id,
+    status:'Chờ duyệt',
+    house:house?.name||draft.house,
+    houseId:draft.houseId,
+    image:mainImage,
+    images:convertedPhotos
+  }
+  const index=state.posts.findIndex(p=>p.id===post.id)
+  if(index>=0)state.posts[index]=post;else state.posts.unshift(post)
+  state.drafts[kind.value]={}
+  success.value=true;preview.value=false;window.scrollTo({top:0})
+}
 function locate(){
  if(locating.value)return
  if(!navigator.geolocation){locationState.value='error';locationNotice.value='Trình duyệt này không hỗ trợ định vị. Vui lòng nhập địa chỉ bên dưới.';return}
