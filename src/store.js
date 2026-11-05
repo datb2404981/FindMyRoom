@@ -10,7 +10,16 @@ const defaults = () => ({
   drafts: { roommate: {}, rental: {} },
 })
 function savedData(storageKey) {
-  try { return JSON.parse(localStorage.getItem(storageKey) || '{}') || {} } catch { return {} }
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey) || '{}') || {}
+    if (Array.isArray(saved.posts)) {
+      saved.posts = saved.posts.map(post => {
+        const original = (post.kind || 'rental') === 'rental' ? rooms.find(room => room.id === post.id) : null
+        return original ? { ...original, ...post } : post
+      })
+    }
+    return saved
+  } catch { return {} }
 }
 // The old browser-only session is no longer accepted as proof of login.
 try { sessionStorage.removeItem('findmyroom-session-v1') } catch {}
@@ -90,7 +99,12 @@ export async function updateAccount(profile) {
 export function updateRentalPost(post) {
   const index = state.posts.findIndex(item => item.id === post.id)
   if (state.user?.role !== 'landlord' || index < 0 || (state.posts[index].kind || 'rental') !== 'rental') throw new Error('Không tìm thấy bài đăng cho thuê để chỉnh sửa.')
-  const posts = state.posts.map((item, i) => i === index ? { ...item, ...post } : item)
+  savePost(post)
+}
+
+export function savePost(post) {
+  const exists = state.posts.some(item => item.id === post.id)
+  const posts = exists ? state.posts.map(item => item.id === post.id ? { ...item, ...post } : item) : [post, ...state.posts]
   const { user, ...data } = state
   try {
     localStorage.setItem(storageKey(user), JSON.stringify({ ...data, posts }))

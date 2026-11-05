@@ -247,7 +247,7 @@ export const people = rawStudents.map((s, i) => {
   const acc = accountMap.get(s.account_id) || {}
   const pref = prefMap.get(s.student_code) || {}
   const uni = uniMap.get(s.university_id) || {}
-  const roommatePost = rawRoommates[i] || {}
+  const roommatePost = rawRoommates.find(post => post.student_code === s.student_code) || {}
   const postAmenities = roommateAmenitiesMap.get(roommatePost.roommate_post_id) || []
   const birthYear = s.date_of_birth ? new Date(s.date_of_birth).getFullYear() : 2004
   const age = Math.max(18, 2026 - birthYear)
@@ -303,6 +303,8 @@ export const people = rawStudents.map((s, i) => {
   return {
     id,
     studentCode: s.student_code,
+    roommateTitle: roommatePost.title,
+    roommateImages: roommateImagesMap.get(roommatePost.roommate_post_id) || [],
     name,
     age,
     school,

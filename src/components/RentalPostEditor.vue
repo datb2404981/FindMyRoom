@@ -3,12 +3,14 @@ import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
 import Icon from './Icon.vue'
 import { amenities, nearby, lifestyles } from '../data'
 import { state } from '../store'
+import { readImageFile } from '../image-upload'
 
 const props = defineProps({ post: { type: Object, required: true }, saveError: { type: String, default: '' } })
 const emit = defineEmits(['close', 'save'])
 const form = reactive(JSON.parse(JSON.stringify(props.post)))
 const tab = ref('general'), errors = reactive({}), uploading = ref(false), imageError = ref('')
 const photos = ref([...(props.post.images?.length ? props.post.images : [props.post.image])].filter(Boolean))
+const dragDepth = ref(0)
 const tabs = [{ id: 'general', label: 'Thông tin chung', icon: 'info' }, { id: 'images', label: 'Hình ảnh', icon: 'images' }, { id: 'amenities', label: 'Tiện ích', icon: 'grid' }]
 const numericFields = [
   ['people', 'Số người tối đa', 1, true], ['count', 'Số phòng còn lại', 0, true],
@@ -34,6 +36,7 @@ onMounted(() => { previousOverflow = document.body.style.overflow; document.body
 onUnmounted(() => { document.body.style.overflow = previousOverflow })
 
 async function addPhotos(event) {
+  dragDepth.value = 0
   const files = [...(event.dataTransfer?.files || event.target.files || [])]
   if (uploading.value) return
   uploading.value = true
@@ -45,12 +48,7 @@ async function addPhotos(event) {
         imageError.value = 'Chỉ nhận JPG, PNG, WEBP tối đa 10 MB mỗi ảnh.'
         continue
       }
-      const url = await new Promise((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload = () => resolve(reader.result)
-        reader.onerror = reject
-        reader.readAsDataURL(file)
-      })
+      const url = await readImageFile(file)
       photos.value.push(url)
     }
   } catch { imageError.value = 'Không đọc được ảnh. Vui lòng chọn lại.' }
@@ -109,9 +107,23 @@ async function save() {
             </div>
             <div v-show="tab === 'images'">
               <p class="muted editor-intro">Ảnh đầu tiên là ảnh bìa. Bạn có thể đặt ảnh khác làm ảnh bìa trước khi lưu.</p>
-              <label class="editor-upload" @dragover.prevent @drop.prevent="addPhotos"><Icon name="upload"/><span>{{ uploading ? 'Đang đọc ảnh…' : 'Chọn hoặc kéo ảnh vào đây' }}</span><small>JPG, PNG, WEBP · tối đa 10 MB/ảnh, 10 ảnh</small><input type="file" multiple accept="image/jpeg,image/png,image/webp" :disabled="uploading" aria-label="Thêm ảnh bài đăng" @change="addPhotos"></label>
+              <div class="editor-photos" :class="{ empty: !photos.length }">
+                <figure v-for="(photo, index) in photos" :key="index">
+                  <img :src="photo" :alt="'Ảnh phòng ' + (index + 1)">
+                  <span v-if="index === 0" class="badge cream">Ảnh bìa</span>
+                  <button type="button" class="icon-button photo-remove" :disabled="uploading" :aria-label="'Xóa ảnh ' + (index + 1)" @click="photos.splice(index, 1)"><Icon name="close" :size="16"/></button>
+                  <button v-if="index > 0" type="button" class="photo-cover" :disabled="uploading" @click="photos.unshift(...photos.splice(index, 1))">Đặt làm ảnh bìa</button>
+                </figure>
+                <label v-if="photos.length < 10" class="editor-upload" :class="{ 'is-empty': !photos.length, dragging: dragDepth > 0 }"
+                  @dragenter.prevent="dragDepth++" @dragleave.prevent="dragDepth = Math.max(0, dragDepth - 1)"
+                  @dragover.prevent="$event.dataTransfer.dropEffect = 'copy'" @drop.prevent="addPhotos">
+                  <Icon name="upload" :size="32"/>
+                  <strong>{{ uploading ? 'Đang đọc ảnh…' : photos.length ? 'Thêm ảnh' : 'Nhấp để chọn hoặc kéo ảnh vào đây' }}</strong>
+                  <small>{{ photos.length ? 'Chọn hoặc kéo ảnh vào ô' : 'JPG, PNG, WEBP · tối đa 10 MB/ảnh, 10 ảnh' }}</small>
+                  <input type="file" multiple accept="image/jpeg,image/png,image/webp" :disabled="uploading" aria-label="Thêm ảnh bài đăng" @change="addPhotos">
+                </label>
+              </div>
               <p v-if="imageError" class="error" role="alert">{{ imageError }}</p>
-              <div class="editor-photos"><figure v-for="(photo, index) in photos" :key="index"><img :src="photo" :alt="'Ảnh phòng ' + (index + 1)"><span v-if="index === 0" class="badge cream">Ảnh bìa</span><div><button v-if="index > 0" type="button" class="photo-cover" @click="photos.unshift(...photos.splice(index, 1))">Đặt làm ảnh bìa</button><button type="button" class="icon-button" :aria-label="'Xóa ảnh ' + (index + 1)" @click="photos.splice(index, 1)"><Icon name="trash" :size="16"/></button></div></figure></div>
             </div>
             <div v-show="tab === 'amenities'" class="editor-amenities"><fieldset v-for="[label, key, items] in amenityGroups" :key="key"><legend>{{ label }}</legend><div><label v-for="item in items" :key="item" class="check"><input v-model="form[key]" type="checkbox" :value="item">{{ item }}</label></div></fieldset></div>
           </form>
@@ -151,20 +163,26 @@ async function save() {
 .editor-footer > p { margin: 0 0 12px; }
 .editor-footer .button { min-height: 44px; font-size: 13px; }
 .editor-intro { margin-top: 0; font-size: 13px; }
-.editor-upload { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 26px 16px; border: 1px dashed var(--muted); border-radius: 12px; background: var(--cream); text-align: center; font-size: 14px; }
+.editor-upload { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; aspect-ratio: 1; min-width: 0; padding: 16px; border: 1px dashed var(--muted); border-radius: 8px; background: var(--cream); text-align: center; font-size: 14px; transition: background-color .2s ease, border-color .2s ease; }
+.editor-upload > svg { color: var(--muted); }
+.editor-upload small { font-size: 12px; color: var(--muted); }
+.editor-upload.is-empty { aspect-ratio: auto; min-height: 320px; }
+.editor-upload.dragging { background: var(--cream-deep); border-color: var(--ink); outline: 3px solid var(--cyan); }
 .editor-upload input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 .editor-upload:focus-within { outline: 3px solid var(--cyan); }
-.editor-photos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 20px; }
-.editor-photos figure { position: relative; margin: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
-.editor-photos img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
-.editor-photos .badge { position: absolute; top: 8px; left: 8px; }
-.editor-photos figure > div { display: flex; align-items: center; justify-content: flex-end; gap: 4px; padding: 4px; }
-.editor-photos .icon-button { width: 44px; height: 44px; color: var(--error); }
-.photo-cover { min-height: 44px; padding: 6px; font-size: 12px; text-decoration: underline; }
+.editor-photos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; max-width: 660px; margin: 20px auto 0; }
+.editor-photos.empty { display: block; }
+.editor-photos figure { position: relative; aspect-ratio: 1; min-width: 0; margin: 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.editor-photos img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.editor-photos .badge { position: absolute; top: 10px; left: 8px; max-width: calc(100% - 62px); font-size: 11px; }
+.editor-photos .photo-remove { position: absolute; top: 6px; right: 6px; width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 50%; background: #fff; color: var(--ink); }
+.editor-photos .photo-remove:hover { background: var(--cream-deep); }
+.photo-cover { position: absolute; bottom: 8px; left: 8px; right: 8px; min-height: 44px; padding: 6px; border: 1px solid var(--line); border-radius: 7px; background: #fff; font-size: 12px; }
 .editor-amenities fieldset { margin: 0 0 24px; padding: 0; border: 0; }
-.editor-amenities legend { margin-bottom: 14px; font-size: 16px; font-weight: 600; }
-.editor-amenities fieldset > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 18px; }
-.editor-amenities .check { min-height: 44px; margin: 0; font-size: 13px; }
+.editor-amenities legend { margin-bottom: 10px; font-size: 16px; font-weight: 600; }
+.editor-amenities fieldset > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 16px; padding: 14px 18px; border: 1px solid var(--muted); }
+.editor-amenities .check { min-width: 0; min-height: 44px; margin: 0; font-size: 13px; }
+.editor-amenities .check input { flex-shrink: 0; }
 @media (max-width: 700px) {
   .rental-editor-backdrop { padding: 12px; }
   .rental-editor { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); height: calc(100dvh - 24px); border-radius: 14px; }
@@ -180,6 +198,14 @@ async function save() {
   .editor-grid .field { grid-column: 1 / -1; }
   .editor-footer { padding: 14px 18px; }
   .editor-photos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .editor-upload { padding: 12px 8px; font-size: 13px; }
+  .editor-upload.is-empty { min-height: 260px; }
+  .editor-amenities fieldset > div { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 12px; }
+}
+@media (max-width: 440px) {
   .editor-amenities fieldset > div { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .editor-upload { transition: none; }
 }
 </style>
