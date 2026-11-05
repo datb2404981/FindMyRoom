@@ -363,7 +363,7 @@ function formatDate(dateStr) {
               <p>{{ review.content }}</p>
             </div>
             <form v-if="state.user" class="review-form" @submit.prevent="submitReview">
-              <fieldset class="rating-choice"><legend>Đánh giá của bạn</legend><label v-for="star in 5" :key="star"><input v-model.number="reviewRating" type="radio" name="rating" :value="star" :aria-label="star + ' sao'"><Icon name="star" :size="26" :class="{ filled: star <= reviewRating }" /></label></fieldset>
+              <div class="rating-row"><fieldset class="rating-choice"><legend>Đánh giá của bạn</legend><label v-for="star in 5" :key="star"><input v-model.number="reviewRating" type="radio" name="rating" :value="star" :aria-label="star + ' sao'"><Icon name="star" :size="23" :class="{ filled: star <= reviewRating }" /></label></fieldset><span class="rating-caption" aria-live="polite">{{ reviewRating ? reviewRating + ' / 5' : 'Chọn số sao' }}</span></div>
               <label for="review-content">Viết bình luận</label>
               <textarea
                 id="review-content"
@@ -374,20 +374,17 @@ function formatDate(dateStr) {
                 :aria-invalid="!!reviewError"
                 :aria-describedby="reviewError ? 'review-error' : undefined"
               ></textarea>
-              <label for="review-image">Thêm ảnh (không bắt buộc)</label>
-              <input id="review-image" type="file" accept="image/jpeg,image/png,image/webp" @change="selectReviewImage">
               <div v-if="reviewImage" class="review-image-preview"><img :src="reviewImage" alt="Ảnh đánh giá đã chọn"><button type="button" @click="reviewImage = ''">Xóa ảnh</button></div>
-              <small class="review-intro">JPG, PNG hoặc WEBP, tối đa 1 MB.</small>
               <p v-if="reviewError" id="review-error" class="review-error" role="alert">
                 {{ reviewError }}
               </p>
-              <button
+              <div class="review-actions"><div><label class="review-upload" for="review-image"><Icon name="camera" :size="18" /><span>Thêm ảnh</span></label><input id="review-image" class="review-file-input" type="file" accept="image/jpeg,image/png,image/webp" @change="selectReviewImage"><small class="review-upload-hint">JPG, PNG, WEBP · Tối đa 1 MB</small></div><button
                 type="submit"
                 class="button primary"
                 :disabled="reviewSaving || reviewsLoading"
               >
                 {{ reviewSaving ? "Đang gửi…" : "Gửi bình luận" }}
-              </button>
+              </button></div>
             </form>
             <template v-else
               ><p v-if="reviewError" class="review-error" role="alert">
@@ -598,9 +595,12 @@ function formatDate(dateStr) {
 .review-images{display:flex;gap:8px;overflow-x:auto;margin-top:12px}
 .review-images img{width:150px;height:100px;object-fit:cover;border-radius:10px;flex:none}
 .house-review .review-sample{font-size:12px;color:#526065;margin-top:4px}
-.rating-choice{border:0;padding:0;margin:0;display:flex;gap:2px;color:#b4831e}
-.rating-choice legend{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:4px}
-.rating-choice label{width:44px;height:44px;display:grid;place-items:center;cursor:pointer;position:relative}
+.rating-row{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.rating-caption{align-self:flex-end;padding-bottom:12px;font-size:13px;color:#526065}
+.rating-choice{border:0;padding:0;margin:0;display:flex;gap:2px;color:#a36c0d}
+.rating-choice legend{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:8px}
+.rating-choice label{width:44px;height:44px;display:grid;place-items:center;cursor:pointer;position:relative;border-radius:10px;transition:background-color .2s}
+.rating-choice label:hover{background:#fff3d8}
 .rating-choice input{position:absolute;opacity:0}
 .rating-choice label:has(input:focus-visible){outline:3px solid #638d92;outline-offset:2px;border-radius:8px}
 .review-image-preview{display:flex;align-items:end;gap:12px}
@@ -640,7 +640,9 @@ function formatDate(dateStr) {
 .review-form {
   display: grid;
   gap: 10px;
-  margin-top: 20px;
+  margin-top: 24px;
+  padding: 24px 0 0;
+  border-top: 1px solid var(--line);
 }
 .review-form label {
   font-size: 14px;
@@ -648,12 +650,25 @@ function formatDate(dateStr) {
 }
 .review-form textarea {
   resize: vertical;
-  min-height: 90px;
+  min-height: 120px;
   font-size: 16px;
+  line-height: 1.5;
+  background: #fff;
+  border-color: #c9ceca;
+  border-radius: 10px;
 }
+.review-form textarea::placeholder{color:#626e6b}
+.review-actions{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-top:4px}
+.review-upload{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border:1px solid #b5c4b8;border-radius:999px;background:#fff;cursor:pointer;color:#315b3b;transition:background-color .2s,border-color .2s}
+.review-upload:hover{background:#eff6f0;border-color:#55775f}
+.review-upload:has(+ .review-file-input:focus-visible){outline:3px solid #638d92;outline-offset:3px}
+.review-upload-hint{display:block;margin-top:5px;font-size:12px;line-height:1.4;color:#52655a}
+.review-file-input{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .review-form .button {
   justify-self: start;
 }
+@media(max-width:600px){.review-actions{align-items:flex-start}.review-upload-hint{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.rating-choice label,.review-upload{transition:none}}
 .review-error {
   color: var(--error);
   font-size: 13px;
@@ -768,7 +783,7 @@ function formatDate(dateStr) {
   border-radius: 999px;
 }
 .author-profile-card.contact-card {
-  margin-top: 0;
+  margin-top: 5px;
   margin-bottom: 24px;
 }
 .desc-text {
