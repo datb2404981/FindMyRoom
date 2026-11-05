@@ -748,6 +748,8 @@ function formatDate(dateStr) {
   color: #4f5e61;
   margin: 0;
   line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 .author-profile-card {
   padding: 20px;
@@ -801,6 +803,8 @@ function formatDate(dateStr) {
   font-size: 14.5px;
   line-height: 1.65;
   color: #2b393b;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
   margin-bottom: 12px;
 }
 .aside-amenities {
