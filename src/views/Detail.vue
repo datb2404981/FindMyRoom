@@ -104,7 +104,12 @@ function formatDate(dateStr) {
               <Icon name="pin" :size="17" />{{ room.address }}
             </p>
           </div>
-          <button class="icon-button outlined" @click="act('save')" aria-label="Lưu bài đăng">
+          <button
+            class="icon-button outlined"
+            :class="{ 'saved-heart': state.favorites.includes(room.id) }"
+            @click="act('save')"
+            :aria-label="state.favorites.includes(room.id) ? 'Bỏ lưu tin' : 'Lưu tin'"
+          >
             <Icon name="heart" />
           </button>
         </div>
@@ -444,5 +449,13 @@ function formatDate(dateStr) {
   .cost-grid {
     gap: 14px 10px;
   }
+}
+.saved-heart {
+  background: var(--coral, #f8d6cc);
+  border-color: #f27058;
+}
+.saved-heart svg {
+  fill: #c93636;
+  color: #c93636;
 }
 </style>
