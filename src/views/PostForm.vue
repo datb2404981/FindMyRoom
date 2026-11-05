@@ -13,7 +13,19 @@ onUnmounted(()=>{locationRequest++})
 const steps=computed(()=>rental.value?['Thông tin chung','Vị trí & Địa lý','Hình ảnh','Tiện ích','Xem trước']:['Thông tin chung','Vị trí & Địa lý','Hình ảnh','Tiện ích'])
 const defaults=()=>({title:'',gender:'Tất cả',school:'Đại học Cần Thơ',moveIn:'',people:1,area:'',price:'',perPerson:'',electric:'',water:'',internet:'',other:'',deposit:'',count:1,houseId:'',desc:'',city:'Cần Thơ',ward:'',street:'',house:'',amenities:[],nearby:[],lifestyles:[],habits:'',latitude:null,longitude:null})
 const draft=reactive(defaults())
-function load(){locationRequest++;locating.value=false;locationState.value='';locationNotice.value='';step.value=1;images.value=[];success.value=false;preview.value=false;Object.keys(errors).forEach(k=>delete errors[k]);Object.assign(draft,defaults(),state.drafts[kind.value]||{});if(route.query.edit){const item=state.posts.find(p=>p.id===route.query.edit);if(item)Object.assign(draft,item)}}
+function load(){
+  locationRequest++;locating.value=false;locationState.value='';locationNotice.value='';step.value=1;images.value=[];success.value=false;preview.value=false
+  Object.keys(errors).forEach(k=>delete errors[k])
+  Object.assign(draft,defaults(),state.drafts[kind.value]||{})
+  if(route.query.edit){
+    const item=state.posts.find(p=>p.id===route.query.edit)
+    if(item){
+      Object.assign(draft,item)
+      const existingPhotos = item.images?.length ? item.images : (item.image ? [item.image] : [])
+      images.value = existingPhotos.map(url => ({ id: crypto.randomUUID(), url, base64Promise: Promise.resolve(url) }))
+    }
+  }
+}
 load();watch(()=>[route.params.kind,route.query.edit],load)
 watch(draft,()=>{state.drafts[kind.value]={...draft}},{deep:true})
 const fields=computed(()=>rental.value?[['title','Tiêu đề bài đăng','text',true,'Ví dụ: Phòng có gác gần Đại học Cần Thơ'],['houseId','Chọn nhà trọ','house',true],['count','Số lượng phòng','number',true],['deposit','Tiền cọc (đ)','number',false],['price','Giá thuê (đ/tháng)','number',true],['area','Diện tích (m²)','number',true],['electric','Giá điện (đ/kWh)','number',true],['water','Giá nước (đ/m³)','number',true],['internet','Tiền wifi (đ/tháng)','number',false],['other','Chi phí khác','text',false],['people','Số người tối đa','number',true]]:[['title','Tiêu đề bài đăng','text',true,'Ví dụ: Tìm bạn nữ ở ghép gần trường'],['gender','Đối tượng (nam/nữ)','gender',true],['school','Trường đại học nhắm tới','text',false],['moveIn','Ngày có thể chuyển vào','date',true],['people','Số người cần tìm','number',true],['area','Diện tích (m²)','number',true],['price','Tiền trọ (đ)','number',true],['perPerson','Dự kiến giá/người (đ)','number',true],['electric','Tiền điện (đ/kWh)','number',true],['water','Tiền nước (đ/m³)','number',true],['internet','Tiền internet (đ/tháng)','number',false],['other','Phí khác','text',false]])
@@ -66,7 +78,12 @@ async function upload(e){
   if(e.target.type==='file')e.target.value=''
   if(images.value.length>=3)delete errors.images
 }
-function removeImage(i){URL.revokeObjectURL(images.value[i].url);images.value.splice(i,1)}
+function removeImage(i){
+  if (images.value[i]?.file) {
+    try { URL.revokeObjectURL(images.value[i].url) } catch {}
+  }
+  images.value.splice(i,1)
+}
 async function publish(){
   if(!validate())return
   if(images.value.length<3){step.value=3;errors.images='Vui lòng tải lại ít nhất 3 ảnh cho bài đăng.';return}
