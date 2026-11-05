@@ -745,19 +745,19 @@ async function submit() {
 
 .otp-inputs-grid {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   justify-content: center;
   margin-bottom: 24px;
   width: 100%;
 }
 
 .otp-digit-input {
-  width: 50px;
-  height: 56px;
+  width: 44px;
+  height: 58px;
   background: #edf1f2;
   border: 1.5px solid transparent;
-  border-radius: 10px;
-  font-size: 24px;
+  border-radius: 8px;
+  font-size: 22px;
   font-weight: 700;
   text-align: center;
   color: var(--ink, #131414);
@@ -815,12 +815,12 @@ async function submit() {
     padding: 28px 20px 24px;
   }
   .otp-inputs-grid {
-    gap: 6px;
+    gap: 8px;
   }
   .otp-digit-input {
-    width: 42px;
-    height: 48px;
-    font-size: 20px;
+    width: 38px;
+    height: 50px;
+    font-size: 18px;
   }
 }
 </style>
