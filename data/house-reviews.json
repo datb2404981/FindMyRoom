@@ -6,5 +6,13 @@
     "content": "qwet",
     "rating": 4,
     "createdAt": "2026-11-05T16:49:21.249Z"
+  },
+  {
+    "id": "0785bf29-202a-4129-9c01-f2a654a9445f",
+    "houseId": "hung-phu",
+    "author": "Đạt Nguyễn Văn",
+    "content": "xấu quá đi",
+    "rating": 3,
+    "createdAt": "2026-11-05T17:32:22.725Z"
   }
 ]

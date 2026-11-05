@@ -71,6 +71,15 @@
       "role": "student",
       "passwordHash": "scrypt:6985091dff50662b276d3d4f4ed3f4d3:a91e74ff416442e827e212e9f4aa74469e0ef173642588fae244c2dc736bbb17da9f89393564d78492cad63c1fd0ceffd6e59ee86a88b35509ad64130f07c538",
       "createdAt": "2026-11-05T14:28:02.148Z"
+    },
+    {
+      "id": "310f7d18-1fbf-4ded-a32a-ac3fb14f5383",
+      "name": "Đạt Nguyễn Văn",
+      "email": "dat709206@gmail.com",
+      "phone": "0987654321",
+      "role": "student",
+      "passwordHash": "scrypt:8f65c95e4c447722a3667916223f87f7:406ee0d76a1fa2b1d8885da9db243a35966e3626f0b4d9464f5ae1d67aaa33693789f61f8482af2172a0f64a316c95ee20fdfa1babb73158c8de065e09174d56",
+      "createdAt": "2026-11-05T17:28:45.125Z"
     }
   ]
 }
