@@ -11,6 +11,8 @@ import rawAccounts from '../data/account.json'
 import rawStudents from '../data/student_profile.json'
 import rawPrefs from '../data/roommate_preference.json'
 import rawUnis from '../data/university.json'
+import rawReviews from '../data/review.json'
+import rawReviewImages from '../data/review_image.json'
 
 const amenityMap = new Map(rawAmenities.map(a => [a.amenity_id, a.amenity_name]))
 const houseMap = new Map(rawHouses.map(h => [h.boarding_house_id, h]))
@@ -318,6 +320,14 @@ export const people = rawStudents.map((s, i) => {
     zaloPhone: acc.zalo_phone,
     email: acc.email,
   }
+})
+
+export const sampleHouseReviews = rawReviews.flatMap(review => {
+  const rawRoom = rawRoomPosts.find(post => post.boarding_house_id === review.boarding_house_id)
+  const houseId = rooms.find(room => room.roomPostId === rawRoom?.room_post_id)?.houseId
+  const student = rawStudents.find(item => item.student_code === review.student_code)
+  if (!houseId) return []
+  return [{ id: review.review_id, houseId, author: accountMap.get(student?.account_id)?.full_name || 'Người dùng', content: review.content, createdAt: review.reviewed_at, rating: review.rating, images: rawReviewImages.find(image => image.review_id === review.review_id)?.images_url || [], sample: true }]
 })
 
 export const money = n => new Intl.NumberFormat('vi-VN').format(Number(n) || 0) + ' đ'

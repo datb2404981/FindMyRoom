@@ -5,7 +5,7 @@ import { ArrowDown, ArrowUp, Coins } from '@lucide/vue'
 import Icon from '../components/Icon.vue'
 import RoomCard from '../components/RoomCard.vue'
 import SearchFilters from '../components/SearchFilters.vue'
-import { rooms, districts } from '../data'
+import { districts } from '../data'
 import { state } from '../store'
 import { emptyFilters, filtersFromQuery, queryFromFilters, matchesFilters, searchQueryError } from '../search-filters'
 import { publicRentals, searchableText } from '../listings'
@@ -34,16 +34,20 @@ watch([loadMoreTrigger, mobileLimit, isMobile], ([element]) => {
   loadObserver?.disconnect()
   if (element && isMobile.value) loadObserver?.observe(element)
 }, { flush: 'post' })
-const districtImages = ['ninh-kieu', 'cai-rang', 'binh-thuy', 'o-mon', 'thot-not', 'phong-dien', 'co-do', '', 'vinh-thanh']
+const districtImages = ['ninh-kieu', 'cai-rang', 'binh-thuy', 'o-mon', 'thot-not', 'phong-dien', 'co-do', 'thoi-lai', 'vinh-thanh']
 const searchKeys = ['search', 'q', 'school', 'district', 'prices', 'amenity', 'price', 'page']
 const isSearching = computed(() => searchKeys.some(key => Object.hasOwn(route.query, key)))
 const queryError = computed(() => searchQueryError(route.query))
 const hasCriteria = computed(() => searchKeys.some(key => !['search', 'page'].includes(key) && Object.hasOwn(route.query, key)))
 const appliedFilters = computed(() => filtersFromQuery(route.query))
 const appliedKeyword = computed(() => searchableText({ title: typeof route.query.q === 'string' ? route.query.q.trim() : '' }))
-const rentals = computed(() => publicRentals(state.posts))
+const rentals = computed(() => {
+  const listings = new Map(publicRentals(state.posts).map(room => [room.id, room]))
+  for (const post of state.posts) if (post.kind === 'rental') listings.set(post.id, post)
+  return [...listings.values()].filter(room => room.status === 'Còn phòng')
+})
 const priceOrder = computed(() => ['asc', 'desc'].includes(route.query.sort) ? route.query.sort : '')
-const featuredRooms = computed(() => rooms.slice(0, 6))
+const featuredRooms = computed(() => rentals.value.slice(0, 6))
 function scrollTrack(track, direction) {
   if (!track) return
   const card = track.firstElementChild
@@ -113,9 +117,8 @@ function goToPage(page) {
           <div id="location-track" ref="locationTrack" class="location-grid" role="region" aria-label="Các khu vực tìm trọ" tabindex="0"><RouterLink v-for="(district, index) in districts" :key="district" :to="{ path: '/', query: { search: '1', district } }" class="location-card"><img :src="districtImages[index] ? '/images/districts/' + districtImages[index] + '.jpg' : '/illustrations/district-1.svg'" alt="" loading="lazy"><div><h3>{{ district }}</h3><Icon name="diagonal" :size="18" /></div></RouterLink></div>
           <button type="button" class="icon-button featured-arrow featured-arrow-next" aria-label="Địa điểm tiếp theo" aria-controls="location-track" @click="scrollTrack(locationTrack, 1)"><Icon name="right" /></button>
         </div>
-        <p class="district-photo-credit"><a href="/images/districts/ATTRIBUTION.md" target="_blank" rel="noopener noreferrer">Nguồn ảnh khu vực</a></p>
       </section>
-      <section class="container section featured">
+      <section v-if="featuredRooms.length" class="container section featured">
         <div class="section-heading"><h2>Phòng trọ nổi bật</h2></div>
         <div class="featured-carousel">
           <button type="button" class="icon-button featured-arrow featured-arrow-prev" aria-label="Cuộn đến phòng trước" aria-controls="featured-rooms" @click="scrollTrack(featuredTrack, -1)"><Icon name="left" /></button>
@@ -128,7 +131,7 @@ function goToPage(page) {
     <section id="home-listings" class="container home-listings" :class="{ 'search-listings': isSearching }" aria-label="Danh sách chỗ ở">
       <p v-if="route.query.guide" class="notice">Không chuyển cọc trước khi xem phòng và xác minh người cho thuê.</p>
       <div class="home-listings-heading">
-        <div><h2>{{ isSearching ? 'Kết quả tìm kiếm' : 'Danh sách phòng trọ' }}</h2><p v-if="!queryError && resultCount" class="muted" role="status">{{ isSearching ? resultCount + ' phòng cho thuê' + (route.query.q ? ' cho “' + route.query.q + '”' : '') + '.' : resultCount + ' phòng trọ đang cho thuê.' }}</p></div>
+        <div><h2>{{ isSearching ? 'Kết quả tìm kiếm' : 'Danh sách phòng trọ' }}</h2><p v-if="isSearching && !queryError && resultCount" class="muted" role="status">{{ resultCount + ' phòng cho thuê' + (route.query.q ? ' cho “' + route.query.q + '”' : '') + '.' }}</p></div>
         <div v-if="isSearching" class="home-listings-actions"><button v-if="hasCriteria && resultCount && !queryError" type="button" class="text-button" @click="reset">Xóa bộ lọc</button><RouterLink to="/" class="text-button">Về trang chủ</RouterLink></div>
       </div>
       <div v-if="queryError" class="home-empty-state" role="alert"><span class="empty-icon"><Icon name="info" :size="32" /></span><h2>Dữ liệu không hợp lệ!</h2><p id="home-search-error">{{ queryError }}</p><button type="button" class="button primary" @click="reset">Nhập lại tìm kiếm</button></div>
@@ -166,8 +169,6 @@ function goToPage(page) {
 @media(max-width:600px){.locations .location-card{flex-basis:85%}}
 .locations .location-card>div svg{transition:transform .2s}
 .locations .location-card:hover>div svg{transform:translate(3px,-3px)}
-.district-photo-credit{margin-top:12px;text-align:right;font-size:12px;color:#526065}
-.district-photo-credit a{text-decoration:underline;text-underline-offset:3px}
 .home-page :deep(.room-card){height:100%}
 .home-page :deep(.room-content h3){display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;height:2lh;min-height:0}
 .home-page :deep(.card-link){transition:background-color .2s,border-color .2s}
