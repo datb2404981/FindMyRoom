@@ -6,6 +6,7 @@ import MatchFilterPanel from '../components/MatchFilterPanel.vue'
 import {people,money} from '../data'
 import {schools} from '../search-filters'
 import {state} from '../store'
+import {roommateListings} from '../listings'
 
 const defaults=()=>({locationMode:'place',school:'',district:'',gender:'',budgetMin:500000,budgetMax:2000000,amenities:[],habits:[]})
 const router=useRouter(),route=useRoute()
@@ -27,6 +28,10 @@ const candidates=computed(()=>{
 })
 
 const current=computed(()=>candidates.value[0])
+const currentPost=computed(()=>{
+ const post=roommateListings.find(item=>item.personId===current.value?.id)
+ return state.posts.find(item=>item.kind==='roommate'&&item.id===post?.id)||post
+})
 const canGoBack=computed(()=>history.value.length>0||state.passed.length>0)
 
 function skip(){
@@ -46,15 +51,10 @@ function goBack(){
  notice.value=''
 }
 
-function getPostId(person){
- if(!person)return ''
- return `ghep-${person.id}`
-}
-
 function viewDetail(){
- if(!current.value)return
+ if(!currentPost.value)return
  router.push({
-  path:'/phong/'+getPostId(current.value),
+  path:'/phong/'+currentPost.value.id,
   query:{returnTo:'/ghep-tro?start=1'}
  })
 }
@@ -74,13 +74,13 @@ async function begin(){
  started.value=true
  notice.value=''
  await nextTick()
- if(window.innerWidth<=800){
-  stage.value?.focus({preventScroll:true})
-  stage.value?.scrollIntoView({
-   behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',
-   block:'start'
-  })
- }
+ stage.value?.focus({preventScroll:true})
+ const controls=stage.value?.querySelector('.match-actions')
+ const target=controls||stage.value
+ target?.scrollIntoView({
+  behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',
+  block:controls?'end':'start'
+ })
 }
 </script>
 
@@ -109,22 +109,22 @@ async function begin(){
           <p class="muted">Chọn nơi ở, ngân sách và lối sống, rồi bắt đầu kết nối.</p>
         </div>
 
-        <template v-else-if="current">
-          <article class="person-card" :key="current.id">
-            <div class="person-portrait" :style="{ background: current.color }">
-              <img src="/illustrations/person.svg" :alt="'Minh họa hồ sơ ' + current.name">
-              <span class="badge"><Icon name="shield" :size="13" />Hồ sơ mẫu</span>
+        <template v-else-if="current && currentPost">
+          <article class="person-card" :key="currentPost.id" :data-post-id="currentPost.id">
+            <div class="person-portrait">
+              <img :src="currentPost.image" :alt="currentPost.title">
+              <span class="badge">{{ currentPost.status }}</span>
             </div>
             <div class="person-info">
               <div class="section-heading">
-                <h2>{{ current.name }}, {{ current.age }}</h2>
+                <h2>{{ currentPost.title }}</h2>
                 <span class="muted">{{ current.gender }}</span>
               </div>
               <p class="location"><Icon name="building" :size="16" />{{ current.school }} · {{ current.major }}</p>
               <p class="location muted"><Icon name="pin" :size="16" />{{ current.district }}, Cần Thơ</p>
               <div class="tags"><span v-for="t in current.tags" :key="t">{{ t }}</span></div>
               <p class="person-budget">{{ money(current.price) }}<span> / người / tháng</span></p>
-              <p class="person-bio">{{ current.bio }}</p>
+              <p class="person-bio">{{ currentPost.desc }}</p>
             </div>
           </article>
 
@@ -195,6 +195,11 @@ async function begin(){
   min-width: 0;
   scroll-margin-top: 24px;
 }
+.match-stage > h1 { position: relative; top: 12px; }
+.person-portrait > img { object-fit: cover; object-position: center; }
+.person-info .section-heading { align-items: flex-start; gap: 12px; }
+.person-info h2 { font-size: 21px; line-height: 1.4; overflow-wrap: anywhere; }
+.person-info .section-heading > span { flex-shrink: 0; font-size: 12px; padding-top: 4px; }
 .match-stage:focus-visible {
   outline: 2px solid #8fc8cf;
   outline-offset: 8px;
@@ -207,6 +212,7 @@ async function begin(){
   margin-top: 10px;
 }
 .match-actions {
+  scroll-margin-bottom: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -302,6 +308,7 @@ async function begin(){
   }
   .match-actions {
     gap: 24px;
+    scroll-margin-bottom: calc(96px + env(safe-area-inset-bottom));
   }
   .match-action {
     font-size: 12px;

@@ -5,7 +5,7 @@ import Icon from '../components/Icon.vue'
 import MapPanel from '../components/MapPanel.vue'
 import { rooms, money } from '../data'
 import { roommateListings } from '../listings'
-import { state, toggleFavorite } from '../store'
+import { state } from '../store'
 
 const route = useRoute(), router = useRouter()
 const room = computed(() => {
@@ -26,10 +26,9 @@ const contactPhone = computed(() => {
 const remainingRooms = computed(() => room.value?.count ?? rooms.find(item => item.id === route.params.id)?.count)
 const internetPrice = computed(() => room.value?.internet ?? rooms.find(item => item.id === route.params.id)?.internet)
 
-function act(kind) {
+function act() {
   if (!state.user) return router.push('/dang-nhap?redirect=' + encodeURIComponent(route.fullPath))
-  if (kind === 'save') toggleFavorite(room.value.id)
-  else contact.value = true
+  contact.value = true
 }
 
 const backTo = computed(() => {
@@ -104,9 +103,6 @@ function formatDate(dateStr) {
               <Icon name="pin" :size="17" />{{ room.address }}
             </p>
           </div>
-          <button class="icon-button outlined" @click="act('save')" aria-label="Lưu bài đăng">
-            <Icon name="heart" />
-          </button>
         </div>
 
         <!-- Giá hiển thị -->
@@ -246,7 +242,7 @@ function formatDate(dateStr) {
             <button v-else class="button primary contact-phone" disabled>
               <Icon name="phone" :size="18" />Chưa có số điện thoại
             </button>
-            <button class="button secondary" @click="act('chat')">Chat Zalo</button>
+            <button class="button secondary" @click="act">Chat Zalo</button>
           </div>
           <p v-if="contact" class="notice">
             {{
@@ -307,20 +303,10 @@ function formatDate(dateStr) {
             <strong>Nguyễn Minh Anh</strong>
             <div class="stars">★★★★★</div>
             <p>Phòng thoáng, khu vực đi lại thuận tiện, phù hợp cho sinh viên.</p>
-            <small class="muted">Đánh giá mẫu trong bản demo</small>
+
           </div>
         </section>
 
-        <div class="notice">
-          <Icon name="shield" />
-          <p>
-            {{
-              isRoommate
-                ? 'Trao đổi rõ giờ giấc, chi phí và việc nhà. Hãy gặp nhau ở nơi công cộng trước khi quyết định ở cùng.'
-                : 'Hãy xem phòng trực tiếp và kiểm tra hợp đồng trước khi đặt cọc.'
-            }}
-          </p>
-        </div>
       </aside>
     </div>
   </div>

@@ -113,7 +113,6 @@ function goToPage(page) {
           <div id="location-track" ref="locationTrack" class="location-grid" role="region" aria-label="Các khu vực tìm trọ" tabindex="0"><RouterLink v-for="(district, index) in districts" :key="district" :to="{ path: '/', query: { search: '1', district } }" class="location-card"><img :src="districtImages[index] ? '/images/districts/' + districtImages[index] + '.jpg' : '/illustrations/district-1.svg'" alt="" loading="lazy"><div><h3>{{ district }}</h3><Icon name="diagonal" :size="18" /></div></RouterLink></div>
           <button type="button" class="icon-button featured-arrow featured-arrow-next" aria-label="Địa điểm tiếp theo" aria-controls="location-track" @click="scrollTrack(locationTrack, 1)"><Icon name="right" /></button>
         </div>
-        <p class="district-photo-credit"><a href="/images/districts/ATTRIBUTION.md" target="_blank" rel="noopener noreferrer">Nguồn ảnh khu vực</a></p>
       </section>
       <section class="container section featured">
         <div class="section-heading"><h2>Phòng trọ nổi bật</h2></div>
@@ -128,8 +127,8 @@ function goToPage(page) {
     <section id="home-listings" class="container home-listings" :class="{ 'search-listings': isSearching }" aria-label="Danh sách chỗ ở">
       <p v-if="route.query.guide" class="notice">Không chuyển cọc trước khi xem phòng và xác minh người cho thuê.</p>
       <div class="home-listings-heading">
-        <div><h2>{{ isSearching ? 'Kết quả tìm kiếm' : 'Danh sách phòng trọ' }}</h2><p v-if="!queryError && resultCount" class="muted" role="status">{{ isSearching ? resultCount + ' phòng cho thuê' + (route.query.q ? ' cho “' + route.query.q + '”' : '') + '.' : resultCount + ' phòng trọ đang cho thuê.' }}</p></div>
-        <div v-if="isSearching" class="home-listings-actions"><button v-if="hasCriteria && resultCount && !queryError" type="button" class="text-button" @click="reset">Xóa bộ lọc</button><RouterLink to="/" class="text-button">Về trang chủ</RouterLink></div>
+        <div><h2>{{ isSearching ? 'Kết quả tìm kiếm' : 'Danh sách phòng trọ' }}</h2></div>
+        <div v-if="isSearching && hasCriteria && resultCount && !queryError" class="home-listings-actions"><button type="button" class="text-button" @click="reset">Xóa bộ lọc</button></div>
       </div>
       <div v-if="queryError" class="home-empty-state" role="alert"><span class="empty-icon"><Icon name="info" :size="32" /></span><h2>Dữ liệu không hợp lệ!</h2><p id="home-search-error">{{ queryError }}</p><button type="button" class="button primary" @click="reset">Nhập lại tìm kiếm</button></div>
       <div v-else-if="!resultCount" class="home-empty-state" role="status"><span class="empty-icon"><Icon name="search" :size="32" /></span><h2>Không tìm thấy kết quả phù hợp!</h2><p>Thử thay đổi từ khóa, khu vực, khoảng giá hoặc tiện ích nhé.</p><button type="button" class="button primary" @click="reset">Xóa bộ lọc</button></div>

@@ -160,7 +160,7 @@ async function logout() {
       <div>
         <h4>Thông tin liên lạc</h4>
         <p>Đại học Cần Thơ<br />Khu II, đường 3/2, Ninh Kiều<br />Cần Thơ, Việt Nam</p>
-        <p class="muted">Bản demo học phần CT113</p>
+
               </div>
     </div>
   </footer>
