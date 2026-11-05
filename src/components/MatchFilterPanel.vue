@@ -15,7 +15,6 @@ const locationOptions = computed(() => model.value.locationMode === 'place' ? sc
 const selectedLocation = computed(() => model.value.locationMode === 'place' ? model.value.school : model.value.district)
 const fromPercent = computed(() => (model.value.budgetMin - lowerLimit) / (upperLimit - lowerLimit) * 100)
 const toPercent = computed(() => (model.value.budgetMax - lowerLimit) / (upperLimit - lowerLimit) * 100)
-const activeCount = computed(() => model.value.amenities.length + model.value.habits.length)
 function patch(value) { model.value = { ...model.value, ...value } }
 function changeMode(mode) {
   if (model.value.locationMode === mode) return
@@ -80,17 +79,17 @@ function reset() { locationOpen.value = false; emit('reset') }
       </section>
 
       <section class="match-choice-group" aria-labelledby="match-amenities-heading">
-        <div class="match-section-heading"><h3 id="match-amenities-heading"><Icon name="filter" :size="18" />Tiện ích</h3><span class="match-selection-count">{{ model.amenities.length ? model.amenities.length + ' đã chọn' : 'Tùy chọn' }}</span></div>
-        <div class="match-choice-grid amenities-choices"><label v-for="amenity in amenities" :key="amenity" class="match-choice" :class="{ selected: model.amenities.includes(amenity) }"><input type="checkbox" :checked="model.amenities.includes(amenity)" @change="toggle('amenities', amenity)"><span>{{ amenity }}</span></label></div>
+        <div class="match-section-heading"><h3 id="match-amenities-heading"><Icon name="filter" :size="18" />Tiện ích</h3></div>
+        <div class="match-choice-grid"><label v-for="amenity in amenities" :key="amenity" class="match-choice" :class="{ selected: model.amenities.includes(amenity) }"><input type="checkbox" :checked="model.amenities.includes(amenity)" @change="toggle('amenities', amenity)"><span>{{ amenity }}</span></label></div>
       </section>
 
       <section class="match-choice-group" aria-labelledby="match-lifestyle-heading">
-        <div class="match-section-heading"><h3 id="match-lifestyle-heading"><Icon name="heart" :size="18" />Phong cách sống</h3><span class="match-selection-count">{{ model.habits.length ? model.habits.length + ' đã chọn' : 'Tùy chọn' }}</span></div>
+        <div class="match-section-heading"><h3 id="match-lifestyle-heading"><Icon name="heart" :size="18" />Phong cách sống</h3></div>
         <div class="match-choice-grid"><label v-for="habit in lifestyleOptions" :key="habit" class="match-choice" :class="{ selected: model.habits.includes(habit) }"><input type="checkbox" :checked="model.habits.includes(habit)" @change="toggle('habits', habit)"><span>{{ habit }}</span></label></div>
       </section>
     </div>
 
-    <footer class="match-filter-footer"><p><Icon name="shield" :size="15" />{{ activeCount ? activeCount + ' mong muốn đã chọn cho lần ghép này' : 'Bắt đầu từ những điều bạn thấy thoải mái' }}</p><button type="button" class="button primary full match-start" @click="locationOpen = false; emit('start')">Bắt đầu ghép trọ <Icon name="arrow" :size="19" /></button><RouterLink to="/dang-bai/roommate" class="match-post-link"><Icon name="plus" :size="16" />Bạn có phòng? Đăng bài ghép trọ</RouterLink></footer>
+    <footer class="match-filter-footer"><button type="button" class="button primary full match-start" @click="locationOpen = false; emit('start')">Bắt đầu ghép trọ <Icon name="arrow" :size="19" /></button></footer>
   </aside>
 </template>
 
@@ -107,8 +106,7 @@ function reset() { locationOpen.value = false; emit('reset') }
 .match-section-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:15px}
 .match-section-heading h3{display:flex;align-items:center;gap:8px;font-family:inherit;font-size:15px;font-weight:600;letter-spacing:0;line-height:1.4}
 .match-section-heading h3 svg{color:#4c6967}
-.match-unit,.match-selection-count{font-size:10px;color:#617071;white-space:nowrap}
-.match-selection-count{padding:3px 7px;background:#f2efe5;border-radius:999px}
+.match-unit{font-size:10px;color:#617071;white-space:nowrap}
 .match-location-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border:1px solid #dddfd3;border-radius:12px;background:#f5f3eb;margin-bottom:16px}
 .match-location-tabs button{min-height:42px;padding:7px 3px;border-radius:9px;font-size:12px;font-weight:500;transition:background .18s,box-shadow .18s}
 .match-location-tabs button[aria-pressed=true]{background:#fff;border:1px solid #dedfd5;box-shadow:0 2px 5px #13141409;font-weight:600;color:#273f3e}
@@ -144,22 +142,14 @@ function reset() { locationOpen.value = false; emit('reset') }
 .budget-limits{display:flex;justify-content:space-between;font-size:10px;color:#718077}
 .match-choice-group{padding:16px 12px 12px;border:1px solid #e5e3d8;border-radius:16px;background:#fcfbf6}
 .match-choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
-.amenities-choices{grid-auto-rows:56px;max-height:242px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#a8b2a6 #f5f3eb}
 .match-choice{display:flex;align-items:center;gap:8px;min-height:44px;padding:8px 7px;border:1px solid transparent;border-radius:9px;font-size:13px;line-height:1.5;cursor:pointer;transition:background .18s,border-color .18s}
-.amenities-choices .match-choice{min-height:0}
 .match-choice:hover{background:#f1eee2}
 .match-choice.selected{background:#f7eccb;border-color:#e7d59f}
 .match-choice input{width:16px;height:16px;accent-color:#365f62;flex-shrink:0;cursor:pointer}
 .match-filter-footer{padding:0 24px 22px}
-.match-filter-footer p{display:flex;align-items:center;justify-content:center;gap:6px;font-size:10px;color:#617071;margin:0;line-height:1.6;text-align:center}
-.match-filter-footer .match-start{min-height:48px;font-size:13px;gap:12px;margin-top:12px}
-.match-post-link{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:46px;padding:10px 18px;margin-top:10px;border-radius:999px;border:1.5px solid #d5d9cf;background:#fff;color:#2c4846;font-size:13px;font-weight:600;text-decoration:none;box-shadow:0 1px 3px rgba(19,20,20,.04);transition:all .2s cubic-bezier(.16,1,.3,1)}
-.match-post-link:hover{background:#f6f3e8;border-color:#365f62;color:#1e3836;transform:translateY(-1px);box-shadow:0 4px 12px rgba(19,20,20,.08);text-decoration:none}
-.match-post-link:active{transform:scale(.98);background:#eee9d8}
-.match-post-link svg{color:#365f62;transition:transform .2s ease}
-.match-post-link:hover svg{transform:rotate(90deg)}
+.match-filter-footer .match-start{min-height:48px;font-size:13px;gap:12px;margin-top:0}
 button:focus-visible,a:focus-visible,input[type=checkbox]:focus-visible{outline:2px solid #365f62;outline-offset:3px}
 @media(min-width:601px) and (max-width:800px){.match-filter-body{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.match-budget-group{border-top:0;padding-top:0}.desktop-break{display:none}}
-@media(max-width:600px){.amenities-choices{grid-auto-rows:64px;max-height:204px}.match-filter-header{padding:20px}.match-filter-header h2{font-size:25px}.match-filter-header p{font-size:16px}.match-filter-body{padding:20px;gap:20px}.match-filter-kicker>span{font-size:10px}.match-reset{width:44px;height:44px}.desktop-break{display:none}.match-section-heading h3{font-size:16px}.match-location-tabs button{font-size:14px;min-height:44px}.match-location-select,.match-select-wrapper select{font-size:16px}.match-location-options button{font-size:16px}.match-field-label{font-size:14px}.match-choice-group{padding:14px 10px 10px}.match-choice{font-size:16px;min-height:48px;padding:8px 4px;gap:7px}.match-choice input{width:18px;height:18px}.budget-values strong{font-size:16px}.match-filter-footer{padding:0 20px 20px}.match-filter-footer .match-start{font-size:15px}.match-post-link{font-size:13px}.match-filter-footer p{font-size:11px}}
+@media(max-width:600px){.match-filter-header{padding:20px}.match-filter-header h2{font-size:25px}.match-filter-header p{font-size:16px}.match-filter-body{padding:20px;gap:20px}.match-filter-kicker>span{font-size:10px}.match-reset{width:44px;height:44px}.desktop-break{display:none}.match-section-heading h3{font-size:16px}.match-location-tabs button{font-size:14px;min-height:44px}.match-location-select,.match-select-wrapper select{font-size:16px}.match-location-options button{font-size:16px}.match-field-label{font-size:14px}.match-choice-group{padding:14px 10px 10px}.match-choice{font-size:16px;min-height:48px;padding:8px 4px;gap:7px}.match-choice input{width:18px;height:18px}.budget-values strong{font-size:16px}.match-filter-footer{padding:0 20px 20px}.match-filter-footer .match-start{font-size:15px}}
 @media(prefers-reduced-motion:reduce){.match-location-tabs button,.match-location-select>svg,.match-choice{transition:none}}
 </style>

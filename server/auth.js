@@ -152,12 +152,14 @@ export function createAuthMiddleware({ usersFile = defaultUsersFile } = {}) {
       if (path === '/api/auth/profile' && req.method === 'PATCH') {
         const user = await currentUser(req)
         if (!user) throw fail(401, 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.')
-        const fields = accountFields(await readBody(req))
+        const body = await readBody(req)
+        const fields = accountFields(body)
+        const role = body.role && ['student', 'landlord'].includes(body.role) ? body.role : undefined
         const updated = await updateUsers(users => {
           if (users.some(other => other.id !== user.id && other.email.toLowerCase() === fields.email)) throw fail(409, 'Email này đã được đăng ký.', 'email')
           const stored = users.find(other => other.id === user.id)
           if (!stored) throw fail(401, 'Tài khoản không còn tồn tại.')
-          return Object.assign(stored, fields)
+          return Object.assign(stored, fields, role ? { role } : {})
         })
         return reply(200, { user: publicUser(updated) })
       }

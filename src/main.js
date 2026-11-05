@@ -17,6 +17,7 @@ export const router = createRouter({
   history: createWebHashHistory(),
   scrollBehavior: (to, from, saved) => {
     if (saved) return saved;
+    if (to.path === "/" && from.path === "/" && to.query.sort !== from.query.sort && Object.keys({ ...to.query, ...from.query }).every(key => ['sort', 'page'].includes(key) || to.query[key] === from.query[key])) return false;
     if (to.path === "/" && from.path === "/" && to.query.page !== from.query.page) return { el: "#home-listings", top: 24 };
     return { top: 0 };
   },

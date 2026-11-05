@@ -1,5 +1,5 @@
 <script setup>
-import {ref,computed,nextTick} from 'vue'
+import {ref,computed,nextTick,watch,onUnmounted} from 'vue'
 import {useRouter,useRoute} from 'vue-router'
 import Icon from '../components/Icon.vue'
 import MatchFilterPanel from '../components/MatchFilterPanel.vue'
@@ -11,6 +11,19 @@ const defaults=()=>({locationMode:'place',school:'',district:'',gender:'',budget
 const router=useRouter(),route=useRoute()
 const started=ref(!!route.query.start),preferences=ref(defaults()),notice=ref(''),stage=ref(null)
 const history=ref([])
+
+watch(started,(val)=>{
+ if(val){
+  document.body.classList.add('match-active')
+ }else{
+  document.body.classList.remove('match-active')
+ }
+},{immediate:true})
+
+onUnmounted(()=>{
+ document.body.classList.remove('match-active')
+ window.removeEventListener('scroll', onWindowScroll)
+})
 
 const candidates=computed(()=>{
  const f=preferences.value,school=schools.find(s=>s.id===f.school)
@@ -29,21 +42,182 @@ const candidates=computed(()=>{
 const current=computed(()=>candidates.value[0])
 const canGoBack=computed(()=>history.value.length>0||state.passed.length>0)
 
+function preserveScroll(action){
+ const scrollY=window.scrollY||document.documentElement.scrollTop||0
+ action()
+ nextTick(()=>{
+  window.scrollTo({top:scrollY,behavior:'instant'})
+ })
+}
+
 function skip(){
  if(!current.value)return
- history.value.push(current.value.id)
- if(!state.passed.includes(current.value.id)){
-  state.passed.push(current.value.id)
- }
- notice.value=''
+ preserveScroll(()=>{
+  history.value.push(current.value.id)
+  if(!state.passed.includes(current.value.id)){
+   state.passed.push(current.value.id)
+  }
+  notice.value=''
+ })
 }
 
 function goBack(){
  const lastId=history.value.length?history.value.pop():state.passed.pop()
  if(!lastId)return
- const idx=state.passed.lastIndexOf(lastId)
- if(idx>=0)state.passed.splice(idx,1)
- notice.value=''
+ preserveScroll(()=>{
+  const idx=state.passed.lastIndexOf(lastId)
+  if(idx>=0)state.passed.splice(idx,1)
+  notice.value=''
+ })
+}
+
+const dragX=ref(0)
+const isDragging=ref(false)
+const isSwipingOut=ref(false)
+const swipeDirection=ref(0)
+let startX=0
+let startY=0
+let activePointerId=null
+let lockedScrollY=0
+
+function onWindowScroll(){
+ if(isDragging.value){
+  window.scrollTo({top:lockedScrollY,behavior:'instant'})
+ }
+}
+
+const cardStyle=computed(()=>{
+ if(isDragging.value){
+  const rotation=dragX.value*0.04
+  const dragDistance=Math.abs(dragX.value)
+  // Khi kéo từ 0 đến khoảng 40px, card mờ dần về 0
+  const opacity=Math.max(0, 1 - (dragDistance / 40))
+  return{
+   transform:`translate3d(${dragX.value}px, 0, 0) rotate(${rotation}deg)`,
+   opacity:`${opacity}`,
+   transition:'none',
+   cursor:'grabbing',
+   userSelect:'none',
+   touchAction:'none'
+  }
+ }
+ if(isSwipingOut.value){
+  const targetX=swipeDirection.value*(window.innerWidth > 800 ? 320 : 220)
+  const rotation=swipeDirection.value*10
+  return{
+   transform:`translate3d(${targetX}px, 0, 0) rotate(${rotation}deg)`,
+   opacity:'0',
+   transition:'transform 0.22s ease-out, opacity 0.22s ease-out',
+   touchAction:'none'
+  }
+ }
+ return{
+  transform:'translate3d(0, 0, 0) rotate(0deg)',
+  opacity:'1',
+  transition:'transform 0.24s cubic-bezier(0.18, 0.89, 0.32, 1.28), opacity 0.2s ease',
+  userSelect:'none',
+  touchAction:'none'
+ }
+})
+
+function triggerSwipe(dir){
+ if(isSwipingOut.value)return
+ isDragging.value=false
+ activePointerId=null
+ window.removeEventListener('scroll',onWindowScroll)
+
+ swipeDirection.value=dir
+ isSwipingOut.value=true
+ const currentScroll=lockedScrollY
+
+ setTimeout(()=>{
+  if(dir===-1){
+   skip()
+  }else{
+   if(canGoBack.value){
+    goBack()
+   }else{
+    skip()
+   }
+  }
+  isSwipingOut.value=false
+  dragX.value=0
+  window.scrollTo({top:currentScroll,behavior:'instant'})
+ },200)
+}
+
+function onPointerDown(e){
+ if(e.button!==undefined&&e.button!==0)return
+ if(e.target.closest('button, a, input, select, textarea'))return
+
+ lockedScrollY=window.scrollY||document.documentElement.scrollTop||0
+ window.addEventListener('scroll',onWindowScroll,{passive:false})
+
+ activePointerId=e.pointerId
+ startX=e.clientX
+ startY=e.clientY
+ dragX.value=0
+ isDragging.value=true
+
+ try{
+  e.currentTarget?.setPointerCapture?.(e.pointerId)
+ }catch{}
+}
+
+function onPointerMove(e){
+ if(activePointerId===null||e.pointerId!==activePointerId)return
+ if(!isDragging.value||isSwipingOut.value)return
+
+ dragX.value=e.clientX-startX
+
+ if(e.cancelable){
+  e.preventDefault()
+ }
+
+ const currentY=window.scrollY||document.documentElement.scrollTop||0
+ if(Math.abs(currentY-lockedScrollY)>0.5){
+  window.scrollTo({top:lockedScrollY,behavior:'instant'})
+ }
+
+ // Khi kéo sang khoảng 40px thì card mờ dần và ẩn đi luôn
+ if(Math.abs(dragX.value)>=40){
+  triggerSwipe(dragX.value>0?1:-1)
+ }
+}
+
+function onPointerUp(e){
+ if(activePointerId===null||e.pointerId!==activePointerId)return
+ try{
+  e.currentTarget?.releasePointerCapture?.(e.pointerId)
+ }catch{}
+ activePointerId=null
+ window.removeEventListener('scroll',onWindowScroll)
+
+ if(isSwipingOut.value)return
+
+ if(!isDragging.value){
+  dragX.value=0
+  return
+ }
+
+ if(Math.abs(dragX.value)>=35){
+  triggerSwipe(dragX.value>0?1:-1)
+ }else{
+  isDragging.value=false
+  dragX.value=0
+ }
+}
+
+function onPointerCancel(e){
+ if(activePointerId===null||e.pointerId!==activePointerId)return
+ try{
+  e.currentTarget?.releasePointerCapture?.(e.pointerId)
+ }catch{}
+ activePointerId=null
+ window.removeEventListener('scroll',onWindowScroll)
+ isDragging.value=false
+ dragX.value=0
+ window.scrollTo({top:lockedScrollY,behavior:'instant'})
 }
 
 function getPostId(person){
@@ -64,10 +238,18 @@ function resetFilters(){
  notice.value=''
 }
 
-function restart(){
+function resetToStart(){
+ started.value=false
  history.value=[]
  state.passed=[]
  resetFilters()
+ if(window.innerWidth<=800){
+  window.scrollTo({top:0,behavior:'smooth'})
+ }
+}
+
+function restart(){
+ resetToStart()
 }
 
 async function begin(){
@@ -75,7 +257,6 @@ async function begin(){
  notice.value=''
  await nextTick()
  if(window.innerWidth<=800){
-  stage.value?.focus({preventScroll:true})
   stage.value?.scrollIntoView({
    behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',
    block:'start'
@@ -97,11 +278,31 @@ async function begin(){
     </div>
 
     <div class="match-layout">
-      <MatchFilterPanel v-model="preferences" @start="begin" @reset="resetFilters" />
+      <MatchFilterPanel
+        v-model="preferences"
+        :class="{ 'mobile-filter-hidden': started }"
+        @start="begin"
+        @reset="resetFilters"
+      />
 
-      <section ref="stage" class="match-stage" tabindex="-1" aria-label="Kết quả ghép trọ">
-        <span class="eyebrow">Cùng một mái nhà, cùng nhịp sống</span>
-        <h1>Không chỉ tìm phòng.<br>Tìm người đồng hành.</h1>
+      <section ref="stage" class="match-stage" aria-label="Kết quả ghép trọ">
+        <div class="match-stage-top">
+          <div class="match-stage-title">
+            <span class="eyebrow">Cùng một mái nhà, cùng nhịp sống</span>
+            <h1>Không chỉ tìm phòng.<br>Tìm người đồng hành.</h1>
+          </div>
+          <button
+            v-if="started"
+            type="button"
+            class="button secondary reset-start-btn"
+            @click="resetToStart"
+            aria-label="Đặt lại về trang bắt đầu"
+            title="Quay lại cài đặt bộ lọc ban đầu"
+          >
+            <Icon name="reset" :size="16" />
+            <span>Tùy chỉnh lại bộ lọc</span>
+          </button>
+        </div>
 
         <div v-if="!started" class="match-welcome">
           <img src="/illustrations/friends.svg" alt="Hai người bạn ở cùng">
@@ -110,16 +311,40 @@ async function begin(){
         </div>
 
         <template v-else-if="current">
-          <article class="person-card" :key="current.id">
+          <article
+            class="person-card"
+            :style="cardStyle"
+            @pointerdown="onPointerDown"
+            @pointermove="onPointerMove"
+            @pointerup="onPointerUp"
+            @pointercancel="onPointerCancel"
+            @touchmove.prevent
+            @dragstart.prevent
+          >
+            <div v-if="isDragging && dragX < -15" class="swipe-hint pass">
+              <Icon name="close" :size="18" />
+              <span>BỎ QUA</span>
+            </div>
+            <div v-if="isDragging && dragX > 15" :class="['swipe-hint', canGoBack ? 'back' : 'pass']">
+              <Icon :name="canGoBack ? 'back' : 'close'" :size="18" />
+              <span>{{ canGoBack ? 'QUAY LẠI' : 'BỎ QUA' }}</span>
+            </div>
+
             <div class="person-portrait" :style="{ background: current.color }">
-              <img src="/illustrations/person.svg" :alt="'Minh họa hồ sơ ' + current.name">
+              <img
+                :src="current.image || '/illustrations/room-1.svg'"
+                :alt="current.title || ('Ảnh phòng trọ ' + current.name)"
+                draggable="false"
+                @dragstart.prevent
+              >
               <span class="badge"><Icon name="shield" :size="13" />Hồ sơ mẫu</span>
             </div>
             <div class="person-info">
               <div class="section-heading">
-                <h2>{{ current.name }}, {{ current.age }}</h2>
+                <h2>{{ current.title || ('Tìm bạn ở ghép tại ' + current.district) }}</h2>
                 <span class="muted">{{ current.gender }}</span>
               </div>
+              <p class="person-author"><Icon name="user" :size="15" />Đăng bởi: <strong>{{ current.name }}</strong> ({{ current.age }} tuổi)</p>
               <p class="location"><Icon name="building" :size="16" />{{ current.school }} · {{ current.major }}</p>
               <p class="location muted"><Icon name="pin" :size="16" />{{ current.district }}, Cần Thơ</p>
               <div class="tags"><span v-for="t in current.tags" :key="t">{{ t }}</span></div>
@@ -193,7 +418,104 @@ async function begin(){
 }
 .match-stage {
   min-width: 0;
+  min-height: 520px;
   scroll-margin-top: 24px;
+}
+.match-stage-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.match-stage-top h1 {
+  margin-bottom: 0;
+}
+.reset-start-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid #d5dad1;
+  color: #27484a;
+  box-shadow: 0 1px 3px rgba(19, 20, 20, 0.05);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+.reset-start-btn:hover {
+  background: var(--cream-deep);
+  border-color: #365f62;
+  color: var(--ink);
+  transform: translateY(-1px);
+}
+.person-author {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: #556669;
+  margin: 6px 0 14px;
+}
+.person-author svg {
+  color: #365f62;
+}
+.person-card {
+  touch-action: none !important;
+  cursor: grab;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  overscroll-behavior: none;
+  will-change: transform;
+}
+.person-card:active {
+  cursor: grabbing;
+}
+.person-portrait img {
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+.swipe-hint {
+  position: absolute;
+  top: 18px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  pointer-events: none;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  animation: hintPop 0.12s ease-out;
+}
+.swipe-hint.pass {
+  right: 18px;
+  background: #f8d6cc;
+  color: #913625;
+  border: 1.5px solid #efb2a3;
+  transform: rotate(6deg);
+}
+.swipe-hint.back {
+  left: 18px;
+  background: #dceff1;
+  color: #215157;
+  border: 1.5px solid #b5dbe0;
+  transform: rotate(-6deg);
+}
+@keyframes hintPop {
+  from { transform: scale(0.85); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 .match-stage:focus-visible {
   outline: 2px solid #8fc8cf;
@@ -286,14 +608,35 @@ async function begin(){
   }
 }
 @media (max-width: 800px) {
+  :global(body.match-active .site-footer) {
+    display: none !important;
+  }
+  :global(body.match-active .page) {
+    padding-bottom: 96px;
+  }
+  .mobile-filter-hidden {
+    display: none !important;
+  }
+  .match-stage-top {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .reset-start-btn {
+    align-self: flex-start;
+    min-height: 44px;
+    padding: 10px 18px;
+  }
   .match-layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: 36px;
+    gap: 28px;
   }
   .match-stage {
-    padding: 15px 0;
+    padding: 10px 0;
     scroll-margin-top: 20px;
+    min-height: 540px;
   }
 }
 @media (max-width: 600px) {

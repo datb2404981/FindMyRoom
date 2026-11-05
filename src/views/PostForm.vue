@@ -1,20 +1,147 @@
 <script setup>
 import {computed,reactive,ref,watch,onUnmounted} from 'vue'
-import {useRoute,useRouter} from 'vue-router'
+import {useRoute,useRouter,onBeforeRouteLeave} from 'vue-router'
 import Icon from '../components/Icon.vue'
 import MapPanel from '../components/MapPanel.vue'
 import RoomCard from '../components/RoomCard.vue'
 import {amenities,nearby,lifestyles,money} from '../data'
 import {state,validateField} from '../store'
 const route=useRoute(),router=useRouter(),rental=computed(()=>route.params.kind==='rental'),kind=computed(()=>rental.value?'rental':'roommate'),step=ref(1),preview=ref(false),success=ref(false),errors=reactive({}),uploadError=ref(''),locationNotice=ref(''),locationState=ref(''),locating=ref(false),images=ref([])
-let locationRequest=0
-onUnmounted(()=>{locationRequest++})
+const leaveModal=ref(false),initialItem=ref(null)
+let locationRequest=0,pendingResolver=null,pendingAction=null
 const steps=computed(()=>rental.value?['Thông tin chung','Vị trí & Địa lý','Hình ảnh','Tiện ích','Xem trước']:['Thông tin chung','Vị trí & Địa lý','Hình ảnh','Tiện ích'])
 const defaults=()=>({title:'',gender:'Tất cả',school:'Đại học Cần Thơ',moveIn:'',people:1,area:'',price:'',perPerson:'',electric:'',water:'',internet:'',other:'',deposit:'',count:1,houseId:'',desc:'',city:'Cần Thơ',ward:'',street:'',house:'',amenities:[],nearby:[],lifestyles:[],habits:'',latitude:null,longitude:null})
 const draft=reactive(defaults())
-function load(){locationRequest++;locating.value=false;locationState.value='';locationNotice.value='';step.value=1;images.value=[];success.value=false;preview.value=false;Object.keys(errors).forEach(k=>delete errors[k]);Object.assign(draft,defaults(),state.drafts[kind.value]||{});if(route.query.edit){const item=state.posts.find(p=>p.id===route.query.edit);if(item)Object.assign(draft,item)}}
-load();watch(()=>[route.params.kind,route.query.edit],load)
-watch(draft,()=>{state.drafts[kind.value]={...draft}},{deep:true})
+
+function resetDraft(){
+  locationRequest++
+  locating.value=false
+  locationState.value=''
+  locationNotice.value=''
+  step.value=1
+  images.value.forEach(im=>{try{URL.revokeObjectURL(im.url)}catch{}})
+  images.value=[]
+  success.value=false
+  preview.value=false
+  Object.keys(errors).forEach(k=>delete errors[k])
+  Object.assign(draft,defaults())
+  state.drafts[kind.value]={}
+}
+
+function load(){
+  locationRequest++
+  locating.value=false
+  locationState.value=''
+  locationNotice.value=''
+  step.value=1
+  images.value.forEach(im=>{try{URL.revokeObjectURL(im.url)}catch{}})
+  images.value=[]
+  success.value=false
+  preview.value=false
+  Object.keys(errors).forEach(k=>delete errors[k])
+  if(route.query.edit){
+    const item=state.posts.find(p=>p.id===route.query.edit)
+    if(item){
+      Object.assign(draft,defaults(),item)
+      initialItem.value=JSON.stringify(item)
+    }
+  }else{
+    resetDraft()
+    initialItem.value=null
+  }
+}
+load()
+watch(()=>[route.params.kind,route.query.edit],load)
+
+const isDirty=computed(()=>{
+  if(success.value)return false
+  if(step.value>1)return true
+  if(images.value.length>0)return true
+  if(route.query.edit&&initialItem.value){
+    return JSON.stringify(draft)!==initialItem.value
+  }
+  return(
+    draft.title.trim()!==''||
+    draft.desc.trim()!==''||
+    draft.price!==''||
+    draft.area!==''||
+    draft.perPerson!==''||
+    draft.electric!==''||
+    draft.water!==''||
+    draft.internet!==''||
+    draft.other!==''||
+    draft.deposit!==''||
+    draft.street.trim()!==''||
+    draft.ward!==''||
+    draft.house.trim()!==''||
+    draft.houseId!==''||
+    draft.moveIn!==''||
+    draft.habits.trim()!==''||
+    draft.amenities.length>0||
+    draft.nearby.length>0||
+    draft.lifestyles.length>0
+  )
+})
+
+function cancelLeave(){
+  leaveModal.value=false
+  if(pendingResolver){pendingResolver(false);pendingResolver=null}
+  pendingAction=null
+}
+
+function confirmLeave(){
+  leaveModal.value=false
+  resetDraft()
+  if(pendingAction){
+    const action=pendingAction
+    pendingAction=null
+    action()
+  }
+  if(pendingResolver){
+    const resolver=pendingResolver
+    pendingResolver=null
+    resolver(true)
+  }
+}
+
+onBeforeRouteLeave((to,from)=>{
+  if(!isDirty.value||success.value)return true
+  if(pendingResolver)pendingResolver(false)
+  leaveModal.value=true
+  return new Promise(resolve=>{
+    pendingResolver=resolve
+  })
+})
+
+function handleBeforeUnload(e){
+  if(isDirty.value&&!success.value){
+    e.preventDefault()
+    e.returnValue=''
+  }
+}
+
+function handleExternalReset(){
+  if(route.path.startsWith('/dang-bai')){
+    if(isDirty.value&&!success.value){
+      if(pendingResolver)pendingResolver(false)
+      pendingAction=()=>{resetDraft();window.scrollTo({top:0,behavior:'smooth'})}
+      leaveModal.value=true
+    }else{
+      resetDraft()
+      window.scrollTo({top:0,behavior:'smooth'})
+    }
+  }
+}
+
+window.addEventListener('beforeunload',handleBeforeUnload)
+window.addEventListener('findmyroom:reset-post-form',handleExternalReset)
+
+onUnmounted(()=>{
+  locationRequest++
+  window.removeEventListener('beforeunload',handleBeforeUnload)
+  window.removeEventListener('findmyroom:reset-post-form',handleExternalReset)
+  images.value.forEach(im=>{try{URL.revokeObjectURL(im.url)}catch{}})
+})
 const fields=computed(()=>rental.value?[['title','Tiêu đề bài đăng','text',true,'Ví dụ: Phòng có gác gần Đại học Cần Thơ'],['houseId','Chọn nhà trọ','house',true],['count','Số lượng phòng','number',true],['deposit','Tiền cọc (đ)','number',false],['price','Giá thuê (đ/tháng)','number',true],['area','Diện tích (m²)','number',true],['electric','Giá điện (đ/kWh)','number',true],['water','Giá nước (đ/m³)','number',true],['internet','Tiền wifi (đ/tháng)','number',false],['other','Chi phí khác','text',false],['people','Số người tối đa','number',true]]:[['title','Tiêu đề bài đăng','text',true,'Ví dụ: Tìm bạn nữ ở ghép gần trường'],['gender','Đối tượng (nam/nữ)','gender',true],['school','Trường đại học nhắm tới','text',false],['moveIn','Ngày có thể chuyển vào','date',true],['people','Số người cần tìm','number',true],['area','Diện tích (m²)','number',true],['price','Tiền trọ (đ)','number',true],['perPerson','Dự kiến giá/người (đ)','number',true],['electric','Tiền điện (đ/kWh)','number',true],['water','Tiền nước (đ/m³)','number',true],['internet','Tiền internet (đ/tháng)','number',false],['other','Phí khác','text',false]])
 const card=computed(()=>({id:'draft',title:draft.title||'Tiêu đề bài đăng',price:draft.price,area:draft.area,people:draft.people,district:draft.ward||'Ninh Kiều',address:[draft.street,draft.ward,draft.city].filter(Boolean).join(', '),image:images.value[0]?.url||'/illustrations/room-1.svg',status:'Xem trước',...{house:draft.house}}))
 function validate(){Object.keys(errors).forEach(k=>delete errors[k]);if(step.value===1){for(const [key,label,type,required] of fields.value){if(required){const err=validateField(key,draft[key]);if(err)errors[key]=err}else if(draft[key]!==''&&type==='number'&&(!Number.isFinite(Number(draft[key]))||Number(draft[key])<0))errors[key]='Giá trị không được âm.'}}if(step.value===2){for(const k of ['ward','street'])if(!draft[k].trim())errors[k]='Vui lòng điền địa chỉ.'}if(step.value===3&&images.value.length<3)errors.images='Cần ít nhất 3 ảnh và tối đa 10 ảnh.';if(Object.keys(errors).length){requestAnimationFrame(()=>document.querySelector('[aria-invalid="true"]')?.focus());return false}return true}
@@ -43,7 +170,7 @@ function locate(){
  }catch{failed()}
 }
 </script>
-<template><div v-if="!state.user" class="container empty-state"><Icon name="edit" :size="40"/><h1>{{rental?'Đăng bài cho thuê':'Đăng bài ghép trọ'}}</h1><p>Đăng nhập để tạo bài đăng và lưu bản nháp.</p><RouterLink :to="'/dang-nhap?redirect='+encodeURIComponent(route.fullPath)" class="button primary">Đăng nhập để tiếp tục</RouterLink></div><div v-else-if="rental&&state.user.role!=='landlord'" class="container empty-state"><h1>Đăng tin dành cho chủ trọ</h1><p>Bạn có thể đăng bài ghép trọ với tài khoản sinh viên.</p><RouterLink to="/dang-bai/roommate" class="button primary">Đăng bài ghép trọ</RouterLink></div><div v-else-if="success" class="container empty-state"><span class="empty-icon"><Icon name="done" :size="40"/></span><span class="eyebrow">Đã hoàn tất</span><h1>Bài đăng đã được lưu</h1><p>Bài đăng ở trạng thái chờ duyệt trong bản demo.<br>Dữ liệu chỉ được lưu trên thiết bị này.</p><RouterLink to="/quan-ly/bai-dang" class="button primary">Quản lý bài đăng <Icon name="arrow" :size="18"/></RouterLink></div><div v-else class="container page post-page"><div class="center"><span class="eyebrow">Chia sẻ không gian, mở thêm kết nối</span><h1>{{rental?'Đăng bài cho thuê':'Đăng bài ghép trọ'}}</h1><p class="muted">Thông tin rõ ràng giúp bạn tìm đúng người nhanh hơn.</p></div><ol class="stepper"><li v-for="(label,i) in steps" :key="label" :class="{current:step===i+1,complete:step>i+1}"><span class="step-number"><Icon v-if="step>i+1" name="check" :size="16"/><template v-else>{{i+1}}</template></span><span>{{label}}</span></li></ol><form class="form-panel post-panel" @submit.prevent="step<steps.length?next():publish()" novalidate><template v-if="step===1"><h2>Thông tin chung</h2><div class="form-grid"><label v-for="[key,label,type,required,placeholder] in fields" :key="key" class="field" :class="{'span-two':key==='title'}"><span>{{label}} <b v-if="required" class="required">*</b></span><select v-if="type==='gender'" v-model="draft[key]"><option>Tất cả</option><option>Nam</option><option>Nữ</option></select><select v-else-if="type==='house'" v-model="draft[key]" :aria-label="label+(required?' *':'')" :aria-invalid="!!errors[key]"><option value="">Chọn nhà trọ của bạn</option><option v-for="h in state.houses.filter(h=>h.status==='Đang hoạt động')" :key="h.id" :value="h.id">{{h.name}}</option></select><input v-else v-model="draft[key]" :aria-label="label+(required?' *':'')" :type="type" :min="type==='date'?new Date().toLocaleDateString('en-CA'):type==='number'?0:undefined" :placeholder="placeholder||(type==='number'?'Nhập giá trị':'Nhập thông tin')" :aria-invalid="!!errors[key]"><small class="error" v-if="errors[key]">{{errors[key]}}</small></label><label class="field span-two"><span>Mô tả chi tiết</span><textarea rows="5" v-model="draft.desc" placeholder="Mô tả phòng, người bạn muốn ở cùng và những lưu ý…"></textarea></label></div></template><template v-if="step===2"><h2>Vị trí & Địa lý</h2><div class="location-form"><div><label class="field"><span>Tỉnh / Thành phố</span><input v-model="draft.city" readonly></label><label class="field"><span>Phường / Xã <b class="required">*</b></span><select v-model="draft.ward" :aria-invalid="!!errors.ward"><option value="">Chọn phường / xã</option><option v-for="w in ['Xuân Khánh','An Bình','Hưng Lợi','An Khánh','Hưng Phú','Bình Thủy']" :key="w">{{w}}</option></select><small class="error">{{errors.ward}}</small></label><label class="field"><span>Tên đường / số nhà <b class="required">*</b></span><input v-model="draft.street" placeholder="Ví dụ: 123 đường 3/2" :aria-invalid="!!errors.street"><small class="error">{{errors.street}}</small></label><label class="field"><span>Tên trọ</span><input v-model="draft.house" placeholder="Ví dụ: Nhà trọ Minh An"></label><button type="button" class="button secondary" :disabled="locating" :aria-busy="locating" @click="locate"><Icon name="pin" :size="18"/>{{locating?'Đang lấy vị trí…':'Vị trí hiện tại'}}</button><div v-if="locationNotice" class="location-feedback" :class="locationState" :role="locationState==='error'?'alert':'status'"><Icon :name="locationState==='success'?'check':'info'" :size="19"/><p>{{locationNotice}}</p></div></div><div><MapPanel :label="draft.house||'Đại học Cần Thơ'" :address="draft.street"/><p class="muted">Địa điểm gần đó: Đại học Cần Thơ</p><p class="help">Sơ đồ minh họa. Địa chỉ chưa được xác minh bằng dịch vụ bản đồ.</p></div></div></template><template v-if="step===3"><h2>Hình ảnh chỗ ở</h2><p class="muted">Tải từ 3 đến 10 ảnh. Ảnh đầu tiên sẽ làm ảnh bìa.</p><label class="upload-zone" @dragover.prevent @drop.prevent="upload"><Icon name="upload" :size="42"/><strong>Nhấp để chọn hoặc kéo ảnh vào đây</strong><span>JPG, PNG, WEBP · tối đa 10 MB mỗi ảnh</span><input type="file" multiple accept="image/jpeg,image/png,image/webp" @change="upload" aria-label="Tải hình ảnh chỗ ở"></label><p class="error" v-if="uploadError||errors.images" role="alert">{{uploadError||errors.images}}</p><div class="upload-grid"><div v-for="(im,i) in images" :key="im.id"><img :src="im.url" :alt="'Ảnh phòng '+(i+1)"><span v-if="i===0" class="badge">Ảnh bìa</span><button type="button" class="icon-button" @click="removeImage(i)" :aria-label="'Xóa ảnh '+(i+1)"><Icon name="close" :size="16"/></button></div></div><p class="help">Bản nháp giữ thông tin chữ. Ảnh cần chọn lại khi tải lại trang; bản demo chưa có máy chủ lưu ảnh.</p></template><template v-if="step===4"><h2>Tiện ích chỗ ở</h2><fieldset v-for="[label,key,items] in [['Tiện ích nội khu','amenities',amenities],['Tiện ích ngoại khu','nearby',nearby],['Phong cách sống','lifestyles',lifestyles]]" :key="key"><legend>{{label}}</legend><div class="amenity-checks"><label v-for="a in items" :key="a" class="check"><input type="checkbox" :value="a" v-model="draft[key]">{{a}}</label></div></fieldset><label class="field"><span>Thói quen sống / lưu ý khác</span><textarea v-model="draft.habits" rows="3" placeholder="Những điều bạn mong muốn ở người ở cùng…"></textarea></label></template><template v-if="step===5"><h2>Xem trước bài đăng</h2><div class="preview-grid"><RoomCard :room="card"/><div><h3>Chi tiết</h3><p>{{draft.desc}}</p><p><strong>Địa chỉ:</strong> {{card.address}}</p><p><strong>Diện tích:</strong> {{draft.area}} m² · {{draft.people}} người</p><p><strong>Giá thuê:</strong> {{money(draft.price)}} / tháng</p><div class="tags"><span v-for="a in draft.amenities" :key="a">{{a}}</span></div><p class="help">Kiểm tra thông tin trước khi đăng. Bạn có thể quay lại để chỉnh sửa.</p></div></div></template><div class="form-actions"><button type="button" class="button secondary" @click="step===1?router.push('/quan-ly/bai-dang'):back()"><Icon name="back" :size="17"/>{{step===1?'Hủy':'Trước'}}</button><div class="inline"><button v-if="!rental&&step===4" type="button" class="button secondary" @click="preview=true"><Icon name="eye" :size="17"/>Xem trước</button><button class="button primary" :class="{'post-submit':step===steps.length}">{{step===steps.length?'Đăng bài':'Tiếp theo'}} <Icon name="arrow" :size="17"/></button></div></div></form><p class="draft-note"><Icon name="check" :size="14"/>Thông tin bản nháp tự lưu trên thiết bị</p><Teleport to="body"><div v-if="preview" class="modal-backdrop" @click.self="preview=false" @keydown.esc="preview=false"><section class="modal large" v-dialog-focus role="dialog" aria-modal="true" aria-labelledby="preview-title"><div class="section-heading"><h2 id="preview-title">Xem trước bài ghép trọ</h2><button class="icon-button" @click="preview=false" aria-label="Đóng"><Icon name="close"/></button></div><img class="preview-image" :src="card.image" :alt="draft.title"><h3>{{draft.title||'Tiêu đề bài đăng'}}</h3><p class="price">{{money(draft.perPerson||draft.price)}} / người</p><p>{{card.address}}</p><p>{{draft.desc}}</p><div class="tags"><span v-for="a in [...draft.amenities,...draft.lifestyles]" :key="a">{{a}}</span></div><div class="form-actions"><button class="button secondary" @click="preview=false">Chỉnh sửa</button><button class="button primary post-submit" @click="publish">Đăng bài</button></div></section></div></Teleport></div></template>
+<template><div v-if="!state.user" class="container empty-state"><Icon name="edit" :size="40"/><h1>{{rental?'Đăng bài cho thuê':'Đăng bài ghép trọ'}}</h1><p>Đăng nhập để tạo bài đăng và lưu bản nháp.</p><RouterLink :to="'/dang-nhap?redirect='+encodeURIComponent(route.fullPath)" class="button primary">Đăng nhập để tiếp tục</RouterLink></div><div v-else-if="rental&&state.user.role!=='landlord'" class="container empty-state"><h1>Đăng tin dành cho chủ trọ</h1><p>Bạn có thể đăng bài ghép trọ với tài khoản sinh viên.</p><RouterLink to="/dang-bai/roommate" class="button primary">Đăng bài ghép trọ</RouterLink></div><div v-else-if="success" class="container empty-state"><span class="empty-icon"><Icon name="done" :size="40"/></span><span class="eyebrow">Đã hoàn tất</span><h1>Bài đăng đã được lưu</h1><p>Bài đăng ở trạng thái chờ duyệt trong bản demo.<br>Dữ liệu chỉ được lưu trên thiết bị này.</p><RouterLink to="/quan-ly/bai-dang" class="button primary">Quản lý bài đăng <Icon name="arrow" :size="18"/></RouterLink></div><div v-else class="container page post-page"><div class="center"><span class="eyebrow">Chia sẻ không gian, mở thêm kết nối</span><h1>{{rental?'Đăng bài cho thuê':'Đăng bài ghép trọ'}}</h1><p class="muted">Thông tin rõ ràng giúp bạn tìm đúng người nhanh hơn.</p></div><ol class="stepper"><li v-for="(label,i) in steps" :key="label" :class="{current:step===i+1,complete:step>i+1}"><span class="step-number"><Icon v-if="step>i+1" name="check" :size="16"/><template v-else>{{i+1}}</template></span><span>{{label}}</span></li></ol><form class="form-panel post-panel" @submit.prevent="step<steps.length?next():publish()" novalidate><template v-if="step===1"><h2>Thông tin chung</h2><div class="form-grid"><label v-for="[key,label,type,required,placeholder] in fields" :key="key" class="field" :class="{'span-two':key==='title'}"><span>{{label}} <b v-if="required" class="required">*</b></span><select v-if="type==='gender'" v-model="draft[key]"><option>Tất cả</option><option>Nam</option><option>Nữ</option></select><select v-else-if="type==='house'" v-model="draft[key]" :aria-label="label+(required?' *':'')" :aria-invalid="!!errors[key]"><option value="">Chọn nhà trọ của bạn</option><option v-for="h in state.houses.filter(h=>h.status==='Đang hoạt động')" :key="h.id" :value="h.id">{{h.name}}</option></select><input v-else v-model="draft[key]" :aria-label="label+(required?' *':'')" :type="type" :min="type==='date'?new Date().toLocaleDateString('en-CA'):type==='number'?0:undefined" :placeholder="placeholder||(type==='number'?'Nhập giá trị':'Nhập thông tin')" :aria-invalid="!!errors[key]"><small class="error" v-if="errors[key]">{{errors[key]}}</small></label><label class="field span-two"><span>Mô tả chi tiết</span><textarea rows="5" v-model="draft.desc" placeholder="Mô tả phòng, người bạn muốn ở cùng và những lưu ý…"></textarea></label></div></template><template v-if="step===2"><h2>Vị trí & Địa lý</h2><div class="location-form"><div><label class="field"><span>Tỉnh / Thành phố</span><input v-model="draft.city" readonly></label><label class="field"><span>Phường / Xã <b class="required">*</b></span><select v-model="draft.ward" :aria-invalid="!!errors.ward"><option value="">Chọn phường / xã</option><option v-for="w in ['Xuân Khánh','An Bình','Hưng Lợi','An Khánh','Hưng Phú','Bình Thủy']" :key="w">{{w}}</option></select><small class="error">{{errors.ward}}</small></label><label class="field"><span>Tên đường / số nhà <b class="required">*</b></span><input v-model="draft.street" placeholder="Ví dụ: 123 đường 3/2" :aria-invalid="!!errors.street"><small class="error">{{errors.street}}</small></label><label class="field"><span>Tên trọ</span><input v-model="draft.house" placeholder="Ví dụ: Nhà trọ Minh An"></label><button type="button" class="button secondary" :disabled="locating" :aria-busy="locating" @click="locate"><Icon name="pin" :size="18"/>{{locating?'Đang lấy vị trí…':'Vị trí hiện tại'}}</button><div v-if="locationNotice" class="location-feedback" :class="locationState" :role="locationState==='error'?'alert':'status'"><Icon :name="locationState==='success'?'check':'info'" :size="19"/><p>{{locationNotice}}</p></div></div><div><MapPanel :label="draft.house||'Đại học Cần Thơ'" :address="draft.street"/><p class="muted">Địa điểm gần đó: Đại học Cần Thơ</p><p class="help">Sơ đồ minh họa. Địa chỉ chưa được xác minh bằng dịch vụ bản đồ.</p></div></div></template><template v-if="step===3"><h2>Hình ảnh chỗ ở</h2><p class="muted">Tải từ 3 đến 10 ảnh. Ảnh đầu tiên sẽ làm ảnh bìa.</p><label class="upload-zone" @dragover.prevent @drop.prevent="upload"><Icon name="upload" :size="42"/><strong>Nhấp để chọn hoặc kéo ảnh vào đây</strong><span>JPG, PNG, WEBP · tối đa 10 MB mỗi ảnh</span><input type="file" multiple accept="image/jpeg,image/png,image/webp" @change="upload" aria-label="Tải hình ảnh chỗ ở"></label><p class="error" v-if="uploadError||errors.images" role="alert">{{uploadError||errors.images}}</p><div class="upload-grid"><div v-for="(im,i) in images" :key="im.id"><img :src="im.url" :alt="'Ảnh phòng '+(i+1)"><span v-if="i===0" class="badge">Ảnh bìa</span><button type="button" class="icon-button" @click="removeImage(i)" :aria-label="'Xóa ảnh '+(i+1)"><Icon name="close" :size="16"/></button></div></div><p class="help">Bản nháp giữ thông tin chữ. Ảnh cần chọn lại khi tải lại trang; bản demo chưa có máy chủ lưu ảnh.</p></template><template v-if="step===4"><h2>Tiện ích chỗ ở</h2><fieldset v-for="[label,key,items] in [['Tiện ích nội khu','amenities',amenities],['Tiện ích ngoại khu','nearby',nearby],['Phong cách sống','lifestyles',lifestyles]]" :key="key"><legend>{{label}}</legend><div class="amenity-checks"><label v-for="a in items" :key="a" class="check"><input type="checkbox" :value="a" v-model="draft[key]">{{a}}</label></div></fieldset><label class="field"><span>Thói quen sống / lưu ý khác</span><textarea v-model="draft.habits" rows="3" placeholder="Những điều bạn mong muốn ở người ở cùng…"></textarea></label></template><template v-if="step===5"><h2>Xem trước bài đăng</h2><div class="preview-grid"><RoomCard :room="card"/><div><h3>Chi tiết</h3><p>{{draft.desc}}</p><p><strong>Địa chỉ:</strong> {{card.address}}</p><p><strong>Diện tích:</strong> {{draft.area}} m² · {{draft.people}} người</p><p><strong>Giá thuê:</strong> {{money(draft.price)}} / tháng</p><div class="tags"><span v-for="a in draft.amenities" :key="a">{{a}}</span></div><p class="help">Kiểm tra thông tin trước khi đăng. Bạn có thể quay lại để chỉnh sửa.</p></div></div></template><div class="form-actions"><button type="button" class="button secondary" @click="step===1?router.push('/quan-ly/bai-dang'):back()"><Icon name="back" :size="17"/>{{step===1?'Hủy':'Trước'}}</button><div class="inline"><button v-if="!rental&&step===4" type="button" class="button secondary" @click="preview=true"><Icon name="eye" :size="17"/>Xem trước</button><button class="button primary" :class="{'post-submit':step===steps.length}">{{step===steps.length?'Đăng bài':'Tiếp theo'}} <Icon name="arrow" :size="17"/></button></div></div></form><p class="draft-note"><Icon name="info" :size="14"/>Dữ liệu sẽ được lưu khi bạn hoàn tất đăng bài</p><Teleport to="body"><div v-if="leaveModal" class="modal-backdrop" @click.self="cancelLeave" @keydown.esc="cancelLeave"><section class="modal" v-dialog-focus role="dialog" aria-modal="true" aria-labelledby="leave-warning-title"><span class="empty-icon coral"><Icon name="info" :size="28"/></span><h2 id="leave-warning-title">Rời khỏi các bước đăng bài?</h2><p>Bạn có chắc chắn muốn thoát không?</p><p class="muted">Nếu thoát lúc này, toàn bộ dữ liệu đang ghi sẽ bị mất.</p><div class="form-actions"><button type="button" class="button secondary" @click="cancelLeave">Ở lại tiếp tục</button><button type="button" class="button danger" @click="confirmLeave">Thoát & Xóa dữ liệu</button></div></section></div><div v-if="preview" class="modal-backdrop" @click.self="preview=false" @keydown.esc="preview=false"><section class="modal large" v-dialog-focus role="dialog" aria-modal="true" aria-labelledby="preview-title"><div class="section-heading"><h2 id="preview-title">Xem trước bài ghép trọ</h2><button class="icon-button" @click="preview=false" aria-label="Đóng"><Icon name="close"/></button></div><img class="preview-image" :src="card.image" :alt="draft.title"><h3>{{draft.title||'Tiêu đề bài đăng'}}</h3><p class="price">{{money(draft.perPerson||draft.price)}} / người</p><p>{{card.address}}</p><p>{{draft.desc}}</p><div class="tags"><span v-for="a in [...draft.amenities,...draft.lifestyles]" :key="a">{{a}}</span></div><div class="form-actions"><button class="button secondary" @click="preview=false">Chỉnh sửa</button><button class="button primary post-submit" @click="publish">Đăng bài</button></div></section></div></Teleport></div></template>
 
 <style scoped>
 .location-feedback{display:flex;align-items:flex-start;gap:10px;margin-top:14px;padding:14px 16px;border:1px solid #dadfd7;border-radius:12px;background:#f5f6ef;color:#43594d}

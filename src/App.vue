@@ -12,7 +12,8 @@ const route = useRoute(),
   accountTrigger = ref(null),
   logoutError = ref(""),
   loggingOut = ref(false),
-  footerTopic = ref("");
+  footerTopic = ref(""),
+  isAuthRoleStep = ref(false);
 function closeAccount(event) {
   if (!accountRoot.value?.contains(event.target)) accountOpen.value = false;
 }
@@ -28,6 +29,7 @@ watch(
     menu.value = false;
     accountOpen.value = false;
     footerTopic.value = "";
+    isAuthRoleStep.value = false;
     document.title =
       "FindMyRoom · " +
       ({
@@ -53,6 +55,12 @@ async function logout() {
   } catch (error) { logoutError.value = error.message; }
   finally { loggingOut.value = false; }
 }
+
+function onPostClick() {
+  if (route.path.startsWith('/dang-bai')) {
+    window.dispatchEvent(new CustomEvent('findmyroom:reset-post-form'))
+  }
+}
 </script>
 <template>
   <a class="skip-link" href="#main">Đến nội dung chính</a>
@@ -64,10 +72,11 @@ async function logout() {
         >FindMyRoom</RouterLink
       >
       <nav class="desktop-nav" aria-label="Điều hướng chính">
-        <RouterLink v-if="state.user?.role !== 'landlord'" to="/ghep-tro">Ghép trọ</RouterLink
-        ><template v-if="state.user"
-          ><RouterLink v-if="canManagePosts" to="/quan-ly/bai-dang">Quản lý bài đăng</RouterLink
-          ><RouterLink v-if="state.user.role === 'landlord'" to="/quan-ly/nha-tro"
+        <RouterLink v-if="state.user?.role !== 'landlord'" to="/ghep-tro">Ghép trọ</RouterLink>
+        <RouterLink v-if="state.user?.role !== 'landlord'" to="/dang-bai/roommate" @click="onPostClick">Đăng bài ghép trọ</RouterLink>
+        <template v-if="state.user">
+          <RouterLink v-if="canManagePosts" to="/quan-ly/bai-dang">Quản lý bài đăng</RouterLink>
+          <RouterLink v-if="state.user.role === 'landlord'" to="/quan-ly/nha-tro"
             >Quản lý nhà trọ</RouterLink
           ></template
         >
@@ -92,7 +101,7 @@ async function logout() {
             <RouterLink to="/ho-so"><Icon name="user" :size="18" />Hồ sơ của tôi</RouterLink>
             <RouterLink v-if="canManagePosts" to="/quan-ly/bai-dang"><Icon name="grid" :size="18" />Quản lý bài đăng</RouterLink>
             <RouterLink v-if="state.user.role === 'landlord'" to="/quan-ly/nha-tro"><Icon name="building" :size="18" />Quản lý nhà trọ</RouterLink>
-            <RouterLink :to="'/dang-bai/' + (state.user.role === 'landlord' ? 'rental' : 'roommate')"><Icon name="plus" :size="18" />{{ state.user.role === 'landlord' ? 'Đăng bài cho thuê' : 'Đăng bài ghép trọ' }}</RouterLink>
+            <RouterLink :to="'/dang-bai/' + (state.user.role === 'landlord' ? 'rental' : 'roommate')" @click="onPostClick"><Icon name="plus" :size="18" />{{ state.user.role === 'landlord' ? 'Đăng bài cho thuê' : 'Đăng bài ghép trọ' }}</RouterLink>
             <button type="button" class="account-logout" :disabled="loggingOut" @click="logout"><Icon name="logout" :size="18" />Đăng xuất</button>
           </nav>
         </div>
@@ -114,7 +123,7 @@ async function logout() {
         <RouterLink to="/ho-so">Hồ sơ của tôi</RouterLink>
         <RouterLink v-if="canManagePosts" to="/quan-ly/bai-dang">Quản lý bài đăng</RouterLink>
         <RouterLink v-if="state.user.role === 'landlord'" to="/quan-ly/nha-tro">Quản lý nhà trọ</RouterLink>
-        <RouterLink :to="'/dang-bai/' + (state.user.role === 'landlord' ? 'rental' : 'roommate')">{{ state.user.role === 'landlord' ? 'Đăng bài cho thuê' : 'Đăng bài ghép trọ' }}</RouterLink>
+        <RouterLink :to="'/dang-bai/' + (state.user.role === 'landlord' ? 'rental' : 'roommate')" @click="onPostClick; menu = false">{{ state.user.role === 'landlord' ? 'Đăng bài cho thuê' : 'Đăng bài ghép trọ' }}</RouterLink>
         <button type="button" :disabled="loggingOut" @click="logout">Đăng xuất</button>
       </template>
       <template v-else>
@@ -125,8 +134,8 @@ async function logout() {
     </nav>
   </header>
   <p v-if="logoutError" class="container notice" role="alert">{{ logoutError }}</p>
-  <main id="main" tabindex="-1"><RouterView /></main>
-  <footer v-if="route.path !== '/wireframes'" class="site-footer">
+  <main id="main" tabindex="-1"><RouterView @role-step="isAuthRoleStep = $event" /></main>
+  <footer v-if="route.path !== '/wireframes' && !isAuthRoleStep" class="site-footer">
     <div class="container footer-grid">
       <div>
         <RouterLink :to="state.user?.role === 'landlord' ? '/quan-ly/bai-dang' : '/'" class="brand"
@@ -161,14 +170,12 @@ async function logout() {
         <p class="muted">Bản demo học phần CT113</p>
               </div>
     </div>
-    <div class="container footer-bottom">
-      <span>© 2026 FindMyRoom</span><span>Được làm cho những khởi đầu mới.</span><button v-if="state.user" class="text-button" :disabled="loggingOut" @click="logout">Đăng xuất</button>
-    </div>
   </footer>
   <nav v-if="!['/dang-nhap', '/dang-ky'].includes(route.path)" class="bottom-nav unified-home-nav" aria-label="Điều hướng điện thoại">
     <RouterLink :to="state.user?.role === 'landlord' ? '/quan-ly/bai-dang' : '/'"><Icon :name="state.user?.role === 'landlord' ? 'grid' : 'home'" /><span>{{ state.user?.role === 'landlord' ? 'Bài đăng' : 'Trang chủ' }}</span></RouterLink
     ><RouterLink v-if="state.user?.role === 'landlord'" to="/quan-ly/nha-tro"><Icon name="building" /><span>Nhà trọ</span></RouterLink
     ><RouterLink v-if="state.user?.role !== 'landlord'" to="/ghep-tro"><Icon name="users" /><span>Ghép trọ</span></RouterLink
+    ><RouterLink v-if="state.user?.role !== 'landlord'" to="/dang-bai/roommate" @click="onPostClick"><Icon name="plus" /><span>Đăng bài</span></RouterLink
     ><RouterLink :to="state.user ? '/ho-so' : '/dang-nhap'"><Icon name="user" /><span>{{ state.user ? 'Hồ sơ' : 'Đăng nhập' }}</span></RouterLink>
   </nav>
   <FooterInfoModal v-if="footerTopic" :kind="footerTopic" @close="footerTopic = ''" />
