@@ -92,8 +92,6 @@ async function logout() {
           <nav v-if="accountOpen" id="account-navigation" class="account-dropdown" aria-label="Tài khoản">
             <div class="account-identity"><strong>{{ state.user.name }}</strong><span>{{ state.user.email }}</span><small>{{ state.user.role === 'landlord' ? 'Chủ trọ' : 'Sinh viên' }}</small></div>
             <RouterLink to="/ho-so"><Icon name="user" :size="18" />Hồ sơ của tôi</RouterLink>
-
-            <RouterLink v-if="state.user.role !== 'landlord'" to="/quan-ly/da-luu"><Icon name="heart" :size="18" />Tin đã lưu</RouterLink>
             <RouterLink v-if="canManagePosts" to="/quan-ly/bai-dang"><Icon name="grid" :size="18" />Quản lý bài đăng</RouterLink>
             <RouterLink v-if="state.user.role === 'landlord'" to="/quan-ly/nha-tro"><Icon name="building" :size="18" />Quản lý nhà trọ</RouterLink>
             <RouterLink :to="'/dang-bai/' + (state.user.role === 'landlord' ? 'rental' : 'roommate')"><Icon name="plus" :size="18" />{{ state.user.role === 'landlord' ? 'Đăng bài cho thuê' : 'Đăng bài ghép trọ' }}</RouterLink>

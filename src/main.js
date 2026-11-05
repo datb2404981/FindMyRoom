@@ -31,6 +31,7 @@ export const router = createRouter({
     { path: "/dang-ky", component: Auth },
     { path: "/xac-thuc", redirect: to => ({ path: "/dang-ky", query: to.query }) },
     { path: "/ho-so", component: Profile },
+    { path: "/quan-ly/da-luu", redirect: "/quan-ly/bai-dang" },
     { path: "/quan-ly/:kind", component: Manage },
     { path: "/dang-bai/:kind", component: PostForm },
     { path: "/huong-dan", component: Guide },
