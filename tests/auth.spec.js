@@ -138,7 +138,12 @@ test('registration allows selecting role after signup and redirects accordingly'
   await page.getByRole('checkbox').check()
   await page.locator('form').getByRole('button', { name: 'Đăng ký', exact: true }).click()
 
-  // Màn hình chọn role xuất hiện sau khi đăng ký thành công
+  // Popup OTP xuất hiện sau khi đăng ký
+  await expect(page.getByText('Nhập mã xác thực')).toBeVisible()
+  await page.getByLabel('Số thứ 1').fill('1')
+  await page.getByRole('button', { name: 'Xác nhận', exact: true }).click()
+
+  // Màn hình chọn role xuất hiện sau khi xác nhận OTP
   await expect(page.getByText('Bạn muốn tham gia với tư cách')).toBeVisible()
   await page.getByRole('radio', { name: 'Chủ Trọ' }).click()
 

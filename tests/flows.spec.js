@@ -387,6 +387,8 @@ test('signup creates an account that can log out and log back in',async({page})=
  await page.getByLabel('Xác nhận mật khẩu *',{exact:true}).fill('demo12345')
  await page.getByRole('checkbox').check()
  await page.locator('form').getByRole('button',{name:'Đăng ký',exact:true}).click()
+ await page.getByLabel('Số thứ 1').fill('1')
+ await page.getByRole('button',{name:'Xác nhận',exact:true}).click()
  await page.getByRole('radio',{name:'Sinh Viên'}).click()
  await expect(page.getByRole('heading',{name:'Thông tin cá nhân',exact:true})).toBeVisible()
  await expect(page.getByLabel('Họ và tên',{exact:true})).toHaveValue('Lê Thảo Nguyên')

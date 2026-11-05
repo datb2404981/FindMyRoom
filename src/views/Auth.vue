@@ -326,7 +326,7 @@ async function submit() {
     <div v-if="otpStep" class="otp-modal-backdrop" @click.self="closeOtp">
       <div class="otp-modal-card" role="dialog" aria-modal="true" aria-labelledby="otp-title">
         <button type="button" class="otp-modal-close" @click="closeOtp" aria-label="Đóng popup">
-          <Icon name="x" :size="20" />
+          <Icon name="close" :size="20" />
         </button>
 
         <h2 id="otp-title" class="otp-title">Nhập mã xác thực</h2>
@@ -668,5 +668,159 @@ async function submit() {
 }
 .auth-card input[type="email"]::-webkit-calendar-picker-indicator {
   display: none !important;
+}
+
+/* POPUP OTP MODAL */
+.otp-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(19, 20, 20, 0.45);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.otp-modal-card {
+  position: relative;
+  background: #ffffff;
+  border: 1.5px solid var(--ink, #131414);
+  border-radius: 16px;
+  box-shadow: 0 16px 36px rgba(19, 20, 20, 0.16);
+  width: 100%;
+  max-width: 480px;
+  padding: 36px 32px 32px;
+  box-sizing: border-box;
+  text-align: center;
+  animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.otp-modal-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  color: var(--ink, #131414);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background-color 0.15s, transform 0.15s;
+}
+
+.otp-modal-close:hover {
+  background: rgba(19, 20, 20, 0.06);
+  transform: scale(1.08);
+}
+
+.otp-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ink, #131414);
+  margin: 0 0 12px;
+}
+
+.otp-description {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted, #647076);
+  margin: 0 0 24px;
+}
+
+.otp-description strong {
+  color: var(--ink, #131414);
+}
+
+.otp-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.otp-inputs-grid {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 24px;
+  width: 100%;
+}
+
+.otp-digit-input {
+  width: 50px;
+  height: 56px;
+  background: #edf1f2;
+  border: 1.5px solid transparent;
+  border-radius: 10px;
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--ink, #131414);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.otp-digit-input:focus {
+  background: #ffffff;
+  border-color: var(--ink, #131414);
+  box-shadow: 0 0 0 3px rgba(143, 200, 207, 0.35);
+  transform: translateY(-2px);
+}
+
+.otp-error-message {
+  color: #c92a2a;
+  font-size: 13px;
+  margin: -10px 0 16px;
+  font-weight: 500;
+}
+
+.otp-submit-button {
+  background: #212c33 !important;
+  color: #ffffff !important;
+  font-size: 15px;
+  font-weight: 600;
+  border: 1px solid #212c33 !important;
+  border-radius: 8px;
+  padding: 10px 42px;
+  cursor: pointer;
+  min-width: 140px;
+  box-shadow: none;
+  transition: background-color 0.2s, transform 0.15s;
+}
+
+.otp-submit-button:hover {
+  background: #131414 !important;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (max-width: 480px) {
+  .otp-modal-card {
+    padding: 28px 20px 24px;
+  }
+  .otp-inputs-grid {
+    gap: 6px;
+  }
+  .otp-digit-input {
+    width: 42px;
+    height: 48px;
+    font-size: 20px;
+  }
 }
 </style>
