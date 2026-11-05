@@ -477,7 +477,7 @@ async function submit() {
   gap: 0;
   padding: 0;
   background: #fff;
-  min-height: max(780px, calc(100svh - 200px));
+  min-height: max(780px, 100dvh);
 }
 .auth-illustration {
   display: block;
@@ -543,7 +543,7 @@ async function submit() {
   .auth-card { padding: 32px 24px 40px; }
 }
 @media (max-width: 480px) {
-  .auth-page { min-height: max(940px, calc(100svh - 200px)); }
+  .auth-page { min-height: max(940px, 100dvh); }
   .auth-signup .auth-fields { grid-template-columns: minmax(0, 1fr); }
 }
 .auth-card input::-ms-reveal {

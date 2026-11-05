@@ -91,6 +91,33 @@ test('remembered accounts persist emails only and can be selected or forgotten',
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('findmyroom:remembered-emails')))).toEqual([])
 })
 
+test('landlord profile shows only landlord fields and preserves identity values', async ({ page }) => {
+  await signIn(page, 'chutro@example.com')
+  await expect(page).toHaveURL(/quan-ly\/nha-tro/)
+  await page.goto('/#/ho-so')
+  await expect(page.locator('.form-grid .field > span')).toHaveText([
+    'Họ và tên', 'CCCD', 'Mã số thuế', 'Giới tính', 'Ngày sinh',
+    'Số điện thoại', 'Số điện thoại Zalo', 'Email', 'Địa chỉ',
+  ])
+  await expect(page.getByText('Giới thiệu bản thân', { exact: true })).toHaveCount(0)
+  await expect(page.locator('.profile-summary')).not.toContainText('Đại học Cần Thơ')
+  for (const width of [1366, 390]) {
+    await page.setViewportSize({ width, height: 1000 })
+    await expect(page.locator('.profile-section')).toHaveCount(2)
+    expect(await page.locator('.profile-layout').evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true)
+    await page.screenshot({ path: test.info().outputPath(`profile-${width}.png`), fullPage: true })
+  }
+  await page.getByRole('button', { name: 'Chỉnh sửa', exact: true }).click()
+  await page.getByLabel('CCCD', { exact: true }).fill('079204583621')
+  await page.getByLabel('Mã số thuế', { exact: true }).fill('079203001234')
+  await page.getByRole('button', { name: 'Lưu thay đổi', exact: true }).click()
+  await page.getByRole('button', { name: 'Xác nhận lưu', exact: true }).click()
+  await expect(page.getByRole('status')).toContainText('Đã lưu thông tin cá nhân.')
+  await page.reload()
+  await expect(page.getByLabel('CCCD', { exact: true })).toHaveValue('079204583621')
+  await expect(page.getByLabel('Mã số thuế', { exact: true })).toHaveValue('079203001234')
+})
+
 test('account files and hashes cannot be read by the browser', async ({ request }) => {
   for (const path of ['/data/users.json', '/data/users.json?raw', '/server/auth.js']) {
     const response = await request.get(path)
