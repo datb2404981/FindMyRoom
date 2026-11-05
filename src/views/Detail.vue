@@ -315,17 +315,6 @@ function formatDate(dateStr) {
             <small class="muted">Đánh giá từ người thuê đã xác thực</small>
           </div>
         </section>
-
-        <div class="notice">
-          <Icon name="shield" />
-          <p>
-            {{
-              isRoommate
-                ? 'Trao đổi rõ giờ giấc, chi phí và việc nhà. Hãy gặp nhau ở nơi công cộng trước khi quyết định ở cùng.'
-                : 'Hãy xem phòng trực tiếp và kiểm tra hợp đồng trước khi đặt cọc.'
-            }}
-          </p>
-        </div>
       </aside>
     </div>
   </div>
