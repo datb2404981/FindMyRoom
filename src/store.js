@@ -98,6 +98,11 @@ export function updateRentalPost(post) {
   state.posts = posts
 }
 
+export function toggleFavorite(id) {
+  const i = state.favorites.indexOf(id)
+  i < 0 ? state.favorites.push(id) : state.favorites.splice(i, 1)
+}
+
 export function validateField(key,value){
  const v=String(value??'').trim()
  if(!v)return 'Vui lòng điền thông tin này.'
