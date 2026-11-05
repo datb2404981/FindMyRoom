@@ -129,6 +129,7 @@ const roomSchoolIds = [
 
 export const rooms = rawRoomPosts.map((r, i) => {
   const house = houseMap.get(r.boarding_house_id) || {}
+  const landlord = accountMap.get(house.account_id) || {}
   const rawImages = roomImagesMap.get(r.room_post_id) || []
   const postAmenities = roomAmenitiesMap.get(r.room_post_id) || []
   const district = roomDistricts[i] || 'Ninh Kiều'
@@ -222,6 +223,8 @@ export const rooms = rawRoomPosts.map((r, i) => {
     other: r.room_post_other_service_fee || '',
     curfew: r.curfew || null,
     ownerId: house.account_id || null,
+    phone: landlord.phone || '',
+    zaloPhone: landlord.zalo_phone || '',
   }
 })
 
@@ -310,7 +313,9 @@ export const people = rawStudents.map((s, i) => {
     color: pastelColors[i % pastelColors.length],
     amenities: amenitiesList,
     avatar: acc.avatar_url,
+    accountId: acc.account_id,
     phone: acc.phone,
+    zaloPhone: acc.zalo_phone,
     email: acc.email,
   }
 })

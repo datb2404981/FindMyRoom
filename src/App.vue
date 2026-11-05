@@ -128,7 +128,7 @@ async function logout() {
   </header>
   <p v-if="logoutError" class="container notice" role="alert">{{ logoutError }}</p>
   <main id="main" tabindex="-1"><RouterView /></main>
-  <footer v-if="route.path !== '/wireframes'" class="site-footer">
+  <footer v-if="!['/wireframes', '/dang-nhap', '/dang-ky'].includes(route.path)" class="site-footer">
     <div class="container footer-grid">
       <div>
         <RouterLink :to="state.user?.role === 'landlord' ? '/quan-ly/bai-dang' : '/'" class="brand"

@@ -3,7 +3,7 @@ import { rooms, boardingHouses } from './data'
 
 const key = 'findmyroom-demo-v1'
 const defaults = () => ({
-  profile: { name: '', studentId: '', birth: '', gender: 'Nam', school: 'Đại học Cần Thơ', major: '', phone: '', zalo: '', email: '', address: 'Cần Thơ', bio: '' },
+  profile: { name: '', cccd: '', taxCode: '', studentId: '', birth: '', gender: 'Nam', school: 'Đại học Cần Thơ', major: '', phone: '', zalo: '', email: '', address: 'Cần Thơ', bio: '' },
   favorites: [], likes: [], passed: [],
   houses: boardingHouses.slice(0, 1),
   posts: rooms.slice(0, 3).map(room => ({ ...room, kind: 'rental' })),
@@ -70,6 +70,17 @@ export async function updateAccount(profile) {
   const user = await authRequest('profile', { name: profile.name, email: profile.email, phone: profile.phone }, 'PATCH')
   Object.assign(state.profile, profile, { name: user.name, email: user.email, phone: user.phone })
   state.user = user
+}
+
+export function updateRentalPost(post) {
+  const index = state.posts.findIndex(item => item.id === post.id)
+  if (state.user?.role !== 'landlord' || index < 0 || (state.posts[index].kind || 'rental') !== 'rental') throw new Error('Không tìm thấy bài đăng cho thuê để chỉnh sửa.')
+  const posts = state.posts.map((item, i) => i === index ? { ...item, ...post } : item)
+  const { user, ...data } = state
+  try {
+    localStorage.setItem(storageKey(user), JSON.stringify({ ...data, posts }))
+  } catch { throw new Error('Không đủ bộ nhớ trình duyệt để lưu. Hãy giảm dung lượng ảnh hoặc kiểm tra quyền lưu dữ liệu.') }
+  state.posts = posts
 }
 
 export function toggleFavorite(id){const i=state.favorites.indexOf(id);i<0?state.favorites.push(id):state.favorites.splice(i,1)}
