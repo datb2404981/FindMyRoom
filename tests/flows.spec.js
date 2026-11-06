@@ -130,7 +130,7 @@ test('home, functional search, empty results and room detail',async({page})=>{
  await page.getByRole('button',{name:'Tìm kiếm',exact:true}).click()
  await expect(page.getByRole('heading',{name:'Không tìm thấy kết quả phù hợp!'})).toBeVisible()
  await page.getByRole('button',{name:'Xóa bộ lọc',exact:true}).click()
- await expect(page.locator('.room-card')).toHaveCount(4)
+ await expect(page.locator('.room-card')).toHaveCount(5)
  await page.locator('.room-card').first().locator('.room-photo').click()
  await expect(page.getByRole('heading',{level:1})).toContainText('Phòng có gác')
  await page.getByRole('button',{name:'Ảnh tiếp theo'}).click()

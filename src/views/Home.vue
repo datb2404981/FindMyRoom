@@ -114,7 +114,7 @@ function goToPage(page) {
         <div class="section-heading"><h2>Tìm trọ theo khu vực</h2></div>
         <div class="featured-carousel">
           <button type="button" class="icon-button featured-arrow featured-arrow-prev" aria-label="Địa điểm trước" aria-controls="location-track" @click="scrollTrack(locationTrack, -1)"><Icon name="left" /></button>
-          <div id="location-track" ref="locationTrack" class="location-grid" role="region" aria-label="Các khu vực tìm trọ" tabindex="0"><RouterLink v-for="(district, index) in districts" :key="district" :to="{ path: '/', query: { search: '1', district } }" class="location-card"><img :src="districtImages[index] ? '/images/districts/' + districtImages[index] + '.jpg' : '/illustrations/district-1.svg'" alt="" loading="lazy"><div><h3>{{ district }}</h3><Icon name="diagonal" :size="18" /></div></RouterLink></div>
+          <div id="location-track" ref="locationTrack" class="location-grid" role="region" aria-label="Các khu vực tìm trọ" tabindex="0"><RouterLink v-for="(district, index) in districts" :key="district" :to="{ path: '/', query: { search: '1', district } }" class="location-card"><img :src="districtImages[index] ? '/images/districts/' + districtImages[index] + '.jpg' : '/illustrations/district-1.svg'" alt=""><div><h3>{{ district }}</h3><Icon name="diagonal" :size="18" /></div></RouterLink></div>
           <button type="button" class="icon-button featured-arrow featured-arrow-next" aria-label="Địa điểm tiếp theo" aria-controls="location-track" @click="scrollTrack(locationTrack, 1)"><Icon name="right" /></button>
         </div>
       </section>
@@ -176,12 +176,12 @@ function goToPage(page) {
 .featured-carousel{position:relative}
 .featured-arrow{position:absolute;top:50%;z-index:1;width:44px;height:44px;background:var(--cream);border:1px solid var(--line);box-shadow:0 2px 8px #0002;transform:translateY(-50%)}
 .featured-arrow-prev{left:-22px}.featured-arrow-next{right:-22px}
-@media(hover:hover){.featured-arrow{opacity:0;transition:opacity .2s,background .2s}.featured-arrow::before{content:'';position:absolute;inset:-60px -12px}.featured-arrow:hover,.featured-arrow:focus-visible{opacity:1}}
+@media(hover:hover){.featured-arrow{opacity:0;transition:opacity .2s,background .2s}.featured-arrow::before{content:'';position:absolute;inset:-60px 0}.featured-arrow:hover,.featured-arrow:focus-visible{opacity:1}}
 @media(prefers-reduced-motion:reduce){.featured-arrow{transition:none}}
 .featured-track{display:flex;gap:20px;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x mandatory;padding:4px;scrollbar-width:none}
 .featured-track::-webkit-scrollbar{display:none}
 .featured-track :deep(.room-card){flex:0 0 calc((100% - 60px)/4);min-width:0;scroll-snap-align:start}
-@media(max-width:800px){.featured-track :deep(.room-card){flex-basis:calc((100% - 20px)/2)}}
+@media(max-width:800px){.featured-track :deep(.room-card){flex-basis:calc((100% - 20px)/2)}.featured-arrow-prev{left:-10px}.featured-arrow-next{right:-10px}}
 @media(max-width:600px){
   .featured-track{scroll-padding-inline:calc((100% - min(280px, 82vw))/2);padding-inline:calc((100% - min(280px, 82vw))/2)}
   .featured-track :deep(.room-card){flex-basis:min(280px,82vw);scroll-snap-align:center}

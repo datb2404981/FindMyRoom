@@ -131,6 +131,7 @@ async function logout() {
             id="account-navigation"
             class="account-dropdown"
             aria-label="Tài khoản"
+            @click="accountOpen = false"
           >
             <div class="account-identity">
               <strong>{{ state.user.name }}</strong

@@ -6,6 +6,7 @@ import MatchFilterPanel from '../components/MatchFilterPanel.vue'
 import {people,money} from '../data'
 import {schools} from '../search-filters'
 import {state} from '../store'
+import {roommateListings} from '../listings'
 
 const defaults=()=>({locationMode:'place',school:'',district:'',gender:'',budgetMin:500000,budgetMax:2000000,amenities:[],habits:[]})
 const router=useRouter(),route=useRoute()
@@ -40,6 +41,10 @@ const candidates=computed(()=>{
 })
 
 const current=computed(()=>candidates.value[0])
+const currentPost=computed(()=>{
+ const post=roommateListings.find(item=>item.personId===current.value?.id)
+ return state.posts.find(item=>item.kind==='roommate'&&item.id===post?.id)||post
+})
 const canGoBack=computed(()=>history.value.length>0||state.passed.length>0)
 
 function preserveScroll(action){
@@ -239,8 +244,9 @@ function getPostId(person){
 
 function viewDetail(){
  if(!current.value)return
+ const id = currentPost.value?.id || ('ghep-' + current.value.id)
  router.push({
-  path:'/phong/'+getPostId(current.value),
+  path:'/phong/'+id,
   query:{returnTo:'/ghep-tro?start=1'}
  })
 }
@@ -268,12 +274,13 @@ async function begin(){
  started.value=true
  notice.value=''
  await nextTick()
- if(window.innerWidth<=800){
-  stage.value?.scrollIntoView({
-   behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',
-   block:'start'
-  })
- }
+ stage.value?.focus({preventScroll:true})
+ const controls=stage.value?.querySelector('.match-actions')
+ const target=controls||stage.value
+ target?.scrollIntoView({
+  behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',
+  block:controls?'end':'start'
+ })
 }
 </script>
 
@@ -297,7 +304,7 @@ async function begin(){
         @reset="resetFilters"
       />
 
-      <section ref="stage" class="match-stage" aria-label="Kết quả ghép trọ">
+      <section ref="stage" class="match-stage" tabindex="-1" aria-label="Kết quả ghép trọ">
         <div class="match-stage-top">
           <div class="match-stage-title">
             <span class="eyebrow">Cùng một mái nhà, cùng nhịp sống</span>
@@ -325,6 +332,8 @@ async function begin(){
         <template v-else-if="current">
           <article
             class="person-card"
+            :key="currentPost?.id || current.id"
+            :data-post-id="currentPost?.id || ('ghep-' + current.id)"
             :style="cardStyle"
             @pointerdown="onPointerDown"
             @pointermove="onPointerMove"
@@ -344,16 +353,17 @@ async function begin(){
 
             <div class="person-portrait" :style="{ background: current.color }">
               <img
-                :src="current.image || '/illustrations/room-1.svg'"
-                :alt="current.title || ('Ảnh phòng trọ ' + current.name)"
+                :src="currentPost?.image || current.image || '/illustrations/room-1.svg'"
+                :alt="currentPost?.title || current.title || ('Ảnh phòng trọ ' + current.name)"
                 draggable="false"
                 @dragstart.prevent
               >
-              <span class="badge"><Icon name="shield" :size="13" />Hồ sơ mẫu</span>
+              <span v-if="currentPost?.status" class="badge">{{ currentPost.status }}</span>
+              <span v-else class="badge"><Icon name="shield" :size="13" />Hồ sơ mẫu</span>
             </div>
             <div class="person-info">
               <div class="section-heading">
-                <h2>{{ current.title || ('Tìm bạn ở ghép tại ' + current.district) }}</h2>
+                <h2>{{ currentPost?.title || current.title || ('Tìm bạn ở ghép tại ' + current.district) }}</h2>
                 <span class="muted">{{ current.gender }}</span>
               </div>
               <p class="person-author"><Icon name="user" :size="15" />Đăng bởi: <strong>{{ current.name }}</strong> ({{ current.age }} tuổi)</p>
@@ -361,7 +371,7 @@ async function begin(){
               <p class="location muted"><Icon name="pin" :size="16" />{{ current.district }}, Cần Thơ</p>
               <div class="tags"><span v-for="t in current.tags" :key="t">{{ t }}</span></div>
               <p class="person-budget">{{ money(current.price) }}<span> / người / tháng</span></p>
-              <p class="person-bio">{{ current.bio }}</p>
+              <p class="person-bio">{{ currentPost?.desc || current.bio }}</p>
             </div>
           </article>
 
@@ -541,6 +551,7 @@ async function begin(){
   margin-top: 10px;
 }
 .match-actions {
+  scroll-margin-bottom: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -657,6 +668,7 @@ async function begin(){
   }
   .match-actions {
     gap: 24px;
+    scroll-margin-bottom: calc(96px + env(safe-area-inset-bottom));
   }
   .match-action {
     font-size: 12px;
