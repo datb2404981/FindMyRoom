@@ -302,7 +302,7 @@ async function begin(){
         <div class="match-stage-top">
           <div v-if="!started" class="match-stage-title">
             <span class="eyebrow">Cùng một mái nhà, cùng nhịp sống</span>
-            <h1>Không chỉ tìm phòng.<br>Tìm người đồng hành</h1>
+            <h1>Không chỉ tìm phòng<br>Tìm người đồng hành</h1>
           </div>
           <button
             v-if="started"
@@ -318,9 +318,7 @@ async function begin(){
         </div>
 
         <div v-if="!started" class="match-welcome">
-          <img src="/illustrations/friends.svg" alt="Hai người bạn ở cùng">
-          <h3>Một người bạn phù hợp đang chờ</h3>
-          <p class="muted">Chọn nơi ở, ngân sách và lối sống, rồi bắt đầu kết nối.</p>
+          <img src="/images/roommates.png?v=2" alt="Hai người bạn ở cùng">
         </div>
 
         <template v-else-if="current">
@@ -477,6 +475,22 @@ async function begin(){
   border-color: #365f62;
   color: var(--ink);
   transform: translateY(-1px);
+}
+.match-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 10px 0 24px;
+}
+.match-welcome img {
+  width: min(420px, 90vw);
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  margin: 10px auto 20px;
+  display: block;
 }
 .person-author {
   display: flex;
@@ -666,6 +680,10 @@ async function begin(){
   }
 }
 @media (max-width: 600px) {
+  .match-welcome img {
+    width: min(300px, 85vw);
+    margin: 8px auto 16px;
+  }
   .match-stage h1 {
     font-size: 28px;
   }

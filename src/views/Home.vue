@@ -203,7 +203,7 @@ function goToPage(page) {
 <template>
   <div class="home-page">
     <section class="hero">
-      <img class="hero-art" src="/illustrations/city.svg" alt="" aria-hidden="true" />
+      <img class="hero-art" src="/images/living_room_banner_1900x470.png" alt="" aria-hidden="true" />
       <div class="container hero-content">
         <h1>Tìm phòng trọ ưng ý<br />tại TP Cần Thơ</h1>
         <p>Kết nối an toàn, muôn vàn phòng tốt!</p>
@@ -460,15 +460,26 @@ function goToPage(page) {
 </template>
 
 <style scoped>
+.hero-art {
+  opacity: 1;
+  filter: none;
+  object-fit: cover;
+  object-position: center center;
+}
 .hero h1 {
   text-wrap: balance;
   letter-spacing: -0.03em;
+  color: var(--ink);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.85);
 }
 .hero-content > p {
   line-height: 1.5;
+  color: #1a221f;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.85);
 }
 .search-box {
-  box-shadow: 0 8px 24px #13141412;
+  box-shadow: 0 12px 32px rgba(19, 20, 20, 0.16);
 }
 .locations .location-card:focus-visible {
   border-radius: 16px;
