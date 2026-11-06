@@ -9,7 +9,39 @@ import {state,validateField,savePost} from '../store'
 const route=useRoute(),router=useRouter(),rental=computed(()=>route.params.kind==='rental'),kind=computed(()=>rental.value?'rental':'roommate'),step=ref(1),preview=ref(false),success=ref(false),errors=reactive({}),uploadError=ref(''),locationNotice=ref(''),locationState=ref(''),locating=ref(false),images=ref([])
 const dragging=ref(false),publishing=ref(false)
 let locationRequest=0
-onUnmounted(()=>{locationRequest++})
+
+function resetDraft(){
+  locationRequest++
+  locating.value=false
+  locationState.value=''
+  locationNotice.value=''
+  step.value=1
+  images.value.forEach(im=>{try{URL.revokeObjectURL(im.url)}catch{}})
+  images.value=[]
+  success.value=false
+  preview.value=false
+  Object.keys(errors).forEach(k=>delete errors[k])
+  Object.assign(draft,defaults())
+  state.drafts[kind.value]={}
+}
+
+function handleExternalReset(){
+  if(route.path.startsWith('/dang-bai')){
+    resetDraft()
+    window.scrollTo({top:0,behavior:'smooth'})
+  }
+}
+
+if(typeof window!=='undefined'){
+  window.addEventListener('findmyroom:reset-post-form',handleExternalReset)
+}
+
+onUnmounted(()=>{
+  locationRequest++
+  if(typeof window!=='undefined'){
+    window.removeEventListener('findmyroom:reset-post-form',handleExternalReset)
+  }
+})
 const steps=computed(()=>rental.value?['Thông tin chung','Vị trí & Địa lý','Hình ảnh','Tiện ích','Xem trước']:['Thông tin chung','Vị trí & Địa lý','Hình ảnh','Tiện ích'])
 const defaults=()=>({title:'',gender:'Tất cả',school:'Đại học Cần Thơ',moveIn:'',people:1,area:'',price:'',perPerson:'',electric:'',water:'',internet:'',other:'',deposit:'',count:1,houseId:'',desc:'',city:'Cần Thơ',ward:'',street:'',house:'',amenities:[],nearby:[],lifestyles:[],habits:'',latitude:null,longitude:null})
 const draft=reactive(defaults())

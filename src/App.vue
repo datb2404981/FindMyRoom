@@ -58,6 +58,12 @@ async function logout() {
     loggingOut.value = false;
   }
 }
+
+function onPostClick() {
+  if (route.path.startsWith('/dang-bai')) {
+    window.dispatchEvent(new CustomEvent('findmyroom:reset-post-form'));
+  }
+}
 </script>
 <template>
   <a class="skip-link" href="#main">Đến nội dung chính</a>
