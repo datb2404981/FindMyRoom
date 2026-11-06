@@ -252,8 +252,23 @@ export const people = rawStudents.map((s, i) => {
   const birthYear = s.date_of_birth ? new Date(s.date_of_birth).getFullYear() : 2004
   const age = Math.max(18, 2026 - birthYear)
 
+  const specificTitles = [
+    'Tìm bạn nữ ở ghép gần Đại học Cần Thơ',
+    'Tìm bạn ở ghép phòng đầy đủ tiện nghi',
+    'Tìm bạn ở ghép tại Hưng Phú, Cái Răng',
+    'Tìm bạn ở ghép khu trọ yên tĩnh Bình Thủy',
+  ]
+  const roomImages = [
+    '/illustrations/room-1.svg',
+    '/illustrations/room-2.svg',
+    '/illustrations/room-3.svg',
+    '/illustrations/room-4.svg',
+  ]
+
   let id = i === 0 ? 'thu' : (i === 1 ? 'hieu' : (i === 2 ? 'khoa' : s.student_code.toLowerCase()))
   let name = i === 0 ? 'Lam Thư' : (i === 1 ? 'Hoàng Hiếu' : (i === 2 ? 'Minh Khoa' : acc.full_name || 'Sinh viên'))
+  let title = roommatePost.title || specificTitles[i] || `Tìm bạn ở ghép tại ${district} (${name})`
+  let image = roomImages[i % roomImages.length]
   let gender = s.gender || 'Nữ'
   let school = uni.university_name || 'Đại học Cần Thơ'
   let major = s.major || 'Công nghệ thông tin'
@@ -303,6 +318,8 @@ export const people = rawStudents.map((s, i) => {
   return {
     id,
     studentCode: s.student_code,
+    title,
+    image,
     name,
     age,
     school,

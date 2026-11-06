@@ -1,189 +1,176 @@
 <script setup>
-import { computed, reactive, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import Icon from '../components/Icon.vue'
-import { login, register, validateField, state, updateAccount } from '../store'
+import { computed, reactive, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import Icon from "../components/Icon.vue";
+import { login, register, validateField, state, updateAccount } from "../store";
 
-const route = useRoute(), router = useRouter()
-const signup = computed(() => route.path === '/dang-ky')
-const visible = ref(false), confirmVisible = ref(false), busy = ref(false), info = ref('')
-const roleStep = ref(false)
-const otpStep = ref(false)
-const otpDigits = reactive(['', '', '', '', '', ''])
-const otpInputs = ref([])
-const otpError = ref('')
-const selectedRole = ref('')
-const emit = defineEmits(['role-step'])
+const route = useRoute(),
+  router = useRouter();
+const signup = computed(() => route.path === "/dang-ky");
+const visible = ref(false),
+  confirmVisible = ref(false),
+  busy = ref(false),
+  info = ref("");
+const roleStep = ref(false);
+const selectedRole = ref("");
+const emit = defineEmits(["role-step"]);
 const form = reactive({
-  name: '',
-  email: '',
-  phone: '',
-  password: '',
-  confirm: '',
-  terms: false
-})
-const errors = reactive({})
-const rememberedAccountsKey = 'findmyroom:remembered-emails'
-const remember = ref(false)
-const rememberedAccounts = ref(readRememberedAccounts())
+  name: "",
+  email: "",
+  phone: "",
+  password: "",
+  confirm: "",
+  terms: false,
+});
+const errors = reactive({});
+const rememberedAccountsKey = "findmyroom:remembered-emails";
+const remember = ref(false);
+const rememberedAccounts = ref(readRememberedAccounts());
 function readRememberedAccounts() {
   try {
-    const emails = JSON.parse(localStorage.getItem(rememberedAccountsKey) || '[]')
-    return Array.isArray(emails) ? [...new Set(emails.filter(email => typeof email === 'string' && !validateField('email', email)))] : []
-  } catch { return [] }
+    const emails = JSON.parse(localStorage.getItem(rememberedAccountsKey) || "[]");
+    return Array.isArray(emails)
+      ? [
+          ...new Set(
+            emails.filter(
+              (email) => typeof email === "string" && !validateField("email", email),
+            ),
+          ),
+        ]
+      : [];
+  } catch {
+    return [];
+  }
 }
-watch(() => form.email, email => {
-  if (!signup.value) remember.value = rememberedAccounts.value.includes(email.trim().toLowerCase())
-})
+watch(
+  () => form.email,
+  (email) => {
+    if (!signup.value)
+      remember.value = rememberedAccounts.value.includes(email.trim().toLowerCase());
+  },
+);
 function updateRememberedAccounts() {
-  const email = form.email.trim().toLowerCase()
-  const emails = readRememberedAccounts().filter(saved => saved !== email)
-  if (remember.value) emails.unshift(email)
+  const email = form.email.trim().toLowerCase();
+  const emails = readRememberedAccounts().filter((saved) => saved !== email);
+  if (remember.value) emails.unshift(email);
   try {
-    localStorage.setItem(rememberedAccountsKey, JSON.stringify(emails))
-    rememberedAccounts.value = emails
-  } catch { /* Remembering an email must not prevent a successful login. */ }
+    localStorage.setItem(rememberedAccountsKey, JSON.stringify(emails));
+    rememberedAccounts.value = emails;
+  } catch {
+    /* Remembering an email must not prevent a successful login. */
+  }
 }
 watch(roleStep, (val) => {
-  emit('role-step', val)
-})
+  emit("role-step", val);
+});
 
-watch(() => route.path, () => {
-  Object.keys(errors).forEach(key => delete errors[key])
-  form.password = ''; form.confirm = ''; info.value = ''
-  visible.value = false; confirmVisible.value = false
-  roleStep.value = false
-  otpStep.value = false
-  otpError.value = ''
-  for (let i = 0; i < 6; i++) otpDigits[i] = ''
-})
-
-const maskedEmail = computed(() => {
-  const email = form.email.trim()
-  if (!email || !email.includes('@')) return 'user*@gmail.com**'
-  const [user, domain] = email.split('@')
-  const visibleLen = Math.min(4, Math.floor(user.length / 2)) || 1
-  return `${user.slice(0, visibleLen)}***@${domain}`
-})
-
-function handleOtpInput(index, event) {
-  const val = event.target.value
-  otpError.value = ''
-  if (!val) {
-    otpDigits[index] = ''
-    return
-  }
-  // If user pasted or typed multiple digits
-  const cleaned = val.replace(/\D/g, '')
-  if (cleaned.length > 1) {
-    const chars = cleaned.split('')
-    for (let i = 0; i < 6; i++) {
-      if (chars[i]) otpDigits[i] = chars[i]
-    }
-    const nextIdx = Math.min(chars.length, 5)
-    otpInputs.value[nextIdx]?.focus()
-    return
-  }
-  otpDigits[index] = cleaned.slice(-1)
-  if (cleaned && index < 5) {
-    otpInputs.value[index + 1]?.focus()
-  }
-}
-
-function handleOtpKeydown(index, event) {
-  if (event.key === 'Backspace' && !otpDigits[index] && index > 0) {
-    otpInputs.value[index - 1]?.focus()
-  }
-}
-
-function handleOtpPaste(event) {
-  const pasteData = event.clipboardData?.getData('text') || ''
-  const cleaned = pasteData.replace(/\D/g, '').slice(0, 6)
-  if (cleaned) {
-    event.preventDefault()
-    for (let i = 0; i < 6; i++) {
-      otpDigits[i] = cleaned[i] || ''
-    }
-    const targetIdx = Math.min(cleaned.length, 5)
-    otpInputs.value[targetIdx]?.focus()
-  }
-}
-
-function confirmOtp() {
-  const code = otpDigits.join('').trim()
-  if (!code) {
-    otpError.value = 'Vui lòng nhập mã xác thực OTP.'
-    return
-  }
-  // Cho phép nhập mã số bất kỳ như user yêu cầu
-  otpStep.value = false
-  roleStep.value = true
-}
-
-function closeOtp() {
-  otpStep.value = false
-}
+watch(
+  () => route.path,
+  () => {
+    Object.keys(errors).forEach((key) => delete errors[key]);
+    form.password = "";
+    form.confirm = "";
+    info.value = "";
+    visible.value = false;
+    confirmVisible.value = false;
+    roleStep.value = false;
+  },
+);
 
 async function chooseRole(role) {
-  selectedRole.value = role
-  busy.value = true
+  selectedRole.value = role;
+  busy.value = true;
   try {
     if (state.user && state.user.role !== role) {
-      await updateAccount({ ...state.profile, role })
+      await updateAccount({ ...state.profile, role });
     }
-    const redirect = route.query.redirect
-    const fallback = role === 'landlord' ? '/quan-ly/nha-tro' : '/'
-    await router.replace(typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : (role === 'landlord' ? '/quan-ly/nha-tro' : '/ho-so'))
+    const redirect = route.query.redirect;
+    const fallback = role === "landlord" ? "/quan-ly/nha-tro" : "/";
+    await router.replace(
+      typeof redirect === "string" &&
+        redirect.startsWith("/") &&
+        !redirect.startsWith("//")
+        ? redirect
+        : role === "landlord"
+          ? "/quan-ly/nha-tro"
+          : "/ho-so",
+    );
   } catch (error) {
-    info.value = error.message || 'Không thể cập nhật vai trò.'
+    info.value = error.message || "Không thể cập nhật vai trò.";
   } finally {
-    busy.value = false
+    busy.value = false;
   }
 }
 
 async function submit() {
-  if (busy.value) return
-  Object.keys(errors).forEach(key => delete errors[key])
-  for (const key of signup.value ? ['name', 'email', 'phone'] : ['email']) {
-    const error = validateField(key, form[key])
-    if (error) errors[key] = error
+  if (busy.value) return;
+  Object.keys(errors).forEach((key) => delete errors[key]);
+  for (const key of signup.value ? ["name", "email", "phone"] : ["email"]) {
+    const error = validateField(key, form[key]);
+    if (error) errors[key] = error;
   }
-  if (form.password.length < 8 || form.password.length > 128) errors.password = 'Mật khẩu cần từ 8 đến 128 ký tự.'
-  if (signup.value && form.password !== form.confirm) errors.confirm = 'Mật khẩu xác nhận chưa khớp.'
-  if (signup.value && !form.terms) errors.terms = 'Bạn cần đồng ý điều khoản để tiếp tục.'
-  if (Object.keys(errors).length) return
-  busy.value = true
+  if (form.password.length < 8 || form.password.length > 128)
+    errors.password = "Mật khẩu cần từ 8 đến 128 ký tự.";
+  if (signup.value && form.password !== form.confirm)
+    errors.confirm = "Mật khẩu xác nhận chưa khớp.";
+  if (signup.value && !form.terms)
+    errors.terms = "Bạn cần đồng ý điều khoản để tiếp tục.";
+  if (Object.keys(errors).length) return;
+  busy.value = true;
   try {
     if (signup.value) {
-      await register({ name: form.name, email: form.email, phone: form.phone, password: form.password, role: 'student', terms: form.terms })
-      form.password = ''; form.confirm = ''
-      otpStep.value = true
-      otpError.value = ''
-      for (let i = 0; i < 6; i++) otpDigits[i] = ''
-      setTimeout(() => {
-        otpInputs.value[0]?.focus()
-      }, 50)
+      await register({
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        password: form.password,
+        role: "student",
+        terms: form.terms,
+      });
+      form.password = "";
+      form.confirm = "";
+      roleStep.value = true;
     } else {
-      await login({ email: form.email, password: form.password })
-      updateRememberedAccounts()
-      form.password = ''; form.confirm = ''
-      const redirect = route.query.redirect
-      const fallback = state.user?.role === 'landlord' ? '/quan-ly/nha-tro' : '/'
-      await router.replace(typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : fallback)
+      await login({ email: form.email, password: form.password });
+      updateRememberedAccounts();
+      form.password = "";
+      form.confirm = "";
+      const redirect = route.query.redirect;
+      const fallback = state.user?.role === "landlord" ? "/quan-ly/nha-tro" : "/";
+      await router.replace(
+        typeof redirect === "string" &&
+          redirect.startsWith("/") &&
+          !redirect.startsWith("//")
+          ? redirect
+          : fallback,
+      );
     }
-  } catch (error) { errors[error.field || 'submit'] = error.message }
-  finally { busy.value = false }
+  } catch (error) {
+    errors[error.field || "submit"] = error.message;
+  } finally {
+    busy.value = false;
+  }
 }
 </script>
 
 <template>
   <!-- KHI ĐĂNG KÝ XONG -> CHUYỂN QUA MÀN HÌNH CHỌN ROLE TOÀN TRANG TRẮNG CĂN GIỮA CHUẨN WIREFRAME -->
   <div v-if="roleStep" class="role-standalone-page">
-    <RouterLink to="/" class="brand role-standalone-brand" aria-label="FindMyRoom, trang chủ">
-      <span class="brand-icon"><img src="/logo.svg" alt="" class="brand-logo" width="32" height="32"></span>FindMyRoom
+    <RouterLink
+      to="/"
+      class="brand role-standalone-brand"
+      aria-label="FindMyRoom, trang chủ"
+    >
+      <span class="brand-icon"
+        ><img src="/logo.svg" alt="" class="brand-logo" width="32" height="32" /></span
+      >FindMyRoom
     </RouterLink>
 
-    <div class="role-standalone-card" role="radiogroup" aria-label="Bạn muốn tham gia với tư cách">
+    <div
+      class="role-standalone-card"
+      role="radiogroup"
+      aria-label="Bạn muốn tham gia với tư cách"
+    >
       <h1 class="role-standalone-title">Bạn muốn tham gia với tư cách</h1>
       <div class="role-standalone-options">
         <button
@@ -198,12 +185,24 @@ async function submit() {
         >
           <div class="role-card-badge">Tìm phòng & Ở ghép</div>
           <div class="role-card-icon-wrapper student-theme">
-            <svg class="student-avatar-svg" viewBox="0 0 100 100" width="60" height="60" aria-hidden="true">
+            <svg
+              class="student-avatar-svg"
+              viewBox="0 0 100 100"
+              width="60"
+              height="60"
+              aria-hidden="true"
+            >
               <!-- Mũ tốt nghiệp (Graduation Cap) -->
               <polygon points="50,14 88,28 50,42 12,28" fill="#131414" />
               <path d="M50 42 L50 49 Q50 56 68 56 L72 56 L72 34" fill="#131414" />
               <!-- Dây tua rua mũ (Tassel) màu vàng thương hiệu -->
-              <path d="M22 32 Q20 40 20 48" stroke="#f9c54d" stroke-width="2.5" fill="none" stroke-linecap="round" />
+              <path
+                d="M22 32 Q20 40 20 48"
+                stroke="#f9c54d"
+                stroke-width="2.5"
+                fill="none"
+                stroke-linecap="round"
+              />
               <circle cx="20" cy="51" r="3" fill="#f9c54d" />
               <!-- Đầu & Mặt người -->
               <circle cx="50" cy="52" r="19" fill="#131414" />
@@ -231,7 +230,13 @@ async function submit() {
         >
           <div class="role-card-badge landlord-badge">Quản lý & Cho thuê</div>
           <div class="role-card-icon-wrapper landlord-theme">
-            <svg class="landlord-avatar-svg" viewBox="0 0 100 100" width="60" height="60" aria-hidden="true">
+            <svg
+              class="landlord-avatar-svg"
+              viewBox="0 0 100 100"
+              width="60"
+              height="60"
+              aria-hidden="true"
+            >
               <!-- Đầu & Tóc chủ trọ -->
               <circle cx="50" cy="38" r="18" fill="#131414" />
               <!-- Thân áo vest / Blazer sang trọng lịch sự -->
@@ -239,7 +244,14 @@ async function submit() {
               <!-- Cà vạt / Ve áo màu vàng Gold chủ trọ -->
               <polygon points="50,62 44,72 50,84 56,72" fill="#f9c54d" />
               <!-- Huy hiệu chìa khóa trao phòng / Ngôi nhà nhỏ nổi bật -->
-              <circle cx="73" cy="72" r="14" fill="#f9c54d" stroke="#131414" stroke-width="2" />
+              <circle
+                cx="73"
+                cy="72"
+                r="14"
+                fill="#f9c54d"
+                stroke="#131414"
+                stroke-width="2"
+              />
               <path d="M69 72 L73 68 L77 72 V76 H69 Z" fill="#131414" />
             </svg>
           </div>
@@ -254,29 +266,50 @@ async function submit() {
   <!-- GIAO DIỆN ĐĂNG NHẬP / ĐĂNG KÝ BÌNH THƯỜNG -->
   <div v-else class="auth-page" :class="{ 'auth-signup': signup }">
     <div class="auth-illustration">
-      <img src="/illustrations/friends.svg" alt="Những người bạn cùng xây dựng không gian sống">
+      <img
+        src="/illustrations/friends.svg"
+        alt="Những người bạn cùng xây dựng không gian sống"
+      />
       <div class="auth-intro">
         <span class="eyebrow">FindMyRoom · Cần Thơ</span>
-        <h2>Một chỗ ở mới.<br>Một khởi đầu mới.</h2>
+        <h2>Một chỗ ở mới.<br />Một khởi đầu mới.</h2>
         <p>Tìm trọ dễ hơn. Tìm bạn ở cùng hợp hơn.</p>
       </div>
     </div>
     <section class="auth-card">
       <RouterLink to="/" class="brand auth-brand" aria-label="FindMyRoom, trang chủ">
-        <span class="brand-icon"><img src="/logo.svg" alt="" class="brand-logo" width="32" height="32"></span>FindMyRoom
+        <span class="brand-icon"
+          ><img src="/logo.svg" alt="" class="brand-logo" width="32" height="32" /></span
+        >FindMyRoom
       </RouterLink>
 
-      <h1>{{ signup ? 'Tạo tài khoản mới' : 'Chào mừng trở lại' }}</h1>
+      <h1>{{ signup ? "Tạo tài khoản mới" : "Chào mừng trở lại" }}</h1>
       <form @submit.prevent="submit" novalidate :aria-busy="busy">
         <fieldset :disabled="busy" class="auth-fields">
           <label v-if="signup" class="field auth-wide">
             <span>Họ và tên *</span>
-            <input v-model.trim="form.name" aria-label="Họ và tên *" autocomplete="name" maxlength="100" placeholder="Nhập họ và tên" :aria-invalid="!!errors.name">
+            <input
+              v-model.trim="form.name"
+              aria-label="Họ và tên *"
+              autocomplete="name"
+              maxlength="100"
+              placeholder="Nhập họ và tên"
+              :aria-invalid="!!errors.name"
+            />
             <small v-if="errors.name" class="error">{{ errors.name }}</small>
           </label>
           <label class="field">
             <span>Email *</span>
-            <input v-model.trim="form.email" aria-label="Email *" type="email" autocomplete="email" :list="signup ? undefined : 'remembered-emails'" maxlength="254" placeholder="ban@student.ctu.edu.vn" :aria-invalid="!!errors.email">
+            <input
+              v-model.trim="form.email"
+              aria-label="Email *"
+              type="email"
+              autocomplete="email"
+              :list="signup ? undefined : 'remembered-emails'"
+              maxlength="254"
+              placeholder="ban@student.ctu.edu.vn"
+              :aria-invalid="!!errors.email"
+            />
             <datalist v-if="!signup" id="remembered-emails">
               <option v-for="email in rememberedAccounts" :key="email" :value="email" />
             </datalist>
@@ -284,54 +317,144 @@ async function submit() {
           </label>
           <label v-if="signup" class="field">
             <span>Số điện thoại *</span>
-            <input v-model.trim="form.phone" aria-label="Số điện thoại *" type="tel" autocomplete="tel" placeholder="09xx xxx xxx" :aria-invalid="!!errors.phone">
+            <input
+              v-model.trim="form.phone"
+              aria-label="Số điện thoại *"
+              type="tel"
+              autocomplete="tel"
+              placeholder="09xx xxx xxx"
+              :aria-invalid="!!errors.phone"
+            />
             <small v-if="errors.phone" class="error">{{ errors.phone }}</small>
           </label>
           <label class="field">
             <span>Mật khẩu *</span>
             <div class="password-input">
-              <input v-model="form.password" aria-label="Mật khẩu *" :type="visible ? 'text' : 'password'" :autocomplete="signup ? 'new-password' : 'current-password'" maxlength="128" placeholder="Ít nhất 8 ký tự" :aria-invalid="!!errors.password">
-              <button type="button" class="icon-button" @click="visible = !visible" :aria-label="visible ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"><Icon :name="visible ? 'eye-off' : 'eye'" :size="18" /></button>
+              <input
+                v-model="form.password"
+                aria-label="Mật khẩu *"
+                :type="visible ? 'text' : 'password'"
+                :autocomplete="signup ? 'new-password' : 'current-password'"
+                maxlength="128"
+                placeholder="Ít nhất 8 ký tự"
+                :aria-invalid="!!errors.password"
+              />
+              <button
+                type="button"
+                class="icon-button"
+                @click="visible = !visible"
+                :aria-label="visible ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+              >
+                <Icon :name="visible ? 'eye-off' : 'eye'" :size="18" />
+              </button>
             </div>
             <small v-if="errors.password" class="error">{{ errors.password }}</small>
           </label>
           <label v-if="signup" class="field">
             <span>Xác nhận mật khẩu *</span>
             <div class="password-input">
-              <input v-model="form.confirm" aria-label="Xác nhận mật khẩu *" :type="confirmVisible ? 'text' : 'password'" autocomplete="new-password" maxlength="128" placeholder="Nhập lại mật khẩu" :aria-invalid="!!errors.confirm">
-              <button type="button" class="icon-button" @click="confirmVisible = !confirmVisible" :aria-label="confirmVisible ? 'Ẩn xác nhận mật khẩu' : 'Hiện xác nhận mật khẩu'" :aria-pressed="confirmVisible"><Icon :name="confirmVisible ? 'eye-off' : 'eye'" :size="18" /></button>
+              <input
+                v-model="form.confirm"
+                aria-label="Xác nhận mật khẩu *"
+                :type="confirmVisible ? 'text' : 'password'"
+                autocomplete="new-password"
+                maxlength="128"
+                placeholder="Nhập lại mật khẩu"
+                :aria-invalid="!!errors.confirm"
+              />
+              <button
+                type="button"
+                class="icon-button"
+                @click="confirmVisible = !confirmVisible"
+                :aria-label="
+                  confirmVisible ? 'Ẩn xác nhận mật khẩu' : 'Hiện xác nhận mật khẩu'
+                "
+                :aria-pressed="confirmVisible"
+              >
+                <Icon :name="confirmVisible ? 'eye-off' : 'eye'" :size="18" />
+              </button>
             </div>
             <small v-if="errors.confirm" class="error">{{ errors.confirm }}</small>
           </label>
-          <label v-if="signup" class="check auth-wide"><input type="checkbox" v-model="form.terms">Tôi đồng ý với điều khoản dịch vụ và chính sách bảo mật.</label>
+          <label v-if="signup" class="check auth-wide"
+            ><input type="checkbox" v-model="form.terms" />Tôi đồng ý với điều khoản dịch
+            vụ và chính sách bảo mật.</label
+          >
           <div v-else class="auth-options">
-            <label class="check remember-account"><input type="checkbox" v-model="remember">Ghi nhớ tôi</label>
-            <button type="button" class="text-button" @click="info = 'Chưa hỗ trợ đặt lại mật khẩu. Hãy liên hệ người quản lý website.'">Quên mật khẩu?</button>
+            <label class="check remember-account"
+              ><input type="checkbox" v-model="remember" />Ghi nhớ tôi</label
+            >
+            <button
+              type="button"
+              class="text-button"
+              @click="
+                info = 'Chưa hỗ trợ đặt lại mật khẩu. Hãy liên hệ người quản lý website.'
+              "
+            >
+              Quên mật khẩu?
+            </button>
           </div>
           <small v-if="errors.terms" class="error auth-wide">{{ errors.terms }}</small>
-          <p v-if="errors.submit || errors.role" class="error auth-wide" role="alert">{{ errors.submit || errors.role }}</p>
-          <button class="button primary full auth-wide" type="submit">{{ busy ? 'Đang xử lý…' : signup ? 'Đăng ký' : 'Đăng nhập' }} <Icon name="arrow" :size="18" /></button>
+          <p v-if="errors.submit || errors.role" class="error auth-wide" role="alert">
+            {{ errors.submit || errors.role }}
+          </p>
+          <button class="button primary full auth-wide" type="submit">
+            {{ busy ? "Đang xử lý…" : signup ? "Đăng ký" : "Đăng nhập" }}
+            <Icon name="arrow" :size="18" />
+          </button>
         </fieldset>
       </form>
       <div class="divider"><span>Hoặc</span></div>
       <div class="social-buttons">
-        <button class="button secondary" @click="info = 'Google OAuth chưa được kết nối. Hãy dùng email và mật khẩu phía trên.'"><strong>G</strong> Google</button>
-        <button class="button secondary" @click="info = 'Facebook OAuth chưa được kết nối. Hãy dùng email và mật khẩu phía trên.'"><strong>f</strong> Facebook</button>
+        <button
+          class="button secondary"
+          @click="
+            info = 'Google OAuth chưa được kết nối. Hãy dùng email và mật khẩu phía trên.'
+          "
+        >
+          <strong>G</strong> Google
+        </button>
+        <button
+          class="button secondary"
+          @click="
+            info =
+              'Facebook OAuth chưa được kết nối. Hãy dùng email và mật khẩu phía trên.'
+          "
+        >
+          <strong>f</strong> Facebook
+        </button>
       </div>
-      <p class="center auth-switch">{{ signup ? 'Đã có tài khoản?' : 'Chưa có tài khoản?' }} <RouterLink :to="{ path: signup ? '/dang-nhap' : '/dang-ky', query: route.query }">{{ signup ? 'Đăng nhập ngay' : 'Đăng ký ngay' }}</RouterLink></p>
+      <p class="center auth-switch">
+        {{ signup ? "Đã có tài khoản?" : "Chưa có tài khoản?" }}
+        <RouterLink
+          :to="{ path: signup ? '/dang-nhap' : '/dang-ky', query: route.query }"
+          >{{ signup ? "Đăng nhập ngay" : "Đăng ký ngay" }}</RouterLink
+        >
+      </p>
       <p v-if="info" class="notice" role="status">{{ info }}</p>
     </section>
 
     <!-- POPUP NHẬP MÃ XÁC THỰC OTP -->
     <div v-if="otpStep" class="otp-modal-backdrop" @click.self="closeOtp">
-      <div class="otp-modal-card" role="dialog" aria-modal="true" aria-labelledby="otp-title">
-        <button type="button" class="otp-modal-close" @click="closeOtp" aria-label="Đóng popup">
+      <div
+        class="otp-modal-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="otp-title"
+      >
+        <button
+          type="button"
+          class="otp-modal-close"
+          @click="closeOtp"
+          aria-label="Đóng popup"
+        >
           <Icon name="close" :size="20" />
         </button>
 
         <h2 id="otp-title" class="otp-title">Nhập mã xác thực</h2>
         <p class="otp-description">
-          Chúng tôi đã gửi mã xác thực đến <strong>{{ maskedEmail }}</strong>. Hãy kiểm tra hộp thư của bạn.
+          Chúng tôi đã gửi mã xác thực đến <strong>{{ maskedEmail }}</strong
+          >. Hãy kiểm tra hộp thư của bạn.
         </p>
 
         <form @submit.prevent="confirmOtp" class="otp-form">
@@ -339,7 +462,7 @@ async function submit() {
             <input
               v-for="(_, index) in 6"
               :key="index"
-              :ref="el => (otpInputs[index] = el)"
+              :ref="(el) => (otpInputs[index] = el)"
               v-model="otpDigits[index]"
               type="text"
               inputmode="numeric"
@@ -354,9 +477,7 @@ async function submit() {
 
           <p v-if="otpError" class="otp-error-message" role="alert">{{ otpError }}</p>
 
-          <button type="submit" class="button primary otp-submit-button">
-            Xác nhận
-          </button>
+          <button type="submit" class="button primary otp-submit-button">Xác nhận</button>
         </form>
       </div>
     </div>
@@ -396,11 +517,13 @@ async function submit() {
   padding: 52px 48px 56px;
   box-sizing: border-box;
   text-align: center;
-  box-shadow: 0 4px 6px -1px rgba(19, 20, 20, 0.05), 0 2px 4px -2px rgba(19, 20, 20, 0.05);
+  box-shadow:
+    0 4px 6px -1px rgba(19, 20, 20, 0.05),
+    0 2px 4px -2px rgba(19, 20, 20, 0.05);
 }
 
 .role-standalone-title {
-  font-family: 'PP Pangram Sans', 'IBM Plex Sans', sans-serif;
+  font-family: "PP Pangram Sans", "IBM Plex Sans", sans-serif;
   font-size: clamp(26px, 3vw, 34px);
   font-weight: 700;
   color: var(--ink, #131414);
@@ -429,10 +552,11 @@ async function submit() {
   border-radius: 16px;
   cursor: pointer;
   box-shadow: 4px 4px 0px 0px rgba(19, 20, 20, 0.85);
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1),
-              background-color 0.2s ease,
-              border-color 0.2s ease;
+  transition:
+    transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 0.2s ease,
+    border-color 0.2s ease;
   color: var(--ink, #131414);
   box-sizing: border-box;
   position: relative;
@@ -465,7 +589,9 @@ async function submit() {
   justify-content: center;
   margin-bottom: 12px;
   border: 1.5px solid var(--ink, #131414);
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease;
+  transition:
+    transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 0.2s ease;
 }
 
 .student-theme {
@@ -512,7 +638,7 @@ async function submit() {
 }
 
 .role-card-text {
-  font-family: 'PP Pangram Sans', 'IBM Plex Sans', sans-serif;
+  font-family: "PP Pangram Sans", "IBM Plex Sans", sans-serif;
   font-size: 19px;
   font-weight: 700;
   color: var(--ink, #131414);
@@ -526,7 +652,7 @@ async function submit() {
 }
 
 .role-card-or {
-  font-family: 'IBM Plex Sans', sans-serif;
+  font-family: "IBM Plex Sans", sans-serif;
   font-size: 17px;
   font-weight: 700;
   color: var(--muted, #647076);
@@ -615,15 +741,24 @@ async function submit() {
   margin: 0;
   border-radius: 0;
 }
-:global(#main:has(.auth-page) + .site-footer) { margin-top: 0; }
+:global(#main:has(.auth-page) + .site-footer) {
+  margin-top: 0;
+}
 .auth-intro {
   position: absolute;
   inset: auto 0 0;
   padding: 72px clamp(28px, 4vw, 64px) 80px;
   background: linear-gradient(transparent, var(--cream) 45%);
 }
-.auth-intro h2 { font-size: clamp(26px, 2.8vw, 40px); line-height: 1.2; margin: 12px 0; }
-.auth-intro p { color: var(--muted); margin-bottom: 0; }
+.auth-intro h2 {
+  font-size: clamp(26px, 2.8vw, 40px);
+  line-height: 1.2;
+  margin: 12px 0;
+}
+.auth-intro p {
+  color: var(--muted);
+  margin-bottom: 0;
+}
 .auth-card {
   align-self: start;
   justify-self: center;
@@ -633,18 +768,54 @@ async function submit() {
   border: 0;
   border-radius: 0;
 }
-.auth-brand { display: inline-flex; margin-bottom: 20px; }
-.auth-card h1 { font-size: clamp(26px, 2.5vw, 32px); line-height: 1.25; margin: 0 0 28px; }
-.auth-fields { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; min-width: 0; }
-.auth-signup .auth-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 20px; }
-.auth-wide { grid-column: 1 / -1; }
-.auth-card .field { min-width: 0; margin: 0; }
-.auth-card input:not([type="checkbox"]) { min-width: 0; width: 100%; }
-.auth-options { margin: 0; font-size: 12px; }
-.auth-options .remember-account { margin: 0; align-items: center; }
-.auth-card .check { font-size: 12px; align-items: flex-start; }
-.auth-card .check input { flex-shrink: 0; }
-.auth-switch { margin: 18px 0 0; }
+.auth-brand {
+  display: inline-flex;
+  margin-bottom: 20px;
+}
+.auth-card h1 {
+  font-size: clamp(26px, 2.5vw, 32px);
+  line-height: 1.25;
+  margin: 0 0 28px;
+}
+.auth-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+  min-width: 0;
+}
+.auth-signup .auth-fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 20px;
+}
+.auth-wide {
+  grid-column: 1 / -1;
+}
+.auth-card .field {
+  min-width: 0;
+  margin: 0;
+}
+.auth-card input:not([type="checkbox"]) {
+  min-width: 0;
+  width: 100%;
+}
+.auth-options {
+  margin: 0;
+  font-size: 12px;
+}
+.auth-options .remember-account {
+  margin: 0;
+  align-items: center;
+}
+.auth-card .check {
+  font-size: 12px;
+  align-items: flex-start;
+}
+.auth-card .check input {
+  flex-shrink: 0;
+}
+.auth-switch {
+  margin: 18px 0 0;
+}
 .auth-card button[type="submit"],
 .auth-card .social-buttons .button {
   height: 48px;
@@ -652,16 +823,33 @@ async function submit() {
   padding-block: 0;
   box-sizing: border-box;
 }
-.auth-switch a { font-weight: 600; text-decoration: underline; }
-.password-input .icon-button { width: 44px; height: 44px; right: 2px; }
+.auth-switch a {
+  font-weight: 600;
+  text-decoration: underline;
+}
+.password-input .icon-button {
+  width: 44px;
+  height: 44px;
+  right: 2px;
+}
 @media (max-width: 767px) {
-  .auth-page { grid-template-columns: minmax(0, 1fr); }
-  .auth-illustration { display: none; }
-  .auth-card { padding: 32px 24px 40px; }
+  .auth-page {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .auth-illustration {
+    display: none;
+  }
+  .auth-card {
+    padding: 32px 24px 40px;
+  }
 }
 @media (max-width: 480px) {
-  .auth-page { min-height: max(940px, 100dvh); }
-  .auth-signup .auth-fields { grid-template-columns: minmax(0, 1fr); }
+  .auth-page {
+    min-height: max(940px, 100dvh);
+  }
+  .auth-signup .auth-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 .auth-card input::-ms-reveal {
   display: none;
@@ -711,7 +899,9 @@ async function submit() {
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  transition: background-color 0.15s, transform 0.15s;
+  transition:
+    background-color 0.15s,
+    transform 0.15s;
 }
 
 .otp-modal-close:hover {
@@ -791,7 +981,9 @@ async function submit() {
   cursor: pointer;
   min-width: 140px;
   box-shadow: none;
-  transition: background-color 0.2s, transform 0.15s;
+  transition:
+    background-color 0.2s,
+    transform 0.15s;
 }
 
 .otp-submit-button:hover {
@@ -801,13 +993,23 @@ async function submit() {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes scaleUp {
-  from { opacity: 0; transform: scale(0.94); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @media (max-width: 480px) {
