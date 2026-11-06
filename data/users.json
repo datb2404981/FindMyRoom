@@ -71,6 +71,15 @@
       "role": "student",
       "passwordHash": "scrypt:6985091dff50662b276d3d4f4ed3f4d3:a91e74ff416442e827e212e9f4aa74469e0ef173642588fae244c2dc736bbb17da9f89393564d78492cad63c1fd0ceffd6e59ee86a88b35509ad64130f07c538",
       "createdAt": "2026-11-05T14:28:02.148Z"
+    },
+    {
+      "id": "c4ca610a-7fa3-44df-bb3e-2471ae56772f",
+      "name": "Thư Lâm",
+      "email": "thub2405012@student.ctu.edu.vn",
+      "phone": "0912345678",
+      "role": "student",
+      "passwordHash": "scrypt:ee62c5388a0e823992ae610efb8f6b40:22150b9020a419a2add6d34b6476b07bdb5e48a6d845b72bbbf6a929314eafba15b8078f97b851d5724edef6a8b41a9a63127b2c08694133d73f7d11946fd0a6",
+      "createdAt": "2026-11-06T08:47:22.725Z"
     }
   ]
 }

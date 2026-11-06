@@ -18,7 +18,8 @@ const route = useRoute(),
   locationNotice = ref(""),
   locationState = ref(""),
   locating = ref(false),
-  images = ref([]);
+  images = ref([]),
+  dragging = ref(false);
 const leaveModal = ref(false),
   initialItem = ref(null);
 let locationRequest = 0,
@@ -98,6 +99,16 @@ function load() {
     if (item) {
       Object.assign(draft, defaults(), item);
       initialItem.value = JSON.stringify(item);
+      const existingPhotos = item.images?.length
+        ? item.images
+        : item.image
+          ? [item.image]
+          : [];
+      images.value = existingPhotos.map((url) => ({
+        id: crypto.randomUUID ? crypto.randomUUID() : "img-" + Math.random(),
+        url,
+        base64Promise: Promise.resolve(url),
+      }));
     }
   } else {
     resetDraft();
@@ -109,11 +120,11 @@ watch(() => [route.params.kind, route.query.edit], load);
 
 const isDirty = computed(() => {
   if (success.value) return false;
-  if (step.value > 1) return true;
-  if (images.value.length > 0) return true;
   if (route.query.edit && initialItem.value) {
     return JSON.stringify(draft) !== initialItem.value;
   }
+  if (step.value > 1) return true;
+  if (images.value.length > 0) return true;
   return (
     draft.title.trim() !== "" ||
     draft.desc.trim() !== "" ||
@@ -338,24 +349,30 @@ async function compressImageFile(file, maxWidth = 1000, quality = 0.75) {
 async function upload(e) {
   dragging.value = false;
   uploadError.value = "";
-  const files = [...(e.dataTransfer?.files || e.target.files || [])];
+  const files = [...(e.dataTransfer?.files || e.target?.files || [])];
   for (const file of files) {
     if (images.value.length >= 10) {
       uploadError.value = "Chỉ được tải tối đa 10 ảnh.";
       break;
     }
-    if (
-      !["image/jpeg", "image/png", "image/webp"].includes(file.type) ||
-      file.size > 10 * 1024 * 1024
-    ) {
+    const isImage =
+      ["image/jpeg", "image/jpg", "image/png", "image/webp"].includes(
+        file.type?.toLowerCase(),
+      ) || /\.(jpe?g|png|webp)$/i.test(file.name || "");
+    if (!isImage || file.size > 10 * 1024 * 1024) {
       uploadError.value = "Chỉ nhận JPG, PNG, WEBP tối đa 10 MB mỗi ảnh.";
       continue;
     }
     const blobUrl = URL.createObjectURL(file);
     const base64Promise = compressImageFile(file);
-    images.value.push({ id: crypto.randomUUID(), file, url: blobUrl, base64Promise });
+    images.value.push({
+      id: crypto.randomUUID ? crypto.randomUUID() : "img-" + Date.now() + "-" + Math.random(),
+      file,
+      url: blobUrl,
+      base64Promise,
+    });
   }
-  if (e.target.type === "file") e.target.value = "";
+  if (e.target?.type === "file") e.target.value = "";
   if (images.value.length >= 3) delete errors.images;
 }
 function removeImage(i) {
@@ -432,12 +449,7 @@ function locate() {
         draft.longitude = position.coords.longitude;
         locating.value = false;
         locationState.value = "success";
-        locationNotice.value =
-          "Đã lấy tọa độ thành công! Vĩ độ: " +
-          draft.latitude.toFixed(5) +
-          ", kinh độ: " +
-          draft.longitude.toFixed(5) +
-          ". Vui lòng kiểm tra và điền địa chỉ bên trên.";
+        locationNotice.value = "Đã lấy tọa độ thành công!";
       },
       failed,
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
@@ -619,8 +631,13 @@ function locate() {
       ><template v-if="step === 3"
         ><h2>Hình ảnh chỗ ở</h2>
         <p class="muted">Tải từ 3 đến 10 ảnh. Ảnh đầu tiên sẽ làm ảnh bìa.</p>
-        <label class="upload-zone" @dragover.prevent @drop.prevent="upload"
-          ><Icon name="upload" :size="42" /><strong
+        <label
+          class="upload-zone"
+          :class="{ dragging }"
+          @dragover.prevent="dragging = true; if ($event.dataTransfer) $event.dataTransfer.dropEffect = 'copy'"
+          @dragleave.prevent="dragging = false"
+          @drop.prevent="upload"
+        ><Icon name="upload" :size="42" /><strong
             >Nhấp để chọn hoặc kéo ảnh vào đây</strong
           ><span>JPG, PNG, WEBP · tối đa 10 MB mỗi ảnh</span
           ><input
@@ -628,6 +645,9 @@ function locate() {
             multiple
             accept="image/jpeg,image/png,image/webp"
             @change="upload"
+            @dragover.prevent="dragging = true; if ($event.dataTransfer) $event.dataTransfer.dropEffect = 'copy'"
+            @dragleave.prevent="dragging = false"
+            @drop.prevent="upload"
             aria-label="Tải hình ảnh chỗ ở"
         /></label>
         <p class="error" v-if="uploadError || errors.images" role="alert">
@@ -794,6 +814,10 @@ function locate() {
 </template>
 
 <style scoped>
+.upload-zone.dragging {
+  border-color: var(--cyan);
+  background: var(--cream-deep);
+}
 .location-feedback {
   display: flex;
   align-items: flex-start;

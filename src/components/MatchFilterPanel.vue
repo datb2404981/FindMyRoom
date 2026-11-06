@@ -1,14 +1,24 @@
 <script setup>
 import { computed, ref } from 'vue'
 import Icon from './Icon.vue'
-import { amenities, districts, money } from '../data'
+import { amenities, nearby, districts, money } from '../data'
 import { schools } from '../search-filters'
 
 const model = defineModel({ required: true })
 const emit = defineEmits(['start', 'reset'])
 const locationOpen = ref(false), locationButton = ref(null), activeHandle = ref('max')
 const lowerLimit = 500_000, upperLimit = 5_000_000, step = 100_000
-const lifestyleOptions = ['Yên tĩnh', 'Không hút thuốc', 'Gọn gàng', 'Nuôi thú cưng', 'Giờ giấc tự do', 'Thích thể thao']
+const lifestyleOptions = [
+  'Giờ giấc tự do',
+  'Yên tĩnh',
+  'Không hút thuốc',
+  'Gọn gàng',
+  'Nuôi thú cưng',
+  'Người thân qua đêm',
+  'Nam nữ ở chung',
+  'Ưu tiên nữ',
+  'Thích thể thao',
+]
 const selectedSchool = computed(() => schools.find(school => school.id === model.value.school))
 const locationLabel = computed(() => model.value.locationMode === 'place' ? selectedSchool.value?.name || 'Tất cả trường học' : model.value.district || 'Tất cả khu vực')
 const locationOptions = computed(() => model.value.locationMode === 'place' ? schools.map(school => ({ value: school.id, label: school.name })) : districts.map(district => ({ value: district, label: district })))
@@ -27,7 +37,8 @@ function chooseLocation(value) {
   locationButton.value?.focus()
 }
 function toggle(key, value) {
-  patch({ [key]: model.value[key].includes(value) ? model.value[key].filter(item => item !== value) : [...model.value[key], value] })
+  const current = model.value[key] || []
+  patch({ [key]: current.includes(value) ? current.filter(item => item !== value) : [...current, value] })
 }
 function updateMinimum(value) { patch({ budgetMin: Math.max(lowerLimit, Math.min(Number(value), model.value.budgetMax - step)) }) }
 function updateMaximum(value) { patch({ budgetMax: Math.min(upperLimit, Math.max(Number(value), model.value.budgetMin + step)) }) }
@@ -78,14 +89,19 @@ function reset() { locationOpen.value = false; emit('reset') }
         <div class="budget-limits"><span>500 nghìn</span><span>5 triệu</span></div>
       </section>
 
-      <section class="match-choice-group" aria-labelledby="match-amenities-heading">
-        <div class="match-section-heading"><h3 id="match-amenities-heading"><Icon name="filter" :size="18" />Tiện ích</h3></div>
-        <div class="match-choice-grid"><label v-for="amenity in amenities" :key="amenity" class="match-choice" :class="{ selected: model.amenities.includes(amenity) }"><input type="checkbox" :checked="model.amenities.includes(amenity)" @change="toggle('amenities', amenity)"><span>{{ amenity }}</span></label></div>
+      <section class="match-choice-group" aria-label="Tiện ích">
+        <div class="match-section-heading"><h3 id="match-amenities-heading"><Icon name="filter" :size="18" />Tiện ích nội khu</h3></div>
+        <div class="match-choice-grid"><label v-for="amenity in amenities" :key="amenity" class="match-choice" :class="{ selected: (model.amenities || []).includes(amenity) }"><input type="checkbox" :checked="(model.amenities || []).includes(amenity)" @change="toggle('amenities', amenity)"><span>{{ amenity }}</span></label></div>
+      </section>
+
+      <section class="match-choice-group" aria-labelledby="match-nearby-heading">
+        <div class="match-section-heading"><h3 id="match-nearby-heading"><Icon name="building" :size="18" />Tiện ích ngoại khu</h3></div>
+        <div class="match-choice-grid"><label v-for="item in nearby" :key="item" class="match-choice" :class="{ selected: (model.nearby || []).includes(item) }"><input type="checkbox" :checked="(model.nearby || []).includes(item)" @change="toggle('nearby', item)"><span>{{ item }}</span></label></div>
       </section>
 
       <section class="match-choice-group" aria-labelledby="match-lifestyle-heading">
         <div class="match-section-heading"><h3 id="match-lifestyle-heading"><Icon name="heart" :size="18" />Phong cách sống</h3></div>
-        <div class="match-choice-grid"><label v-for="habit in lifestyleOptions" :key="habit" class="match-choice" :class="{ selected: model.habits.includes(habit) }"><input type="checkbox" :checked="model.habits.includes(habit)" @change="toggle('habits', habit)"><span>{{ habit }}</span></label></div>
+        <div class="match-choice-grid"><label v-for="habit in lifestyleOptions" :key="habit" class="match-choice" :class="{ selected: (model.habits || []).includes(habit) }"><input type="checkbox" :checked="(model.habits || []).includes(habit)" @change="toggle('habits', habit)"><span>{{ habit }}</span></label></div>
       </section>
     </div>
 

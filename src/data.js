@@ -277,6 +277,7 @@ export const people = rawStudents.map((s, i) => {
   let tags = ['Yên tĩnh', 'Không hút thuốc']
   let bio = roommatePost.description || 'Tìm bạn ở ghép cùng chia sẻ không gian sống văn minh, sạch sẽ.'
   let amenitiesList = postAmenities.length ? postAmenities : ['Camera 24/7', 'Máy giặt', 'Wifi tốc độ cao', 'Nhà xe']
+  let nearbyList = ['Gần chợ/BHX', 'Quán ăn', 'Nhà thuốc', 'Trạm xe buýt']
 
   if (i === 0) {
     gender = 'Nữ'
@@ -284,9 +285,10 @@ export const people = rawStudents.map((s, i) => {
     major = 'Công nghệ thông tin'
     district = 'Ninh Kiều'
     price = 1200000
-    tags = ['Yên tĩnh', 'Không hút thuốc', 'Gọn gàng']
+    tags = ['Yên tĩnh', 'Không hút thuốc', 'Gọn gàng', 'Ưu tiên nữ']
     bio = 'Mình đang tìm một bạn nữ ở ghép gần trường. Mình thích nấu ăn, đọc sách và giữ không gian chung sạch sẽ.'
     amenitiesList = ['Camera 24/7', 'Máy giặt', 'Wifi tốc độ cao', 'Nhà xe']
+    nearbyList = ['Gần chợ/BHX', 'Trạm xe buýt', 'Quán cafe', 'Quán ăn', 'Nhà thuốc']
   } else if (i === 1) {
     gender = 'Nam'
     school = 'Đại học Cần Thơ'
@@ -296,6 +298,7 @@ export const people = rawStudents.map((s, i) => {
     tags = ['Giờ giấc tự do', 'Không hút thuốc', 'Thích thể thao']
     bio = 'Mình học kỹ thuật phần mềm, tìm bạn ở ghép tôn trọng không gian riêng và có thể chia sẻ việc nhà.'
     amenitiesList = ['Tủ lạnh', 'Máy lạnh', 'Wifi tốc độ cao', 'Nhà xe']
+    nearbyList = ['Gần chợ/BHX', 'Cây xăng', 'Quán ăn', 'Giặt ủi', 'Quán cafe']
   } else if (i === 2) {
     gender = 'Nam'
     school = 'Đại học Cần Thơ'
@@ -305,6 +308,7 @@ export const people = rawStudents.map((s, i) => {
     tags = ['Yên tĩnh', 'Gọn gàng', 'Nuôi thú cưng']
     bio = 'Mình cần tìm một bạn ở ghép lâu dài. Phòng có gác và chỗ để xe, có thể chuyển vào đầu tháng.'
     amenitiesList = ['Máy giặt', 'Wifi tốc độ cao', 'Nhà xe']
+    nearbyList = ['Gần chợ/BHX', 'Bệnh viện', 'Quán ăn', 'Cây xăng']
   } else {
     if (pref.personality_type) tags.push(pref.personality_type)
     if (pref.smoking_tolerance === 0) tags.push('Không hút thuốc')
@@ -331,6 +335,8 @@ export const people = rawStudents.map((s, i) => {
     bio,
     color: pastelColors[i % pastelColors.length],
     amenities: amenitiesList,
+    nearby: nearbyList,
+    lifestyles: [...new Set(tags)],
     avatar: acc.avatar_url,
     accountId: acc.account_id,
     phone: acc.phone,

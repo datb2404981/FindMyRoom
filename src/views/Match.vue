@@ -7,7 +7,7 @@ import {people,money} from '../data'
 import {schools} from '../search-filters'
 import {state} from '../store'
 
-const defaults=()=>({locationMode:'place',school:'',district:'',gender:'',budgetMin:500000,budgetMax:2000000,amenities:[],habits:[]})
+const defaults=()=>({locationMode:'place',school:'',district:'',gender:'',budgetMin:500000,budgetMax:2000000,amenities:[],nearby:[],habits:[]})
 const router=useRouter(),route=useRoute()
 const started=ref(!!route.query.start),preferences=ref(defaults()),notice=ref(''),stage=ref(null)
 const history=ref([])
@@ -34,8 +34,9 @@ const candidates=computed(()=>{
   (!f.gender||p.gender===f.gender)&&
   p.price>=f.budgetMin&&
   p.price<=f.budgetMax&&
-  f.amenities.every(a=>p.amenities?.includes(a))&&
-  f.habits.every(h=>p.tags.includes(h))
+  (!f.amenities?.length||f.amenities.every(a=>p.amenities?.includes(a)))&&
+  (!f.nearby?.length||f.nearby.every(n=>p.nearby?.includes(n)))&&
+  (!f.habits?.length||f.habits.every(h=>p.tags?.includes(h)||p.amenities?.includes(h)||p.lifestyles?.includes(h)))
  )
 })
 
@@ -299,9 +300,9 @@ async function begin(){
 
       <section ref="stage" class="match-stage" aria-label="Kết quả ghép trọ">
         <div class="match-stage-top">
-          <div class="match-stage-title">
+          <div v-if="!started" class="match-stage-title">
             <span class="eyebrow">Cùng một mái nhà, cùng nhịp sống</span>
-            <h1>Không chỉ tìm phòng.<br>Tìm người đồng hành.</h1>
+            <h1>Không chỉ tìm phòng.<br>Tìm người đồng hành</h1>
           </div>
           <button
             v-if="started"
@@ -435,13 +436,24 @@ async function begin(){
 }
 .match-stage-top {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 16px;
   margin-bottom: 24px;
+  text-align: center;
+}
+.match-stage-title {
+  text-align: center;
+  width: 100%;
+}
+.match-stage-title .eyebrow {
+  margin-inline: auto;
+  text-align: center;
 }
 .match-stage-top h1 {
   margin-bottom: 0;
+  text-align: center;
 }
 .reset-start-btn {
   display: inline-flex;
@@ -631,14 +643,16 @@ async function begin(){
   }
   .match-stage-top {
     flex-direction: column;
-    align-items: stretch;
+    align-items: center;
     gap: 14px;
     margin-bottom: 20px;
+    text-align: center;
   }
   .reset-start-btn {
-    align-self: flex-start;
+    align-self: center;
     min-height: 44px;
     padding: 10px 18px;
+    margin: 0 auto;
   }
   .match-layout {
     display: grid;

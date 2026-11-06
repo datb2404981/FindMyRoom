@@ -19,11 +19,15 @@ const gallery = computed(() => {
   const r = room.value;
   if (!r) return [];
   if (r.images && r.images.length) {
-    if (r.images.length >= 4) return r.images;
-    const fillers = Array.from({ length: 4 - r.images.length }, (_, i) => `/illustrations/room-${((r.images.length + i) % 4) + 1}.svg`);
-    return [...r.images, ...fillers];
+    return r.images;
   }
-  return [r.image, "/illustrations/room-2.svg", "/illustrations/room-3.svg", "/illustrations/room-4.svg"];
+  if (r.image) return [r.image];
+  return ["/illustrations/room-1.svg"];
+});
+watch([room, gallery], () => {
+  if (slide.value >= gallery.value.length) {
+    slide.value = 0;
+  }
 });
 const houseId = computed(() =>
   !isRoommate.value && typeof room.value?.houseId === "string" ? room.value.houseId : "",
@@ -67,6 +71,10 @@ watch(
   { immediate: true },
 );
 async function submitReview() {
+  if (state.user?.role !== "student") {
+    reviewError.value = "Chỉ sinh viên mới có thể viết đánh giá.";
+    return;
+  }
   const content = reviewContent.value.trim(),
     id = houseId.value;
   if (!content) {
@@ -193,6 +201,7 @@ function formatDate(dateStr) {
             :alt="room.title + ' — góc nhìn ' + (slide + 1)"
           />
           <button
+            v-if="gallery.length > 1"
             class="icon-button photo-prev"
             aria-label="Ảnh trước"
             @click="slide = (slide + gallery.length - 1) % gallery.length"
@@ -200,6 +209,7 @@ function formatDate(dateStr) {
             <Icon name="left" />
           </button>
           <button
+            v-if="gallery.length > 1"
             class="icon-button photo-next"
             aria-label="Ảnh tiếp theo"
             @click="slide = (slide + 1) % gallery.length"
@@ -369,7 +379,7 @@ function formatDate(dateStr) {
               <div v-if="review.images?.length" class="review-images"><img v-for="(image, index) in review.images" :key="index" :src="image" :alt="'Ảnh đánh giá của ' + review.author" loading="lazy"></div>
               <p>{{ review.content }}</p>
             </div>
-            <form v-if="state.user" class="review-form" @submit.prevent="submitReview">
+            <form v-if="state.user?.role === 'student'" class="review-form" @submit.prevent="submitReview">
               <div class="rating-row"><fieldset class="rating-choice"><legend>Đánh giá của bạn</legend><label v-for="star in 5" :key="star"><input v-model.number="reviewRating" type="radio" name="rating" :value="star" :aria-label="star + ' sao'"><Icon name="star" :size="23" :class="{ filled: star <= reviewRating }" /></label></fieldset><span class="rating-caption" aria-live="polite">{{ reviewRating ? reviewRating + ' / 5' : 'Chọn số sao' }}</span></div>
               <label for="review-content">Viết bình luận</label>
               <textarea
@@ -393,6 +403,9 @@ function formatDate(dateStr) {
                 {{ reviewSaving ? "Đang gửi…" : "Gửi bình luận" }}
               </button></div>
             </form>
+            <p v-else-if="state.user?.role === 'landlord'" class="review-intro muted">
+              Tài khoản chủ trọ không thể gửi bình luận. Chỉ tài khoản sinh viên mới có thể đánh giá nhà trọ.
+            </p>
             <template v-else
               ><p v-if="reviewError" class="review-error" role="alert">
                 {{ reviewError }}

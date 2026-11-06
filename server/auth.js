@@ -155,6 +155,7 @@ export function createAuthMiddleware({ usersFile = defaultUsersFile, reviewsFile
       if (path === '/api/house-reviews' && req.method === 'POST') {
         const user = await currentUser(req)
         if (!user) throw fail(401, 'Vui lòng đăng nhập để bình luận.')
+        if (user.role !== 'student') throw fail(403, 'Chỉ sinh viên mới có thể gửi đánh giá nhà trọ.')
         const body = await readBody(req, 1_500_000)
         if (typeof body.houseId !== 'string' || !/^[\w-]{1,160}$/.test(body.houseId)) throw fail(400, 'Mã nhà trọ không hợp lệ.')
         const content = typeof body.content === 'string' ? body.content.trim() : ''
