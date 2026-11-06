@@ -88,7 +88,7 @@ function reset() { locationOpen.value = false; emit('reset') }
       </section>
     </div>
 
-    <footer class="match-filter-footer"><button type="button" class="button primary full match-start" @click="locationOpen = false; emit('start')">Bắt đầu ghép trọ <Icon name="arrow" :size="19" /></button><RouterLink to="/dang-bai/roommate" class="match-post-link"><Icon name="plus" :size="16" />Bạn có phòng? Đăng bài ghép trọ</RouterLink></footer>
+    <footer class="match-filter-footer"><button type="button" class="button primary full match-start" @click="locationOpen = false; emit('start')">Bắt đầu ghép trọ <Icon name="arrow" :size="19" /></button></footer>
   </aside>
 </template>
 
@@ -149,15 +149,9 @@ function reset() { locationOpen.value = false; emit('reset') }
 .match-choice.selected{background:#f7eccb;border-color:#e7d59f}
 .match-choice input{width:16px;height:16px;accent-color:#365f62;flex-shrink:0;cursor:pointer}
 .match-filter-footer{padding:0 24px 22px}
-
-.match-filter-footer .match-start{min-height:48px;font-size:13px;gap:12px;margin-top:12px}
-.match-post-link{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:46px;padding:10px 18px;margin-top:10px;border-radius:999px;border:1.5px solid #d5d9cf;background:#fff;color:#2c4846;font-size:13px;font-weight:600;text-decoration:none;box-shadow:0 1px 3px rgba(19,20,20,.04);transition:all .2s cubic-bezier(.16,1,.3,1)}
-.match-post-link:hover{background:#f6f3e8;border-color:#365f62;color:#1e3836;transform:translateY(-1px);box-shadow:0 4px 12px rgba(19,20,20,.08);text-decoration:none}
-.match-post-link:active{transform:scale(.98);background:#eee9d8}
-.match-post-link svg{color:#365f62;transition:transform .2s ease}
-.match-post-link:hover svg{transform:rotate(90deg)}
+.match-filter-footer .match-start{min-height:48px;font-size:13px;gap:12px;margin-top:0}
 button:focus-visible,a:focus-visible,input[type=checkbox]:focus-visible{outline:2px solid #365f62;outline-offset:3px}
 @media(min-width:601px) and (max-width:800px){.match-filter-body{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.match-budget-group{border-top:0;padding-top:0}.desktop-break{display:none}}
-@media(max-width:600px){.amenities-choices{grid-auto-rows:64px;max-height:204px}.match-filter-header{padding:20px}.match-filter-header h2{font-size:25px}.match-filter-header p{font-size:16px}.match-filter-body{padding:20px;gap:20px}.match-filter-kicker>span{font-size:10px}.match-reset{width:44px;height:44px}.desktop-break{display:none}.match-section-heading h3{font-size:16px}.match-location-tabs button{font-size:14px;min-height:44px}.match-location-select,.match-select-wrapper select{font-size:16px}.match-location-options button{font-size:16px}.match-field-label{font-size:14px}.match-choice-group{padding:14px 10px 10px}.match-choice{font-size:16px;min-height:48px;padding:8px 4px;gap:7px}.match-choice input{width:18px;height:18px}.budget-values strong{font-size:16px}.match-filter-footer{padding:0 20px 20px}.match-filter-footer .match-start{font-size:15px}.match-post-link{font-size:13px}}
+@media(max-width:600px){.amenities-choices{grid-auto-rows:64px;max-height:204px}.match-filter-header{padding:20px}.match-filter-header h2{font-size:25px}.match-filter-header p{font-size:16px}.match-filter-body{padding:20px;gap:20px}.match-filter-kicker>span{font-size:10px}.match-reset{width:44px;height:44px}.desktop-break{display:none}.match-section-heading h3{font-size:16px}.match-location-tabs button{font-size:14px;min-height:44px}.match-location-select,.match-select-wrapper select{font-size:16px}.match-location-options button{font-size:16px}.match-field-label{font-size:14px}.match-choice-group{padding:14px 10px 10px}.match-choice{font-size:16px;min-height:48px;padding:8px 4px;gap:7px}.match-choice input{width:18px;height:18px}.budget-values strong{font-size:16px}.match-filter-footer{padding:0 20px 20px}.match-filter-footer .match-start{font-size:15px}}
 @media(prefers-reduced-motion:reduce){.match-location-tabs button,.match-location-select>svg,.match-choice{transition:none}}
 </style>
