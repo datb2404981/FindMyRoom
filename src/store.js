@@ -152,6 +152,28 @@ export async function updateAccount(profile) {
   } catch {}
 }
 
+export function updateRentalPost(post) {
+  const index = state.posts.findIndex((item) => item.id === post.id);
+  if (
+    state.user?.role !== "landlord" ||
+    index < 0 ||
+    (state.posts[index].kind || "rental") !== "rental"
+  )
+    throw new Error("Không tìm thấy bài đăng cho thuê để chỉnh sửa.");
+  const posts = state.posts.map((item, i) =>
+    i === index ? { ...item, ...post } : item,
+  );
+  const { user, ...data } = state;
+  try {
+    localStorage.setItem(storageKey(user), JSON.stringify({ ...data, posts }));
+  } catch {
+    throw new Error(
+      "Không đủ bộ nhớ trình duyệt để lưu. Hãy giảm dung lượng ảnh hoặc kiểm tra quyền lưu dữ liệu.",
+    );
+  }
+  state.posts = posts;
+}
+
 export function toggleFavorite(id) {
   const i = state.favorites.indexOf(id);
   i < 0 ? state.favorites.push(id) : state.favorites.splice(i, 1);
