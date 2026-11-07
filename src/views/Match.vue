@@ -256,9 +256,8 @@ function resetToStart(){
  history.value=[]
  state.passed=[]
  resetFilters()
- if(window.innerWidth<=800){
-  window.scrollTo({top:0,behavior:'smooth'})
- }
+ const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+ window.scrollTo({ top: 0, behavior: prefersReduced ? 'instant' : 'smooth' })
 }
 
 function restart(){
@@ -269,12 +268,13 @@ async function begin(){
  started.value=true
  notice.value=''
  await nextTick()
- if(window.innerWidth<=800){
+ requestAnimationFrame(() => {
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   stage.value?.scrollIntoView({
-   behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',
-   block:'start'
+   behavior: prefersReduced ? 'instant' : 'smooth',
+   block: 'start'
   })
- }
+ })
 }
 </script>
 
@@ -298,7 +298,7 @@ async function begin(){
         @reset="resetFilters"
       />
 
-      <section ref="stage" class="match-stage" aria-label="Kết quả ghép trọ">
+      <section ref="stage" class="match-stage" aria-label="Kết quả ghép trọ" tabindex="-1">
         <div class="match-stage-top">
           <div v-if="!started" class="match-stage-title">
             <span class="eyebrow">Cùng một mái nhà, cùng nhịp sống</span>
@@ -318,7 +318,7 @@ async function begin(){
         </div>
 
         <div v-if="!started" class="match-welcome">
-          <img src="/images/roommates.png?v=2" alt="Hai người bạn ở cùng">
+          <img src="/images/roommates.png?v=3" alt="Hai người bạn ở cùng">
         </div>
 
         <template v-else-if="current">

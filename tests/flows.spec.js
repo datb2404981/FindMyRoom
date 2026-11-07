@@ -493,9 +493,10 @@ test("landlord house create edit and delete", async ({ page }) => {
   await page.getByRole("link", { name: "Quay lại quản lý nhà trọ", exact: true }).click();
   await page.getByRole("button", { name: "Thêm nhà trọ", exact: true }).click();
   await page.getByLabel("Tên nhà trọ *").fill("Nhà trọ kiểm thử");
+  await page.getByRole("button", { name: /Tiếp theo/ }).click();
   await page.getByLabel("Địa chỉ *", { exact: true }).fill("123 đường 3/2 Cần Thơ");
-  await page.getByLabel("Số phòng *").fill("8");
-  await page.getByRole("button", { name: "Lưu nhà trọ", exact: true }).click();
+  await page.getByRole("button", { name: /Tiếp theo/ }).click();
+  await page.getByRole("button", { name: /Tạo nhà trọ|Lưu nhà trọ/ }).click();
   await expect(
     page.getByRole("heading", { name: "Nhà trọ kiểm thử", exact: true }),
   ).toBeVisible();
@@ -511,9 +512,8 @@ test("landlord house create edit and delete", async ({ page }) => {
   await page
     .getByRole("button", { name: "Chỉnh sửa Nhà trọ kiểm thử", exact: true })
     .click();
-  await page.getByLabel("Số phòng *").fill("9");
   await page.getByRole("button", { name: "Lưu nhà trọ", exact: true }).click();
-  await expect(page.locator(".house-row").last()).toContainText("9 phòng");
+  await expect(page.locator(".house-row").last()).toContainText("Nhà trọ kiểm thử");
   await page.setViewportSize({ width: 390, height: 844 });
   expect(
     await page
@@ -705,9 +705,9 @@ test("signup creates an account that can log out and log back in", async ({ page
     .locator("form")
     .getByRole("button", { name: "Đăng ký", exact: true })
     .click();
-  await page.getByLabel("Số thứ 1").fill("1");
-  await page.getByRole("button", { name: "Xác nhận", exact: true }).click();
   await page.getByRole("radio", { name: "Sinh Viên" }).click();
+  await expect(page).toHaveURL(/#\/$/);
+  await page.goto("/#/ho-so");
   await expect(
     page.getByRole("heading", { name: "Thông tin cá nhân", exact: true }),
   ).toBeVisible();

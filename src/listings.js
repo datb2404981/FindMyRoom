@@ -29,6 +29,7 @@ export const roommateListings = people.map((person, index) => {
     age: person.age || 20,
     price: person.price ?? totalRoomPrice,
     perPerson: perPersonPrice,
+    totalRent: totalRoomPrice,
     people: 1,
     area: room.area || 24,
     moveIn: moveInDates[index % moveInDates.length],

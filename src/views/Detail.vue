@@ -3,7 +3,7 @@ import { computed, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import Icon from "../components/Icon.vue";
 import MapPanel from "../components/MapPanel.vue";
-import { rooms, money, sampleHouseReviews } from "../data";
+import { rooms, money, sampleHouseReviews, boardingHouses } from "../data";
 import { roommateListings } from "../listings";
 import { state, toggleFavorite } from "../store";
 
@@ -15,6 +15,31 @@ const room = computed(() => {
   return all.find((r) => r.id === id || r.personId === id || r.id === `ghep-${id}`);
 });
 const isRoommate = computed(() => room.value?.kind === "roommate");
+const relatedHouse = computed(() => {
+  const all = [...state.houses];
+  for (const h of boardingHouses) {
+    if (!all.some((existing) => existing.id === h.id || existing.name === h.name)) {
+      all.push(h);
+    }
+  }
+  const hId = room.value?.houseId;
+  const hName = (room.value?.house || "").toLowerCase().trim();
+  if (hId) {
+    const found = all.find((h) => h.id === hId);
+    if (found) return found;
+  }
+  if (hName) {
+    const found = all.find((h) => h.name.toLowerCase().trim() === hName);
+    if (found) return found;
+  }
+  return null;
+});
+const totalRoomRent = computed(() => {
+  const post = room.value;
+  if (!post || !isRoommate.value) return null;
+  const value = post.totalRent ?? (post.perPerson ? post.price : null);
+  return value !== "" && value != null && Number(value) > 0 ? Number(value) : null;
+});
 const gallery = computed(() => {
   const r = room.value;
   if (!r) return [];
@@ -29,9 +54,11 @@ watch([room, gallery], () => {
     slide.value = 0;
   }
 });
-const houseId = computed(() =>
-  !isRoommate.value && typeof room.value?.houseId === "string" ? room.value.houseId : "",
-);
+const houseId = computed(() => {
+  if (typeof room.value?.houseId === "string" && room.value.houseId) return room.value.houseId;
+  if (relatedHouse.value?.id) return relatedHouse.value.id;
+  return "";
+});
 const reviews = ref([]),
   reviewContent = ref(""),
   reviewError = ref(""),
@@ -111,7 +138,7 @@ function selectReviewImage(event) {
   reviewImage.value = "";
   event.target.value = "";
   if (!file) return;
-  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 1_000_000) { reviewError.value = "Chọn ảnh JPG, PNG hoặc WEBP không quá 1 MB."; return; }
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 5 * 1024 * 1024) { reviewError.value = "Chọn ảnh JPG, PNG hoặc WEBP không quá 5 MB."; return; }
   const reader = new FileReader();
   reader.onload = () => { reviewImage.value = reader.result; reviewError.value = ""; };
   reader.onerror = () => { reviewError.value = "Không đọc được ảnh. Vui lòng chọn lại."; };
@@ -192,7 +219,7 @@ function formatDate(dateStr) {
       }}
     </RouterLink>
 
-    <div class="detail-grid">
+    <div class="detail-grid" :class="{ 'roommate-detail': isRoommate }">
       <section>
         <!-- Ảnh bài đăng -->
         <div class="detail-photo">
@@ -226,11 +253,15 @@ function formatDate(dateStr) {
               <span class="badge" :class="{ 'available-badge': room.status === 'Còn phòng' }">{{ room.status || "Đang mở" }}</span>
               <span v-if="isRoommate" class="badge roommate-tag">Tìm người ở ghép</span>
               <span v-if="room.school" class="badge school-tag">{{ room.school }}</span>
+              <span v-if="relatedHouse || room.house" class="badge house-tag">
+                <Icon name="home" :size="13" /> {{ relatedHouse?.name || room.house }}
+              </span>
             </div>
             <h1>{{ room.title }}</h1>
             <p class="muted location"><Icon name="pin" :size="17" />{{ room.address }}</p>
           </div>
           <button
+            v-if="!isRoommate"
             class="icon-button outlined"
             :class="{ 'saved-heart': state.favorites.includes(room.id) }"
             @click="act('save')"
@@ -242,17 +273,14 @@ function formatDate(dateStr) {
 
         <!-- Giá hiển thị -->
         <div class="detail-price-box">
+          <span v-if="isRoommate" class="price-eyebrow">Chi phí mỗi người</span>
           <p class="detail-price">
-            {{ money(room.price) }}
-            <span
-              >/
-              {{
-                isRoommate ? (room.perPerson ? "người / tháng" : "tháng") : "tháng"
-              }}</span
-            >
+            {{ money(isRoommate ? (room.perPerson || room.price) : room.price) }}
+            <span>/ {{ isRoommate ? "người / tháng" : "tháng" }}</span>
           </p>
-          <p v-if="isRoommate && room.totalRent" class="muted total-room-hint">
-            Tổng giá thuê phòng: <strong>{{ money(room.totalRent) }} / tháng</strong>
+          <p v-if="isRoommate" class="muted total-room-hint">
+            <span>Tiền trọ (chưa chia)</span>
+            <strong>{{ totalRoomRent == null ? 'Chưa cập nhật' : money(totalRoomRent) + ' / tháng' }}</strong>
           </p>
         </div>
 
@@ -293,21 +321,11 @@ function formatDate(dateStr) {
             <span>Giờ giấc<strong>Tự do</strong></span>
           </div>
 
-          <div class="remaining-rooms">
+          <div v-if="!isRoommate" class="remaining-rooms">
             <Icon name="home" />
             <span>
-              {{ isRoommate ? "Hiện tại" : "Phòng còn lại" }}
-              <strong>
-                {{
-                  isRoommate
-                    ? room.currentPeople
-                      ? "Đang ở " + room.currentPeople + " người"
-                      : "Đang ở ghép"
-                    : remainingRooms == null || remainingRooms === ""
-                      ? "Chưa cập nhật"
-                      : remainingRooms + " phòng"
-                }}
-              </strong>
+              Phòng còn lại
+              <strong>{{ remainingRooms == null || remainingRooms === "" ? "Chưa cập nhật" : remainingRooms + " phòng" }}</strong>
             </span>
           </div>
         </div>
@@ -329,12 +347,16 @@ function formatDate(dateStr) {
           <p class="internet-cost">
             Tiền internet
             <strong>{{
-              internetPrice == null || internetPrice === ""
-                ? "Miễn phí / Chia đều"
+              internetPrice == null || internetPrice === "" || Number(internetPrice) === 0
+                ? "Không"
                 : money(internetPrice) + " / tháng"
             }}</strong>
           </p>
-          <p>
+          <p v-if="isRoommate">
+            Chi phí khác
+            <strong>{{ room.other || "Chưa cập nhật" }}</strong>
+          </p>
+          <p v-else>
             Tiền cọc
             <strong>{{ room.deposit ? money(room.deposit) : "Thỏa thuận" }}</strong>
           </p>
@@ -355,7 +377,7 @@ function formatDate(dateStr) {
           </div>
         </section>
 
-        <section v-if="!isRoommate" class="detail-section">
+        <section v-if="!isRoommate || houseId" class="detail-section">
           <h2>Đánh giá nhà trọ</h2>
           <p class="review-intro">Bình luận được chia sẻ giữa các phòng cùng nhà trọ.</p>
           <p v-if="!houseId" class="review-intro">
@@ -448,12 +470,32 @@ function formatDate(dateStr) {
           </a>
         </section>
 
-        <!-- Thông tin nhà trọ (nếu là phòng trọ cho thuê) -->
-        <section v-if="!isRoommate" class="detail-section">
+        <!-- Thông tin nhà trọ (nếu là phòng trọ cho thuê hoặc bài ghép trọ có gắn nhà trọ) -->
+        <section v-if="!isRoommate || relatedHouse || room.house" class="detail-section house-detail-card">
           <h2>Nhà trọ</h2>
-          <img class="house-preview" :src="room.image" :alt="room.house || room.title" />
-          <h3>{{ room.house || room.title }}</h3>
-          <p class="muted">{{ room.address }}</p>
+          <img
+            class="house-preview"
+            :src="relatedHouse?.image || room.image || '/illustrations/room-1.svg'"
+            :alt="relatedHouse?.name || room.house || room.title"
+          />
+          <h3>{{ relatedHouse?.name || room.house || room.title }}</h3>
+          <p class="muted location">
+            <Icon name="pin" :size="15" />
+            {{ relatedHouse?.address || room.address }}
+          </p>
+          <p v-if="relatedHouse?.rooms" class="muted house-rooms">
+            <Icon name="home" :size="15" /> Quy mô {{ relatedHouse.rooms }} phòng
+          </p>
+          <p v-if="relatedHouse?.desc" class="house-desc">
+            {{ relatedHouse.desc }}
+          </p>
+          <RouterLink
+            v-if="relatedHouse?.id"
+            :to="'/nha-tro/' + relatedHouse.id"
+            class="button secondary house-link-btn"
+          >
+            Xem nhà trọ <Icon name="arrow" :size="15" />
+          </RouterLink>
         </section>
 
         <!-- Thẻ liên hệ cho phòng trọ cho thuê (nếu không phải ghép trọ) -->
@@ -837,6 +879,135 @@ function formatDate(dateStr) {
 .cost-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
+/* Roommate details have their own pricing and information hierarchy. */
+.roommate-detail .detail-title {
+  margin: 26px 0 22px;
+}
+.roommate-detail .detail-title h1 {
+  margin: 4px 0 12px;
+  font-size: clamp(25px, 2.2vw, 32px);
+  line-height: 1.3;
+  letter-spacing: -0.025em;
+}
+.roommate-detail .detail-title .location {
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.roommate-detail .detail-title .location svg {
+  flex: 0 0 auto;
+  margin-top: 3px;
+}
+.roommate-detail .detail-price-box {
+  display: block;
+  margin: 0 0 22px;
+  padding: 22px 24px;
+  border: 1px solid #c9e0df;
+  border-radius: 16px;
+  background: #edf6f3;
+}
+.roommate-detail .price-eyebrow {
+  display: block;
+  margin-bottom: 5px;
+  color: #38615f;
+  font-size: 13px;
+  font-weight: 650;
+}
+.roommate-detail .detail-price {
+  margin: 0;
+  font-size: clamp(28px, 3vw, 36px);
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.roommate-detail .detail-price span {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 14px;
+  letter-spacing: 0;
+}
+.roommate-detail .total-room-hint {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 20px;
+  flex-wrap: wrap;
+  margin-top: 17px;
+  padding-top: 14px;
+  border-top: 1px solid #c9e0df;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.roommate-detail .total-room-hint strong {
+  color: #263f3e;
+  font-size: 14px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.roommate-detail .spec-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0 0 24px;
+  border-bottom: 1px solid var(--line);
+}
+.roommate-detail .spec-grid > div {
+  align-items: flex-start;
+  gap: 10px;
+  padding: 15px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: #59686a;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.roommate-detail .spec-grid svg {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  color: #356e70;
+}
+.roommate-detail .spec-grid strong {
+  margin-top: 6px;
+  color: #202a2b;
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.roommate-detail .cost-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 22px;
+  padding-top: 8px;
+}
+.roommate-detail .cost-grid p {
+  min-width: 0;
+  margin: 0;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.roommate-detail .cost-grid strong {
+  margin-top: 5px;
+  font-size: 15px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.roommate-detail .detail-section {
+  margin-top: 27px;
+  padding-top: 0;
+  border-top: 0;
+}
+.roommate-detail .detail-section h2 {
+  margin-bottom: 12px;
+  font-size: 22px;
+}
+.roommate-detail .detail-section .desc-text {
+  max-width: 70ch;
+  font-size: 15px;
+  line-height: 1.75;
+}
 @media (max-width: 600px) {
   .detail-grid{gap:28px}
   .detail-title{gap:12px}
@@ -858,6 +1029,12 @@ function formatDate(dateStr) {
   .cost-grid {
     gap: 14px 10px;
   }
+  .roommate-detail .detail-price-box {padding: 18px}
+  .roommate-detail .detail-price {font-size: clamp(26px, 7vw, 32px)}
+  .roommate-detail .spec-grid {grid-template-columns: 1fr;gap: 10px}
+  .roommate-detail .spec-grid > div {padding: 12px 14px}
+  .roommate-detail .cost-grid {grid-template-columns: 1fr;gap: 0}
+  .roommate-detail .cost-grid p {padding: 12px 0}
 }
 .saved-heart {
   background: var(--coral, #f8d6cc);
@@ -866,5 +1043,47 @@ function formatDate(dateStr) {
 .saved-heart svg {
   fill: #c93636;
   color: #c93636;
+}
+.house-tag {
+  background: var(--cream-deep, #f8eed3);
+  color: var(--ink, #131414);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.house-detail-card .house-preview {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+.house-detail-card h3 {
+  font-size: 17px;
+  margin: 0 0 6px;
+}
+.house-detail-card .location,
+.house-detail-card .house-rooms {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  margin: 0 0 6px;
+}
+.house-desc {
+  font-size: 13px;
+  color: #526065;
+  line-height: 1.5;
+  margin: 8px 0 14px;
+}
+.house-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  margin-top: 6px;
 }
 </style>

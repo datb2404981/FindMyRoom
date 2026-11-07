@@ -157,6 +157,7 @@ export function createAuthMiddleware({ usersFile = defaultUsersFile, reviewsFile
         if (!user) throw fail(401, 'Vui lòng đăng nhập để bình luận.')
         if (user.role !== 'student') throw fail(403, 'Chỉ sinh viên mới có thể gửi đánh giá nhà trọ.')
         const body = await readBody(req, 1_500_000)
+
         if (typeof body.houseId !== 'string' || !/^[\w-]{1,160}$/.test(body.houseId)) throw fail(400, 'Mã nhà trọ không hợp lệ.')
         const content = typeof body.content === 'string' ? body.content.trim() : ''
         if (!content || content.length > 1000) throw fail(400, 'Bình luận cần từ 1 đến 1000 ký tự.')
@@ -168,7 +169,7 @@ export function createAuthMiddleware({ usersFile = defaultUsersFile, reviewsFile
           if (!match) throw fail(400, 'Chỉ hỗ trợ ảnh JPG, PNG hoặc WEBP.')
           const bytes = Buffer.from(match[2], 'base64')
           const valid = match[1] === 'jpeg' ? bytes.subarray(0, 3).equals(Buffer.from([0xff, 0xd8, 0xff])) : match[1] === 'png' ? bytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) : bytes.subarray(0, 4).toString() === 'RIFF' && bytes.subarray(8, 12).toString() === 'WEBP'
-          if (!valid || bytes.length > 1_000_000) throw fail(400, 'Ảnh không hợp lệ hoặc lớn hơn 1 MB.')
+          if (!valid || bytes.length > 5 * 1024 * 1024) throw fail(400, 'Ảnh không hợp lệ hoặc lớn hơn 5 MB.')
           image = body.image
         }
         const review = { id: randomUUID(), houseId: body.houseId, author: user.name, content, rating: body.rating, ...(image ? { images: [image] } : {}), createdAt: new Date().toISOString() }

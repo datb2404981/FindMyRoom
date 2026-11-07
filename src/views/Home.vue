@@ -531,15 +531,6 @@ function goToPage(page) {
 .home-page :deep(.room-card) {
   height: 100%;
 }
-.home-page :deep(.room-content h3) {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-  overflow-wrap: anywhere;
-  height: 2lh;
-  min-height: 0;
-}
 .home-page :deep(.card-link) {
   transition:
     background-color 0.2s,
@@ -561,6 +552,8 @@ function goToPage(page) {
   border: 1px solid var(--line);
   box-shadow: 0 2px 8px #0002;
   transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.2s, background 0.2s;
 }
 .featured-arrow-prev {
   left: -22px;
@@ -568,26 +561,24 @@ function goToPage(page) {
 .featured-arrow-next {
   right: -22px;
 }
-@media (hover: hover) {
-  .featured-arrow {
-    opacity: 0;
-    transition:
-      opacity 0.2s,
-      background 0.2s;
-  }
-  .featured-arrow::before {
-    content: "";
-    position: absolute;
-    inset: -60px -12px;
-  }
-  .featured-arrow:hover,
-  .featured-arrow:focus-visible {
-    opacity: 1;
-  }
+.featured-arrow::before {
+  content: "";
+  position: absolute;
+  inset: -60px -12px;
+}
+.featured-arrow:hover,
+.featured-arrow:focus-visible,
+.featured-arrow:active {
+  opacity: 1;
 }
 @media (prefers-reduced-motion: reduce) {
   .featured-arrow {
     transition: none;
+  }
+}
+@media (hover: none) {
+  .featured-arrow {
+    opacity: 1;
   }
 }
 .featured-track {
@@ -952,16 +943,16 @@ function goToPage(page) {
   }
   .home-listing-grid :deep(.room-content h3) {
     line-height: 1.4;
-    margin-top: 10px;
+    margin-top: 0;
   }
   .home-listing-grid :deep(.room-content .location) {
     line-height: 1.4;
-    margin-top: 10px;
+    margin-top: 0;
   }
   .home-listing-grid :deep(.room-meta) {
     flex-wrap: wrap;
     gap: 6px 12px;
-    margin: 12px 0;
+    margin: 0;
   }
   .home-listing-grid :deep(.card-link) {
     margin-top: auto;

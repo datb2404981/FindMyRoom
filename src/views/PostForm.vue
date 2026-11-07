@@ -1,11 +1,19 @@
 <script setup>
-import { computed, reactive, ref, watch, onUnmounted } from "vue";
+import { computed, reactive, ref, watch, onMounted, onUnmounted, nextTick } from "vue";
 import { useRoute, useRouter, onBeforeRouteLeave } from "vue-router";
 import Icon from "../components/Icon.vue";
 import MapPanel from "../components/MapPanel.vue";
 import RoomCard from "../components/RoomCard.vue";
-import { amenities, nearby, lifestyles, money } from "../data";
+import GenderDropdown from "../components/GenderDropdown.vue";
+import AppDropdown from "../components/AppDropdown.vue";
+import universities from "../../data/university.json";
+import { canThoUrbanWards } from "../data/can-tho-wards";
+import { amenities, nearby, lifestyles, money, boardingHouses } from "../data";
 import { state, validateField } from "../store";
+const universityOptions = universities.map((university) => ({
+  value: university.university_name,
+  label: university.university_name,
+}));
 const route = useRoute(),
   router = useRouter(),
   rental = computed(() => route.params.kind === "rental"),
@@ -30,6 +38,130 @@ const steps = computed(() =>
     ? ["Thông tin chung", "Vị trí & Địa lý", "Hình ảnh", "Tiện ích", "Xem trước"]
     : ["Thông tin chung", "Vị trí & Địa lý", "Hình ảnh", "Tiện ích"],
 );
+
+const houseInputFocused = ref(false);
+const highlightedHouseIndex = ref(-1);
+const houseDropdownRef = ref(null);
+
+const systemHouses = computed(() => {
+  const list = [...state.houses];
+  for (const h of boardingHouses) {
+    if (!list.some((item) => item.id === h.id || item.name === h.name)) {
+      list.push(h);
+    }
+  }
+  return list;
+});
+
+const matchingHouses = computed(() => {
+  const q = (draft.house || "").trim().toLowerCase();
+  if (!q) return systemHouses.value.slice(0, 8);
+  return systemHouses.value
+    .filter(
+      (h) =>
+        h.name.toLowerCase().includes(q) ||
+        (h.address && h.address.toLowerCase().includes(q))
+    )
+    .slice(0, 8);
+});
+
+const selectedHouse = computed(() => {
+  if (draft.houseId) {
+    return systemHouses.value.find((h) => h.id === draft.houseId) || null;
+  }
+  if (draft.house) {
+    return (
+      systemHouses.value.find(
+        (h) => h.name.toLowerCase().trim() === draft.house.toLowerCase().trim()
+      ) || null
+    );
+  }
+  return null;
+});
+
+function selectHouse(h) {
+  draft.house = h.name;
+  draft.houseId = h.id;
+  if (h.address) {
+    if (!draft.street.trim()) {
+      draft.street = h.address;
+    }
+    const wards = ["Xuân Khánh", "An Bình", "Hưng Lợi", "An Khánh", "Hưng Phú", "Bình Thủy"];
+    const matchedWard = wards.find((w) => h.address.includes(w));
+    if (matchedWard && !draft.ward) {
+      draft.ward = matchedWard;
+    }
+  }
+  if (h.house_latitude && h.house_longitude) {
+    draft.latitude = h.house_latitude;
+    draft.longitude = h.house_longitude;
+  }
+  houseInputFocused.value = false;
+  highlightedHouseIndex.value = -1;
+}
+
+function clearHouse() {
+  draft.house = "";
+  draft.houseId = "";
+  houseInputFocused.value = true;
+  highlightedHouseIndex.value = -1;
+  nextTick(() => {
+    document.getElementById("post-house-input")?.focus();
+  });
+}
+
+function onHouseInput() {
+  houseInputFocused.value = true;
+  highlightedHouseIndex.value = 0;
+  const match = systemHouses.value.find(
+    (h) => h.name.toLowerCase().trim() === draft.house.toLowerCase().trim()
+  );
+  draft.houseId = match ? match.id : "";
+}
+
+function onHouseKeydown(event) {
+  if (!houseInputFocused.value || !matchingHouses.value.length) {
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      houseInputFocused.value = true;
+      highlightedHouseIndex.value = 0;
+      event.preventDefault();
+    }
+    return;
+  }
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
+    highlightedHouseIndex.value =
+      (highlightedHouseIndex.value + 1) % matchingHouses.value.length;
+  } else if (event.key === "ArrowUp") {
+    event.preventDefault();
+    highlightedHouseIndex.value =
+      (highlightedHouseIndex.value - 1 + matchingHouses.value.length) %
+      matchingHouses.value.length;
+  } else if (event.key === "Enter") {
+    if (highlightedHouseIndex.value >= 0 && matchingHouses.value[highlightedHouseIndex.value]) {
+      event.preventDefault();
+      selectHouse(matchingHouses.value[highlightedHouseIndex.value]);
+    }
+  } else if (event.key === "Escape") {
+    houseInputFocused.value = false;
+    highlightedHouseIndex.value = -1;
+  } else if (event.key === "Tab") {
+    houseInputFocused.value = false;
+  }
+}
+
+function onHouseOutside(event) {
+  if (!houseDropdownRef.value?.contains(event.target)) {
+    houseInputFocused.value = false;
+  }
+}
+
+onMounted(() => {
+  document.addEventListener("pointerdown", onHouseOutside);
+});
+onUnmounted(() => {
+  document.removeEventListener("pointerdown", onHouseOutside);
+});
 const defaults = () => ({
   title: "",
   gender: "Tất cả",
@@ -59,6 +191,14 @@ const defaults = () => ({
   longitude: null,
 });
 const draft = reactive(defaults());
+const wardOptions = computed(() => [
+  { value: '', label: 'Chọn phường / xã' },
+  ...canThoUrbanWards.map(ward => ({ value: ward, label: `Phường ${ward}` })),
+  // Keep the old value selectable while editing a draft created before the 2025 merger.
+  ...draft.ward && !canThoUrbanWards.includes(draft.ward)
+    ? [{ value: draft.ward, label: `${draft.ward} (địa chỉ cũ)` }]
+    : [],
+]);
 
 function resetDraft() {
   locationRequest++;
@@ -98,6 +238,8 @@ function load() {
     const item = state.posts.find((p) => p.id === route.query.edit);
     if (item) {
       Object.assign(draft, defaults(), item);
+      images.value = (item.images?.length ? item.images : item.image ? [item.image] : [])
+        .map((url) => ({ id: crypto.randomUUID(), url }));
       initialItem.value = JSON.stringify(item);
       const existingPhotos = item.images?.length
         ? item.images
@@ -111,12 +253,21 @@ function load() {
       }));
     }
   } else {
-    resetDraft();
+    Object.assign(draft, defaults(), state.drafts[kind.value] || {});
     initialItem.value = null;
   }
 }
 load();
 watch(() => [route.params.kind, route.query.edit], load);
+watch(
+  draft,
+  () => {
+    if (!route.query.edit) {
+      state.drafts[kind.value] = { ...draft };
+    }
+  },
+  { deep: true },
+);
 
 const isDirty = computed(() => {
   if (success.value) return false;
@@ -247,7 +398,7 @@ const fields = computed(() =>
           "Ví dụ: Tìm bạn nữ ở ghép gần trường",
         ],
         ["gender", "Đối tượng (nam/nữ)", "gender", true],
-        ["school", "Trường đại học nhắm tới", "text", false],
+        ["school", "Trường đại học nhắm tới", "school", false],
         ["moveIn", "Ngày có thể chuyển vào", "date", true],
         ["people", "Số người cần tìm", "number", true],
         ["area", "Diện tích (m²)", "number", true],
@@ -269,7 +420,7 @@ const card = computed(() => ({
   address: [draft.street, draft.ward, draft.city].filter(Boolean).join(", "),
   image: images.value[0]?.url || "/illustrations/room-1.svg",
   status: "Xem trước",
-  ...{ house: draft.house },
+  ...{ house: draft.house, houseId: draft.houseId },
 }));
 function validate() {
   Object.keys(errors).forEach((k) => delete errors[k]);
@@ -290,8 +441,8 @@ function validate() {
     for (const k of ["ward", "street"])
       if (!draft[k].trim()) errors[k] = "Vui lòng điền địa chỉ.";
   }
-  if (step.value === 3 && images.value.length < 3)
-    errors.images = "Cần ít nhất 3 ảnh và tối đa 10 ảnh.";
+  if (step.value === 3 && images.value.length < 4)
+    errors.images = "Cần ít nhất 4 ảnh và tối đa 10 ảnh.";
   if (Object.keys(errors).length) {
     requestAnimationFrame(() => document.querySelector('[aria-invalid="true"]')?.focus());
     return false;
@@ -375,6 +526,7 @@ async function upload(e) {
   if (e.target?.type === "file") e.target.value = "";
   if (images.value.length >= 3) delete errors.images;
 }
+
 function removeImage(i) {
   if (images.value[i]?.file) {
     try {
@@ -385,12 +537,12 @@ function removeImage(i) {
 }
 async function publish() {
   if (!validate()) return;
-  if (images.value.length < 3) {
+  if (images.value.length < 4) {
     step.value = 3;
-    errors.images = "Vui lòng tải lại ít nhất 3 ảnh cho bài đăng.";
+    errors.images = "Vui lòng tải lại ít nhất 4 ảnh cho bài đăng.";
     return;
   }
-  const house = state.houses.find((h) => h.id === draft.houseId);
+  const house = systemHouses.value.find((h) => h.id === draft.houseId) || state.houses.find((h) => h.id === draft.houseId);
   const convertedPhotos = await Promise.all(
     images.value.map(async (im) => {
       if (im.base64Promise) return await im.base64Promise;
@@ -406,7 +558,7 @@ async function publish() {
     ownerId: state.user.id,
     status: "Chờ duyệt",
     house: house?.name || draft.house,
-    houseId: draft.houseId,
+    houseId: house?.id || draft.houseId || "",
     image: mainImage,
     images: convertedPhotos,
   };
@@ -516,17 +668,20 @@ function locate() {
       <template v-if="step === 1"
         ><h2>Thông tin chung</h2>
         <div class="form-grid">
-          <label
+          <component :is="['gender', 'house', 'school'].includes(type) ? 'div' : 'label'"
             v-for="[key, label, type, required, placeholder] in fields"
             :key="key"
             class="field"
             :class="{ 'span-two': key === 'title' }"
             ><span>{{ label }} <b v-if="required" class="required">*</b></span
-            ><select v-if="type === 'gender'" v-model="draft[key]">
-              <option>Tất cả</option>
-              <option>Nam</option>
-              <option>Nữ</option></select
-            ><select
+            ><GenderDropdown v-if="type === 'gender'" v-model="draft[key]" :label="label" /><AppDropdown
+              v-else-if="type === 'school'"
+              v-model="draft[key]"
+              :label="label"
+              placeholder="Chọn trường đại học"
+              :invalid="!!errors[key]"
+              :options="universityOptions"
+            /><select
               v-else-if="type === 'house'"
               v-model="draft[key]"
               :aria-label="label + (required ? ' *' : '')"
@@ -539,8 +694,8 @@ function locate() {
                 :value="h.id"
               >
                 {{ h.name }}
-              </option></select
-            ><input
+              </option>
+            </select><input
               v-else
               v-model="draft[key]"
               :aria-label="label + (required ? ' *' : '')"
@@ -556,7 +711,7 @@ function locate() {
                 placeholder || (type === 'number' ? 'Nhập giá trị' : 'Nhập thông tin')
               "
               :aria-invalid="!!errors[key]"
-            /><small class="error" v-if="errors[key]">{{ errors[key] }}</small></label
+            /><small class="error" v-if="errors[key]">{{ errors[key] }}</small></component
           ><label class="field span-two"
             ><span>Mô tả chi tiết</span
             ><textarea
@@ -571,24 +726,9 @@ function locate() {
           <div>
             <label class="field"
               ><span>Tỉnh / Thành phố</span><input v-model="draft.city" readonly /></label
-            ><label class="field"
+            ><div class="field"
               ><span>Phường / Xã <b class="required">*</b></span
-              ><select v-model="draft.ward" :aria-invalid="!!errors.ward">
-                <option value="">Chọn phường / xã</option>
-                <option
-                  v-for="w in [
-                    'Xuân Khánh',
-                    'An Bình',
-                    'Hưng Lợi',
-                    'An Khánh',
-                    'Hưng Phú',
-                    'Bình Thủy',
-                  ]"
-                  :key="w"
-                >
-                  {{ w }}
-                </option></select
-              ><small class="error">{{ errors.ward }}</small></label
+              ><AppDropdown v-model="draft.ward" label="Phường / Xã" :invalid="!!errors.ward" :options="wardOptions" /><small class="error">{{ errors.ward }}</small></div
             ><label class="field"
               ><span>Tên đường / số nhà <b class="required">*</b></span
               ><input
@@ -596,12 +736,123 @@ function locate() {
                 placeholder="Ví dụ: 123 đường 3/2"
                 :aria-invalid="!!errors.street"
               /><small class="error">{{ errors.street }}</small></label
-            ><label class="field"
-              ><span>Tên trọ</span
-              ><input v-model="draft.house" placeholder="Ví dụ: Nhà trọ Minh An" /></label
-            ><button
+            ><div class="field house-autocomplete-field" ref="houseDropdownRef">
+              <label for="post-house-input" class="field-label">
+                <span>Tên trọ</span>
+                <span class="field-optional">Không bắt buộc</span>
+              </label>
+
+              <!-- Trạng thái 1: Đã chọn nhà trọ từ hệ thống (Connected House Card) -->
+              <div v-if="selectedHouse" class="selected-house-card">
+                <div class="house-card-main">
+                  <div class="house-icon-wrap">
+                    <Icon name="home" :size="20" />
+                  </div>
+                  <div class="house-info-wrap">
+                    <div class="house-title-row">
+                      <strong class="house-name">{{ selectedHouse.name }}</strong>
+                      <span class="connected-pill">
+                        <Icon name="check" :size="12" /> Đã liên kết
+                      </span>
+                    </div>
+                    <p class="house-sub-detail" v-if="selectedHouse.address">
+                      <Icon name="pin" :size="12" />
+                      <span>{{ selectedHouse.address }}</span>
+                      <template v-if="selectedHouse.rooms">
+                        <span class="sep-bullet">·</span>
+                        <span>{{ selectedHouse.rooms }} phòng</span>
+                      </template>
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  class="house-change-btn"
+                  title="Thay đổi hoặc nhập tên khác"
+                  @click="clearHouse"
+                >
+                  <Icon name="close" :size="13" />
+                  <span>Đổi</span>
+                </button>
+              </div>
+
+              <!-- Trạng thái 2: Chưa chọn hoặc đang tìm kiếm / nhập tên tùy ý -->
+              <div v-else class="autocomplete-wrapper">
+                <div class="input-icon-box">
+                  <Icon name="home" :size="16" />
+                </div>
+                <input
+                  id="post-house-input"
+                  v-model="draft.house"
+                  placeholder="Ví dụ: Nhà trọ Minh An (gõ để tìm trọ trong hệ thống)"
+                  autocomplete="off"
+                  @focus="houseInputFocused = true"
+                  @input="onHouseInput"
+                  @keydown="onHouseKeydown"
+                />
+                <button
+                  v-if="draft.house"
+                  type="button"
+                  class="clear-house-btn"
+                  title="Xóa"
+                  @click="clearHouse"
+                >
+                  <Icon name="close" :size="14" />
+                </button>
+              </div>
+
+              <!-- Dropdown gợi ý danh sách nhà trọ trong hệ thống -->
+              <div
+                v-if="!selectedHouse && houseInputFocused && matchingHouses.length"
+                class="house-suggestions-panel"
+                role="listbox"
+              >
+                <div class="suggestions-header">
+                  <Icon name="home" :size="13" />
+                  <span>Nhà trọ có trong hệ thống ({{ matchingHouses.length }})</span>
+                </div>
+                <ul class="suggestions-list">
+                  <li
+                    v-for="(h, idx) in matchingHouses"
+                    :key="h.id || h.name"
+                    role="option"
+                    :aria-selected="draft.houseId === h.id || draft.house === h.name"
+                    class="suggestion-item"
+                    :class="{
+                      highlighted: idx === highlightedHouseIndex,
+                      selected: draft.houseId === h.id || draft.house === h.name
+                    }"
+                    @mouseenter="highlightedHouseIndex = idx"
+                    @mousedown.prevent="selectHouse(h)"
+                  >
+                    <div class="house-item-main">
+                      <div class="house-item-name">
+                        <strong>{{ h.name }}</strong>
+                        <span v-if="h.rooms" class="house-rooms-badge">{{ h.rooms }} phòng</span>
+                      </div>
+                      <p v-if="h.address" class="house-item-address">
+                        <Icon name="pin" :size="12" /> {{ h.address }}
+                      </p>
+                    </div>
+                    <span v-if="draft.houseId === h.id || draft.house === h.name" class="check-icon">
+                      <Icon name="check" :size="16" />
+                    </span>
+                  </li>
+                </ul>
+              </div>
+
+              <p class="house-meta-hint" :class="{ 'is-linked': selectedHouse }">
+                <Icon :name="selectedHouse ? 'check' : 'info'" :size="15" />
+                <span v-if="selectedHouse">
+                  Thông tin và đánh giá của <strong>{{ selectedHouse.name }}</strong> sẽ xuất hiện cùng bài đăng.
+                </span>
+                <span v-else>
+                  Gõ để tìm nhà trọ có sẵn nhằm tự động gắn kèm đánh giá và vị trí.
+                </span>
+              </p>
+            </div><button
               type="button"
-              class="button secondary"
+              class="button secondary location-button"
               :disabled="locating"
               :aria-busy="locating"
               @click="locate"
@@ -622,23 +873,19 @@ function locate() {
           </div>
           <div>
             <MapPanel :label="draft.house || 'Đại học Cần Thơ'" :address="draft.street" />
-            <p class="muted">Địa điểm gần đó: Đại học Cần Thơ</p>
-            <p class="help">
-              Sơ đồ minh họa. Địa chỉ chưa được xác minh bằng dịch vụ bản đồ.
-            </p>
           </div>
         </div></template
       ><template v-if="step === 3"
         ><h2>Hình ảnh chỗ ở</h2>
-        <p class="muted">Tải từ 3 đến 10 ảnh. Ảnh đầu tiên sẽ làm ảnh bìa.</p>
+
+        <p class="muted">Tải từ 4 đến 10 ảnh. Ảnh đầu tiên sẽ làm ảnh bìa.</p>
         <label
           class="upload-zone"
           :class="{ dragging }"
-          @dragover.prevent="dragging = true; if ($event.dataTransfer) $event.dataTransfer.dropEffect = 'copy'"
+          @dragover.prevent="dragging = true; $event.dataTransfer.dropEffect = 'copy'"
           @dragleave.prevent="dragging = false"
           @drop.prevent="upload"
-        ><Icon name="upload" :size="42" /><strong
-            >Nhấp để chọn hoặc kéo ảnh vào đây</strong
+          ><Icon name="upload" :size="42" /><strong>Nhấp để chọn hoặc kéo ảnh vào đây</strong
           ><span>JPG, PNG, WEBP · tối đa 10 MB mỗi ảnh</span
           ><input
             type="file"
@@ -669,11 +916,8 @@ function locate() {
             </button>
           </div>
         </div>
-        <p class="help">
-          Bản nháp giữ thông tin chữ. Ảnh cần chọn lại khi tải lại trang; bản demo chưa có
-          máy chủ lưu ảnh.
-        </p></template
-      ><template v-if="step === 4"
+      </template>
+      <template v-if="step === 4"
         ><h2>Tiện ích chỗ ở</h2>
         <fieldset
           v-for="[label, key, items] in [
@@ -744,9 +988,6 @@ function locate() {
         </div>
       </div>
     </form>
-    <p class="draft-note">
-      <Icon name="info" :size="14" />Dữ liệu sẽ được lưu khi bạn hoàn tất đăng bài
-    </p>
     <Teleport to="body"
       ><div
         v-if="leaveModal"
@@ -814,46 +1055,299 @@ function locate() {
 </template>
 
 <style scoped>
-.upload-zone.dragging {
-  border-color: var(--cyan);
-  background: var(--cream-deep);
-}
-.location-feedback {
+/* Autocomplete nhà trọ */
+.house-autocomplete-field {
+  position: relative;
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin-top: 14px;
-  padding: 14px 16px;
-  border: 1px solid #dadfd7;
-  border-radius: 12px;
-  background: #f5f6ef;
-  color: #43594d;
+  flex-direction: column;
+  gap: 7px;
 }
-.location-feedback svg {
+.field-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--ink, #131414);
+}
+.field-optional {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted, #647076);
+}
+
+.selected-house-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #ffffff;
+  border: 1px solid rgba(140, 148, 150, 0.45);
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(19, 20, 20, 0.04);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.selected-house-card:hover {
+  border-color: #638d92;
+  box-shadow: 0 2px 8px rgba(99, 141, 146, 0.12);
+}
+.house-card-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+.house-icon-wrap {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: #edf5f4;
+  color: #3b6c67;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.house-info-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+.house-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.house-name {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--ink, #131414);
+}
+.connected-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #1e6b45;
+  background: #edf7f0;
+  border: 1px solid #cce8d4;
+  border-radius: 999px;
+  padding: 1px 7px;
+}
+.house-sub-detail {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted, #647076);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sep-bullet {
+  color: rgba(140, 148, 150, 0.6);
+}
+.house-change-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink, #131414);
+  background: #f7f9fa;
+  border: 1px solid rgba(140, 148, 150, 0.35);
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.house-change-btn:hover {
+  background: #ebf0f2;
+  border-color: rgba(140, 148, 150, 0.6);
+  color: #131414;
+}
+
+/* Khung nhập liệu tìm kiếm */
+.autocomplete-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.input-icon-box {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted, #647076);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+.autocomplete-wrapper input {
+  width: 100%;
+  padding-left: 44px !important;
+  padding-right: 36px;
+  height: 48px;
+  border-radius: 10px;
+  border: 1px solid rgba(140, 148, 150, 0.4);
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.autocomplete-wrapper input:focus {
+  border-color: #638d92;
+  box-shadow: 0 0 0 3px rgba(143, 200, 207, 0.35);
+  outline: none;
+}
+.clear-house-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--muted, #647076);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+.clear-house-btn:hover {
+  color: var(--ink, #131414);
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* Panel gợi ý thả xuống */
+.house-suggestions-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: #fff;
+  border: 1px solid rgba(140, 148, 150, 0.35);
+  border-radius: 12px;
+  box-shadow: 0 10px 28px rgba(19, 20, 20, 0.12);
+  overflow: hidden;
+  animation: fadeInDown 0.15s ease-out;
+}
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.suggestions-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  background: #f7f9fa;
+  border-bottom: 1px solid rgba(140, 148, 150, 0.2);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted, #647076);
+  letter-spacing: 0.2px;
+}
+.suggestions-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  max-height: 240px;
+  overflow-y: auto;
+}
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.12s;
+  gap: 10px;
+}
+.suggestion-item:hover,
+.suggestion-item.highlighted {
+  background: var(--cream, #faf7f0);
+}
+.suggestion-item.selected {
+  background: var(--cream-deep, #f8eed3);
+}
+.house-item-main {
+  flex: 1;
+  min-width: 0;
+}
+.house-item-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--ink, #131414);
+}
+.house-rooms-badge {
+  font-size: 11px;
+  font-weight: 500;
+  color: #3b6c67;
+  background: #edf5f4;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+.house-item-address {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--muted, #647076);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.check-icon {
+  color: #b4831e;
+  display: flex;
+  align-items: center;
+}
+
+.house-meta-hint {
+  margin: 2px 0 0;
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #52666a;
+}
+.house-meta-hint svg {
   flex-shrink: 0;
   margin-top: 2px;
+  color: #5a8286;
 }
-.location-feedback p {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.7;
+.house-meta-hint.is-linked {
+  padding: 9px 12px;
+  background: #edf6f2;
+  border: 1px solid #d7e9df;
+  border-radius: 9px;
+  color: #305b49;
 }
-.location-feedback.success {
-  background: #edf6ee;
-  border-color: #c7dfca;
-  color: #28563c;
+.house-meta-hint.is-linked svg {
+  color: #317357;
 }
-.location-feedback.error {
-  background: #fff2ed;
-  border-color: #efd2c5;
-  color: #873d2a;
-}
-@media (max-width: 600px) {
-  .location-feedback {
-    padding: 12px;
-  }
-  .location-feedback p {
-    font-size: 14px;
-  }
+.house-meta-hint strong {
+  color: inherit;
+  font-weight: 700;
 }
 </style>

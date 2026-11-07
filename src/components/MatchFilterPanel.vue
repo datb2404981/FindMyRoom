@@ -1,7 +1,10 @@
 <script setup>
 import { computed, ref } from 'vue'
 import Icon from './Icon.vue'
-import { amenities, nearby, districts, money } from '../data'
+
+import AppDropdown from './AppDropdown.vue'
+import { amenities, districts, money } from '../data'
+
 import { schools } from '../search-filters'
 
 const model = defineModel({ required: true })
@@ -75,7 +78,7 @@ function reset() { locationOpen.value = false; emit('reset') }
           <button v-for="option in locationOptions" :key="option.value" type="button" :aria-pressed="selectedLocation === option.value" @click="chooseLocation(option.value)"><span>{{ option.label }}</span><Icon v-if="selectedLocation === option.value" name="check" :size="17" /></button>
         </div>
         <label for="match-gender" class="match-field-label gender-label">Bạn muốn ở cùng</label>
-        <div class="match-select-wrapper"><select id="match-gender" :value="model.gender" @change="patch({ gender: $event.target.value })"><option value="">Không giới hạn</option><option value="Nam">Bạn nam</option><option value="Nữ">Bạn nữ</option></select><Icon name="down" :size="18" /></div>
+        <AppDropdown id="match-gender" :model-value="model.gender" label="Bạn muốn ở cùng" :options="[{ value: '', label: 'Không giới hạn' }, { value: 'Nam', label: 'Bạn nam' }, { value: 'Nữ', label: 'Bạn nữ' }]" @update:model-value="patch({ gender: $event })" />
       </section>
 
       <section class="match-budget-group" aria-labelledby="match-budget-heading">
