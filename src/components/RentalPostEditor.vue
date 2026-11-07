@@ -1,6 +1,7 @@
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
 import Icon from './Icon.vue'
+import AppDropdown from './AppDropdown.vue'
 import { amenities, nearby, lifestyles } from '../data'
 import { state } from '../store'
 
@@ -100,8 +101,8 @@ async function save() {
           <form id="rental-edit-form" class="editor-content" novalidate @submit.prevent="save">
             <div v-show="tab === 'general'" class="editor-grid">
               <label class="field title-field"><span>Tiêu đề bài đăng *</span><input v-model="form.title" aria-label="Tiêu đề bài đăng *" maxlength="100" :aria-invalid="!!errors.title"><small v-if="errors.title" class="error">{{ errors.title }}</small></label>
-              <label class="field status-field"><span>Trạng thái</span><select v-model="form.status" aria-label="Trạng thái"><option v-for="status in statuses" :key="status">{{ status }}</option></select></label>
-              <label class="field"><span>Chọn nhà trọ *</span><select v-model="form.houseId" aria-label="Chọn nhà trọ *" :aria-invalid="!!errors.houseId"><option value="">Chọn nhà trọ</option><option v-for="house in houseOptions" :key="house.id" :value="house.id">{{ house.name }}</option></select><small v-if="errors.houseId" class="error">{{ errors.houseId }}</small></label>
+              <div class="field status-field"><span>Trạng thái</span><AppDropdown v-model="form.status" label="Trạng thái" :options="statuses" /></div>
+              <div class="field"><span>Chọn nhà trọ *</span><AppDropdown v-model="form.houseId" label="Chọn nhà trọ *" :invalid="!!errors.houseId" :options="[{ value: '', label: 'Chọn nhà trọ' }, ...houseOptions.map(h => ({ value: h.id, label: h.name }))]" /><small v-if="errors.houseId" class="error">{{ errors.houseId }}</small></div>
               <label class="field"><span>Giờ giấc</span><input v-model="form.curfew" type="time"><small class="help">Để trống nếu giờ giấc tự do.</small></label>
               <label v-for="[key, label, min, required] in numericFields" :key="key" class="field"><span>{{ label }}{{ required ? ' *' : '' }}</span><input v-model="form[key]" :aria-label="label+(required ? ' *' : '')" type="number" :min="min" :step="['area', 'count', 'people'].includes(key) ? 1 : 'any'" :aria-invalid="!!errors[key]"><small v-if="errors[key]" class="error">{{ errors[key] }}</small></label>
               <label class="field full-width"><span>Chi phí khác</span><input v-model="form.other" placeholder="Ví dụ: Giữ xe 50.000đ; rác 20.000đ"></label>

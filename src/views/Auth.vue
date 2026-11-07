@@ -89,11 +89,10 @@ async function chooseRole(role) {
     await router.replace(
       typeof redirect === "string" &&
         redirect.startsWith("/") &&
-        !redirect.startsWith("//")
+        !redirect.startsWith("//") &&
+        !["/dang-nhap", "/dang-ky", "/ho-so"].includes(redirect)
         ? redirect
-        : role === "landlord"
-          ? "/quan-ly/nha-tro"
-          : "/ho-so",
+        : fallback,
     );
   } catch (error) {
     info.value = error.message || "Không thể cập nhật vai trò.";

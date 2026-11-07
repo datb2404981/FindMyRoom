@@ -222,3 +222,30 @@ test("registration allows selecting role after signup and redirects accordingly"
   const role = await page.evaluate(() => localStorage.getItem("findmyroom:role"));
   expect(role).toBe("landlord");
 });
+
+test("registration allows selecting student role after signup and redirects to home page", async ({
+  page,
+}) => {
+  await page.goto("/#/dang-ky");
+  const email = `student-${Date.now()}@example.com`;
+  await page.getByLabel("Họ và tên *", { exact: true }).fill("Sinh Viên Mới");
+  await page.getByLabel("Email *", { exact: true }).fill(email);
+  await page.getByLabel("Số điện thoại *", { exact: true }).fill("0912345678");
+  await page.getByLabel("Mật khẩu *", { exact: true }).fill("demopass123");
+  await page.getByLabel("Xác nhận mật khẩu *", { exact: true }).fill("demopass123");
+  await page.getByRole("checkbox").check();
+  await page
+    .locator("form")
+    .getByRole("button", { name: "Đăng ký", exact: true })
+    .click();
+
+  // Màn hình chọn role xuất hiện sau khi đăng ký thành công
+  await expect(page.getByText("Bạn muốn tham gia với tư cách")).toBeVisible();
+  await page.getByRole("radio", { name: "Sinh Viên" }).click();
+
+  // Chuyển hướng tới trang chủ
+  await expect(page).toHaveURL(/#\/$/);
+  const role = await page.evaluate(() => localStorage.getItem("findmyroom:role"));
+  expect(role).toBe("student");
+});
+

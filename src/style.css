@@ -51,6 +51,20 @@
 body {
   margin: 0;
 }
+/* Keep the footer at the bottom on short pages without fixing it over content. */
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+#app > main {
+  flex: 1 0 auto;
+  min-width: 0;
+}
+#app > .site-footer {
+  margin-top: auto;
+}
 button,
 input,
 select,
@@ -807,6 +821,16 @@ select[aria-invalid="true"] {
 .field select,
 .field textarea {
   font-size: 14px;
+}
+.field select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5' stroke='%23647076' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 16px 16px;
+  padding-right: 42px !important;
+  cursor: pointer;
 }
 .field textarea {
   resize: vertical;
@@ -1787,6 +1811,11 @@ select[aria-invalid="true"] {
 }
 .upload-zone:focus-within {
   outline: 3px solid var(--cyan);
+}
+.upload-zone.dragging {
+  border-color: var(--ink);
+  background: var(--cream-deep);
+  outline: 2px solid var(--cyan);
 }
 .upload-grid {
   display: grid;
@@ -3255,7 +3284,7 @@ select[aria-invalid="true"] {
     width: calc(100% - 66px);
     margin: auto;
   }
-  .featured .room-card:not(:first-child) {
+  .featured .room-grid > .room-card:not(:first-child) {
     display: none;
   }
   .featured .room-content {
@@ -3518,35 +3547,43 @@ select[aria-invalid="true"] {
   }
 }
 
-.header-signup {
+.header-actions > a:is(.header-signup, .header-login, .header-post-btn) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 40px;
-  padding: 9px 18px;
-  border-radius: 999px;
-  font-size: 13.5px;
-  font-weight: 600;
-  text-decoration: none !important;
-  color: var(--ink);
+  min-height: 44px;
+  padding: 8px 12px;
   border: 1px solid transparent;
-  transition: all 0.2s ease;
-}
-.header-signup:hover {
-  background: var(--cream-deep);
+  border-radius: 8px;
   color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
 }
-.header-login {
-  min-height: 40px !important;
-  padding: 9px 18px !important;
-  font-size: 13.5px !important;
-  box-shadow: 0 1px 3px rgba(19, 20, 20, 0.08);
+.header-actions > .header-signup {
+  padding-inline: 8px;
+}
+.header-actions > .header-login {
+  background: transparent;
+  border-color: #c9c7bf;
+}
+.header-actions > :is(.header-signup, .header-login):hover {
+  background: var(--cream-deep);
+}
+.header-actions > .header-post-btn {
+  gap: 6px;
 }
 @media (max-width: 768px) {
   .header-login {
-    min-height: 36px !important;
-    padding: 8px 12px !important;
-    font-size: 11px !important;
+    min-height: 44px !important;
+    padding: 10px 14px !important;
+    font-size: 12px !important;
+  }
+  .header-post-btn {
+    display: none !important;
   }
 }
 /* Clean Nav Links: No background, no underline, bold text on hover/active */
@@ -3663,25 +3700,6 @@ select[aria-invalid="true"] {
   }
 }
 
-:is(.button.primary.add-house, .button.primary[href*="/dang-bai/rental"]) {
-  min-height: 44px;
-  padding: 8px 20px;
-  font-size: 13px;
-  gap: 8px;
-  border-color: transparent;
-  background-clip: border-box;
-  transition:
-    background-color 0.4s ease-in-out,
-    color 0.4s ease-in-out;
-}
-:is(.button.primary.add-house, .button.primary[href*="/dang-bai/rental"]):is(
-  :hover,
-  :focus-visible
-) {
-  background: var(--gold-hover);
-  border-color: transparent;
-  color: #fff;
-}
 
 html,
 body,
@@ -3692,4 +3710,65 @@ html::-webkit-scrollbar,
 body::-webkit-scrollbar,
 *::-webkit-scrollbar {
   display: none !important;
+}
+
+.location-button {
+  min-height: 44px;
+  padding: 10px 18px;
+  font-size: 14px;
+}
+.location-feedback {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 14px 16px;
+  border: 1px solid #dadfd7;
+  border-radius: 12px;
+  background: #f5f6ef;
+  color: #43594d;
+}
+.location-feedback svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.location-feedback p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.location-feedback.success {
+  display: flex;
+  width: fit-content;
+  max-width: 100%;
+  align-items: center;
+  gap: 7px;
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #256044;
+}
+.location-feedback.success svg {
+  margin-top: 0;
+  width: 16px;
+  height: 16px;
+}
+.location-feedback.success p {
+  font-weight: 500;
+  line-height: 1.5;
+}
+.location-feedback.error {
+  background: #fff2ed;
+  border-color: #efd2c5;
+  color: #873d2a;
+}
+
+@media (max-width: 600px) {
+  .location-feedback {
+    padding: 12px;
+  }
+  .location-feedback p {
+    font-size: 14px;
+  }
 }

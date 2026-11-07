@@ -81,12 +81,6 @@ function onPostClick() {
         <RouterLink v-if="state.user?.role !== 'landlord'" to="/ghep-tro"
           >Ghép trọ</RouterLink
         >
-        <RouterLink
-          v-if="state.user?.role !== 'landlord'"
-          to="/dang-bai/roommate"
-          @click="onPostClick"
-          >Đăng bài ghép trọ</RouterLink
-        >
         <template v-if="state.user">
           <RouterLink v-if="canManagePosts" to="/quan-ly/bai-dang"
             >Quản lý bài đăng</RouterLink
@@ -97,11 +91,17 @@ function onPostClick() {
         >
       </nav>
       <div class="header-actions">
+        <RouterLink
+          v-if="state.user?.role !== 'landlord'"
+          to="/dang-bai/roommate"
+          class="button primary small header-post-btn"
+          @click="onPostClick"
+          ><Icon name="plus" :size="16" />Đăng bài ghép trọ</RouterLink
+        >
         <template v-if="!state.user">
           <RouterLink to="/dang-ky" class="text-button header-signup">Đăng ký</RouterLink>
           <RouterLink to="/dang-nhap" class="button primary small header-login"
-            >Đăng nhập <Icon name="arrow" :size="17"
-          /></RouterLink>
+            >Đăng nhập</RouterLink>
         </template>
         <div
           v-else
@@ -145,6 +145,7 @@ function onPostClick() {
             id="account-navigation"
             class="account-dropdown"
             aria-label="Tài khoản"
+            @click="accountOpen = false"
           >
             <div class="account-identity">
               <strong>{{ state.user.name }}</strong
