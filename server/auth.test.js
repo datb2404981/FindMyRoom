@@ -2,15 +2,16 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { createServer } from 'node:http'
 import { once } from 'node:events'
-import { mkdtemp, copyFile, readFile, writeFile, rm } from 'node:fs/promises'
+import { mkdtemp, readFile, writeFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createAuthMiddleware } from './auth.js'
+import { createAuthMiddleware, hashPassword } from './auth.js'
 
 async function fixture(t) {
   const directory = await mkdtemp(join(tmpdir(), 'findmyroom-api-'))
   const usersFile = join(directory, 'users.json')
-  await copyFile(new URL('../data/users.json', import.meta.url), usersFile)
+  await writeFile(usersFile, JSON.stringify({ users: [{ id: 'test-student', name: 'Test Student',
+    email: 'sinhvien@example.com', phone: '0987654321', role: 'student', passwordHash: await hashPassword('demopass123') }] }))
   const servers = []
   t.after(async () => {
     await Promise.all(servers.map(server => new Promise(resolve => server.close(resolve))))

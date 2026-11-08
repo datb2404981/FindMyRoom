@@ -542,6 +542,23 @@ function goToPage(page) {
 .featured-carousel {
   position: relative;
 }
+.locations .featured-carousel {
+  container-type: inline-size;
+  --location-image-width: calc((100cqw - 68px) / 4);
+  --location-image-ratio: 1.65;
+}
+.locations .featured-arrow {
+  top: calc(4px + var(--location-image-width) / var(--location-image-ratio) / 2);
+}
+@media (max-width: 800px) {
+  .locations .featured-carousel { --location-image-width: calc((100cqw - 28px) / 2); }
+}
+@media (max-width: 600px) {
+  .locations .featured-carousel {
+    --location-image-width: calc((100cqw - 8px) * .85);
+    --location-image-ratio: 1.75;
+  }
+}
 .featured-arrow {
   position: absolute;
   top: 50%;
@@ -879,10 +896,6 @@ function goToPage(page) {
     font-size: 12px;
     min-height: 44px;
   }
-  .home-listing-grid :deep(.save-button) {
-    width: 44px;
-    height: 44px;
-  }
   .home-empty-state {
     padding: 35px 18px;
     min-height: 260px;
@@ -960,26 +973,6 @@ function goToPage(page) {
     white-space: normal;
     line-height: 1.3;
     text-align: left;
-  }
-  .home-listing-grid :deep(.save-button) {
-    border: 0;
-    background: transparent;
-  }
-  .home-listing-grid :deep(.save-button::before) {
-    content: "";
-    position: absolute;
-    inset: 5px;
-    border: 1px solid var(--line);
-    border-radius: 50%;
-    background: var(--cream);
-  }
-  .home-listing-grid :deep(.save-button.saved::before) {
-    background: var(--coral);
-  }
-  .home-listing-grid :deep(.save-button svg) {
-    position: relative;
-    width: 17px;
-    height: 17px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

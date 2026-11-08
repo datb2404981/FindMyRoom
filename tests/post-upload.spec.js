@@ -11,7 +11,8 @@ for (const kind of ['rental', 'roommate']) {
     else await page.getByLabel('Ngày có thể chuyển vào *', { exact: true }).fill('2027-12-10')
     for (const input of await page.getByRole('spinbutton').all()) await input.fill('100')
     await page.getByRole('button', { name: 'Tiếp theo', exact: true }).click()
-    await page.getByLabel('Phường / Xã *').selectOption('Xuân Khánh')
+    await page.getByRole('button', { name: 'Phường / Xã', exact: true }).click()
+    await page.getByRole('listbox', { name: 'Phường / Xã', exact: true }).getByRole('option', { name: 'Phường Ninh Kiều', exact: true }).click()
     await page.getByLabel('Tên đường / số nhà *').fill('123 đường 3/2')
     await page.getByRole('button', { name: 'Tiếp theo', exact: true }).click()
     const files = await page.evaluateHandle(() => {
@@ -29,12 +30,12 @@ for (const kind of ['rental', 'roommate']) {
     const invalid = await page.evaluateHandle(() => {
       const transfer = new DataTransfer()
       transfer.items.add(new File(['text'], 'note.txt', { type: 'text/plain' }))
-      transfer.items.add(new File([new Uint8Array(11 * 1024 * 1024)], 'large.png', { type: 'image/png' }))
+      transfer.items.add(new File([new Uint8Array(6 * 1024 * 1024)], 'large.png', { type: 'image/png' }))
       return transfer
     })
     await input.dispatchEvent('drop', { dataTransfer: invalid })
     await expect(page.locator('.upload-grid img')).toHaveCount(3)
-    await expect(page.getByRole('alert')).toContainText('10 MB')
+    await expect(page.getByRole('alert')).toContainText('5 MB')
     for (let i = 0; i < 3; i++) await input.dispatchEvent('drop', { dataTransfer: files })
     await expect(page.locator('.upload-grid img')).toHaveCount(10)
     await expect(page.getByRole('alert')).toContainText('tối đa 10 ảnh')

@@ -10,6 +10,8 @@ import universities from "../../data/university.json";
 import { canThoUrbanWards } from "../data/can-tho-wards";
 import { amenities, nearby, lifestyles, money, boardingHouses } from "../data";
 import { state, validateField } from "../store";
+import { rentalStatuses, rentalStatus } from '../rental-status'
+import { houseDirectory, loadHouses } from '../houses'
 const universityOptions = universities.map((university) => ({
   value: university.university_name,
   label: university.university_name,
@@ -44,6 +46,7 @@ const highlightedHouseIndex = ref(-1);
 const houseDropdownRef = ref(null);
 
 const systemHouses = computed(() => {
+  if (!rental.value) return houseDirectory.houses.filter(house => house.status === 'Đang hoạt động')
   const list = [...state.houses];
   for (const h of boardingHouses) {
     if (!list.some((item) => item.id === h.id || item.name === h.name)) {
@@ -69,32 +72,26 @@ const selectedHouse = computed(() => {
   if (draft.houseId) {
     return systemHouses.value.find((h) => h.id === draft.houseId) || null;
   }
-  if (draft.house) {
-    return (
-      systemHouses.value.find(
-        (h) => h.name.toLowerCase().trim() === draft.house.toLowerCase().trim()
-      ) || null
-    );
-  }
   return null;
 });
 
 function selectHouse(h) {
+  delete errors.house
   draft.house = h.name;
   draft.houseId = h.id;
   if (h.address) {
     if (!draft.street.trim()) {
-      draft.street = h.address;
+      draft.street = h.street || h.address;
     }
     const wards = ["Xuân Khánh", "An Bình", "Hưng Lợi", "An Khánh", "Hưng Phú", "Bình Thủy"];
-    const matchedWard = wards.find((w) => h.address.includes(w));
+    const matchedWard = h.ward || wards.find((w) => h.address.includes(w));
     if (matchedWard && !draft.ward) {
       draft.ward = matchedWard;
     }
   }
-  if (h.house_latitude && h.house_longitude) {
-    draft.latitude = h.house_latitude;
-    draft.longitude = h.house_longitude;
+  if (h.latitude != null && h.longitude != null) {
+    draft.latitude = h.latitude;
+    draft.longitude = h.longitude;
   }
   houseInputFocused.value = false;
   highlightedHouseIndex.value = -1;
@@ -113,10 +110,7 @@ function clearHouse() {
 function onHouseInput() {
   houseInputFocused.value = true;
   highlightedHouseIndex.value = 0;
-  const match = systemHouses.value.find(
-    (h) => h.name.toLowerCase().trim() === draft.house.toLowerCase().trim()
-  );
-  draft.houseId = match ? match.id : "";
+  draft.houseId = "";
 }
 
 function onHouseKeydown(event) {
@@ -158,12 +152,14 @@ function onHouseOutside(event) {
 
 onMounted(() => {
   document.addEventListener("pointerdown", onHouseOutside);
+  loadHouses().catch(() => {});
 });
 onUnmounted(() => {
   document.removeEventListener("pointerdown", onHouseOutside);
 });
 const defaults = () => ({
   title: "",
+  status: 'Còn phòng',
   gender: "Tất cả",
   school: "Đại học Cần Thơ",
   moveIn: "",
@@ -379,6 +375,7 @@ const fields = computed(() =>
           "Ví dụ: Phòng có gác gần Đại học Cần Thơ",
         ],
         ["houseId", "Chọn nhà trọ", "house", true],
+        ["status", "Trạng thái", "status", true],
         ["count", "Số lượng phòng", "number", true],
         ["deposit", "Tiền cọc (đ)", "number", false],
         ["price", "Giá thuê (đ/tháng)", "number", true],
@@ -397,6 +394,7 @@ const fields = computed(() =>
           true,
           "Ví dụ: Tìm bạn nữ ở ghép gần trường",
         ],
+        ["status", "Trạng thái", "status", true],
         ["gender", "Đối tượng (nam/nữ)", "gender", true],
         ["school", "Trường đại học nhắm tới", "school", false],
         ["moveIn", "Ngày có thể chuyển vào", "date", true],
@@ -438,6 +436,7 @@ function validate() {
     }
   }
   if (step.value === 2) {
+    if (!rental.value && draft.house.trim() && !selectedHouse.value) errors.house = 'Vui lòng chọn nhà trọ trong danh sách của chủ trọ.'
     for (const k of ["ward", "street"])
       if (!draft[k].trim()) errors[k] = "Vui lòng điền địa chỉ.";
   }
@@ -510,8 +509,8 @@ async function upload(e) {
       ["image/jpeg", "image/jpg", "image/png", "image/webp"].includes(
         file.type?.toLowerCase(),
       ) || /\.(jpe?g|png|webp)$/i.test(file.name || "");
-    if (!isImage || file.size > 10 * 1024 * 1024) {
-      uploadError.value = "Chỉ nhận JPG, PNG, WEBP tối đa 10 MB mỗi ảnh.";
+    if (!isImage || file.size > 5 * 1024 * 1024) {
+      uploadError.value = "Chỉ nhận JPG, PNG, WEBP tối đa 5 MB mỗi ảnh.";
       continue;
     }
     const blobUrl = URL.createObjectURL(file);
@@ -556,7 +555,7 @@ async function publish() {
     id: route.query.edit || "post-" + Date.now(),
     kind: kind.value,
     ownerId: state.user.id,
-    status: "Chờ duyệt",
+    status: rentalStatus(draft),
     house: house?.name || draft.house,
     houseId: house?.id || draft.houseId || "",
     image: mainImage,
@@ -634,8 +633,7 @@ function locate() {
     ><span class="eyebrow">Đã hoàn tất</span>
     <h1>Bài đăng đã được lưu</h1>
     <p>
-      Bài đăng ở trạng thái chờ duyệt trong bản demo.<br />Dữ liệu chỉ được lưu trên thiết
-      bị này.
+      Bài đăng đã được lưu với trạng thái bạn đã chọn.<br />Dữ liệu chỉ được lưu trên thiết bị này.
     </p>
     <RouterLink to="/quan-ly/bai-dang" class="button primary"
       >Quản lý bài đăng <Icon name="arrow" :size="18"
@@ -668,7 +666,7 @@ function locate() {
       <template v-if="step === 1"
         ><h2>Thông tin chung</h2>
         <div class="form-grid">
-          <component :is="['gender', 'house', 'school'].includes(type) ? 'div' : 'label'"
+          <component :is="['gender', 'house', 'school', 'status'].includes(type) ? 'div' : 'label'"
             v-for="[key, label, type, required, placeholder] in fields"
             :key="key"
             class="field"
@@ -681,7 +679,7 @@ function locate() {
               placeholder="Chọn trường đại học"
               :invalid="!!errors[key]"
               :options="universityOptions"
-            /><select
+            /><AppDropdown v-else-if="type === 'status'" v-model="draft.status" label="Trạng thái" :options="rentalStatuses" /><select
               v-else-if="type === 'house'"
               v-model="draft[key]"
               :aria-label="label + (required ? ' *' : '')"
@@ -786,7 +784,7 @@ function locate() {
                   v-model="draft.house"
                   placeholder="Ví dụ: Nhà trọ Minh An (gõ để tìm trọ trong hệ thống)"
                   autocomplete="off"
-                  @focus="houseInputFocused = true"
+                  @focus="houseInputFocused = true; loadHouses().catch(() => {})"
                   @input="onHouseInput"
                   @keydown="onHouseKeydown"
                 />
@@ -850,6 +848,9 @@ function locate() {
                   Gõ để tìm nhà trọ có sẵn nhằm tự động gắn kèm đánh giá và vị trí.
                 </span>
               </p>
+              <p v-if="houseDirectory.error || errors.house" class="error" role="alert">{{ houseDirectory.error || errors.house }}</p>
+              <p v-else-if="houseDirectory.loading" class="help" role="status">Đang tải nhà trọ của chủ trọ…</p>
+              <p v-else-if="houseInputFocused && !matchingHouses.length" class="help">Không có nhà trọ phù hợp trong danh sách của chủ trọ.</p>
             </div><button
               type="button"
               class="button secondary location-button"
@@ -884,9 +885,9 @@ function locate() {
           :class="{ dragging }"
           @dragover.prevent="dragging = true; $event.dataTransfer.dropEffect = 'copy'"
           @dragleave.prevent="dragging = false"
-          @drop.prevent="upload"
+          @drop.stop.prevent="upload"
           ><Icon name="upload" :size="42" /><strong>Nhấp để chọn hoặc kéo ảnh vào đây</strong
-          ><span>JPG, PNG, WEBP · tối đa 10 MB mỗi ảnh</span
+          ><span>JPG, PNG, WEBP · tối đa 5 MB mỗi ảnh</span
           ><input
             type="file"
             multiple
@@ -894,7 +895,7 @@ function locate() {
             @change="upload"
             @dragover.prevent="dragging = true; if ($event.dataTransfer) $event.dataTransfer.dropEffect = 'copy'"
             @dragleave.prevent="dragging = false"
-            @drop.prevent="upload"
+            @drop.stop.prevent="upload"
             aria-label="Tải hình ảnh chỗ ở"
         /></label>
         <p class="error" v-if="uploadError || errors.images" role="alert">
@@ -926,6 +927,7 @@ function locate() {
             ['Phong cách sống', 'lifestyles', lifestyles],
           ]"
           :key="key"
+          class="post-amenity-group"
         >
           <legend>{{ label }}</legend>
           <div class="amenity-checks">
@@ -1055,6 +1057,12 @@ function locate() {
 </template>
 
 <style scoped>
+.post-panel .post-amenity-group { margin-bottom: 24px; }
+.post-amenity-group legend { margin-bottom: 14px; }
+.post-amenity-group .amenity-checks { border: 1px solid var(--muted); padding: 12px 16px; }
+@media (max-width: 700px) {
+  .post-amenity-group .amenity-checks { padding: 10px; }
+}
 /* Autocomplete nhà trọ */
 .house-autocomplete-field {
   position: relative;

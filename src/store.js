@@ -1,9 +1,13 @@
 import { computed, reactive, watch } from "vue";
 import { rooms, boardingHouses } from "./data";
+import { rentalStatus } from './rental-status'
+import { readBrowserData, writeBrowserData } from './browser-storage'
+import { loadHouses, saveHouse } from './houses'
 
 const key = "findmyroom-demo-v1";
 const defaults = () => ({
   profile: {
+    avatar: "",
     name: "",
     cccd: "",
     taxCode: "",
@@ -18,16 +22,20 @@ const defaults = () => ({
     address: "Cần Thơ",
     bio: "",
   },
-  favorites: [],
   likes: [],
   passed: [],
   houses: boardingHouses.slice(0, 1),
   posts: rooms.slice(0, 3).map((room) => ({ ...room, kind: "rental" })),
   drafts: { roommate: {}, rental: {} },
 });
-function savedData(storageKey) {
+async function savedData(storageKey) {
   try {
-    return JSON.parse(localStorage.getItem(storageKey) || "{}") || {};
+    const saved = await readBrowserData(storageKey);
+    delete saved.favorites;
+    if (Array.isArray(saved.posts)) saved.posts = saved.posts.map(post =>
+      ['rental', 'roommate'].includes(post.kind || 'rental') && post.status !== 'Bản nháp' ? { ...post, status: rentalStatus(post) } : post,
+    );
+    return saved;
   } catch {
     return {};
   }
@@ -36,7 +44,7 @@ function savedData(storageKey) {
 try {
   sessionStorage.removeItem("findmyroom-session-v1");
 } catch {}
-export const state = reactive({ ...defaults(), ...savedData(key), user: null });
+export const state = reactive({ ...defaults(), user: null });
 export const canManagePosts = computed(
   () =>
     state.user?.role === "landlord" ||
@@ -49,22 +57,23 @@ export const canManagePosts = computed(
       )),
 );
 let hydrating = false;
+let initialized = false;
 function storageKey(user) {
   return user ? `${key}:${user.id}` : key;
 }
-function persist() {
-  if (hydrating) return;
+async function persist() {
+  if (hydrating || !initialized) return;
   try {
     const { user, ...data } = state;
-    localStorage.setItem(storageKey(user), JSON.stringify(data));
+    await writeBrowserData(storageKey(user), data);
   } catch {}
 }
 watch(state, persist, { deep: true, flush: "sync" });
 
-function applyUser(user) {
-  persist();
+async function applyUser(user) {
+  await persist();
   const base = defaults();
-  const saved = savedData(storageKey(user));
+  const saved = await savedData(storageKey(user));
   hydrating = true;
   Object.assign(state, base, saved, {
     user,
@@ -82,7 +91,8 @@ function applyUser(user) {
     },
   });
   hydrating = false;
-  persist();
+  initialized = true;
+  await persist();
   try {
     if (user) {
       localStorage.setItem("findmyroom:user", JSON.stringify(user));
@@ -92,6 +102,20 @@ function applyUser(user) {
       localStorage.removeItem("findmyroom:role");
     }
   } catch {}
+  if (user?.role === 'landlord') {
+    try {
+      const remote = await loadHouses()
+      const owned = remote.filter(house => house.ownerId === user.id)
+      // Publish only old user-created houses, never the bundled sample houses.
+      for (const house of saved.houses || []) {
+        if (!house.ownerId && !boardingHouses.some(sample => sample.id === house.id) && !remote.some(item => item.id === house.id)) {
+          owned.push(await saveHouse(house))
+        }
+      }
+      state.houses = [...state.houses.filter(house => !house.ownerId && !owned.some(item => item.id === house.id)), ...owned]
+      await persist()
+    } catch { /* Keep the local list available when the server cannot be reached. */ }
+  }
 }
 
 async function authRequest(path, body, method = "POST") {
@@ -121,30 +145,33 @@ async function authRequest(path, body, method = "POST") {
 
 export async function restoreSession() {
   try {
-    applyUser(await authRequest("session", undefined, "GET"));
+    await applyUser(await authRequest("session", undefined, "GET"));
   } catch {
-    applyUser(null);
+    await applyUser(null);
   }
 }
 export async function login(credentials) {
-  applyUser(await authRequest("login", credentials));
+  await applyUser(await authRequest("login", credentials));
 }
 export async function register(account) {
-  applyUser(await authRequest("register", account));
+  await applyUser(await authRequest("register", account));
 }
 export async function logout() {
   await authRequest("logout");
-  applyUser(null);
+  await applyUser(null);
 }
 export async function updateAccount(profile) {
   const payload = { name: profile.name, email: profile.email, phone: profile.phone };
   if (profile.role) payload.role = profile.role;
   const user = await authRequest("profile", payload, "PATCH");
-  Object.assign(state.profile, profile, {
+  const nextProfile = { ...state.profile, ...profile,
     name: user.name,
     email: user.email,
     phone: user.phone,
-  });
+  };
+  const { user: currentUser, ...data } = state;
+  await writeBrowserData(storageKey(user), { ...data, profile: nextProfile });
+  Object.assign(state.profile, nextProfile);
   state.user = user;
   try {
     localStorage.setItem("findmyroom:user", JSON.stringify(user));
@@ -152,31 +179,28 @@ export async function updateAccount(profile) {
   } catch {}
 }
 
-export function updateRentalPost(post) {
+export async function updateManagedPost(post) {
   const index = state.posts.findIndex((item) => item.id === post.id);
   if (
-    state.user?.role !== "landlord" ||
+    !state.user ||
     index < 0 ||
-    (state.posts[index].kind || "rental") !== "rental"
+    state.posts[index].ownerId !== state.user.id ||
+    (state.posts[index].kind || 'rental') !== (state.user.role === 'landlord' ? 'rental' : 'roommate') ||
+    post.kind !== state.posts[index].kind
   )
-    throw new Error("Không tìm thấy bài đăng cho thuê để chỉnh sửa.");
+    throw new Error("Không tìm thấy bài đăng của bạn để chỉnh sửa.");
   const posts = state.posts.map((item, i) =>
     i === index ? { ...item, ...post } : item,
   );
   const { user, ...data } = state;
   try {
-    localStorage.setItem(storageKey(user), JSON.stringify({ ...data, posts }));
+    await writeBrowserData(storageKey(user), { ...data, posts });
   } catch {
     throw new Error(
-      "Không đủ bộ nhớ trình duyệt để lưu. Hãy giảm dung lượng ảnh hoặc kiểm tra quyền lưu dữ liệu.",
+      "Không lưu được dữ liệu. Hãy kiểm tra dung lượng thiết bị và quyền lưu dữ liệu của trình duyệt.",
     );
   }
   state.posts = posts;
-}
-
-export function toggleFavorite(id) {
-  const i = state.favorites.indexOf(id);
-  i < 0 ? state.favorites.push(id) : state.favorites.splice(i, 1);
 }
 
 export function validateField(key, value) {

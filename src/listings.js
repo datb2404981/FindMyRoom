@@ -1,4 +1,5 @@
 import { people, rooms } from './data'
+import { rentalStatus } from './rental-status'
 
 // Public sample posts, separate from the private drafts and matching candidates.
 export const roommateListings = people.map((person, index) => {
@@ -42,7 +43,7 @@ export const roommateListings = people.map((person, index) => {
     habits: 'Giữ vệ sinh chung, tôn trọng giờ giấc sinh hoạt và không gian riêng tư.',
     roomId: room.id,
     personId: person.id,
-    status: 'Đang tìm bạn',
+    status: 'Còn phòng',
     phone: person.phone || '0912 345 678',
     email: person.email || `${person.id}@example.com`,
     tags: person.tags || ['Yên tĩnh', 'Không hút thuốc'],
@@ -63,9 +64,9 @@ export function publicRentals(posts = []) {
 export function publicRoommates(posts = []) {
   const listings = new Map(roommateListings.map(listing => [listing.id, listing]))
   for (const post of posts) {
-    if (post.kind === 'roommate' && post.status === 'Đang hiển thị') listings.set(post.id, { ...post, price: Number(post.perPerson || post.price), status: 'Đang tìm bạn' })
+    if (post.kind === 'roommate') listings.set(post.id, { ...post, price: Number(post.perPerson || post.price) })
   }
-  return [...listings.values()]
+  return [...listings.values()].filter(post => post.status !== 'Bản nháp' && rentalStatus(post) === 'Còn phòng')
 }
 
 export function housesFromRooms(rentals) {

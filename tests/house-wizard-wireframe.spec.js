@@ -129,11 +129,11 @@ test.describe('Boarding House Creation and Edit Multi-Step Wizard (HH-21, HH-37,
     // Edit flow (HH-35)
     await page.getByRole('button', { name: /Chỉnh sửa Nhà trọ Minh An/i }).click()
     await expect(dialog).toBeVisible()
-    await expect(dialog.getByRole('heading', { name: 'Chỉnh sửa nhà trọ' })).toBeVisible()
+    await expect(dialog).toHaveAccessibleName('Chỉnh sửa nhà trọ')
     await expect(dialog.getByLabel('Tên nhà trọ *', { exact: true })).toHaveValue('Nhà trọ Minh An')
 
     // Click Lưu nhà trọ
-    await dialog.getByRole('button', { name: 'Lưu nhà trọ' }).first().click()
+    await dialog.getByRole('button', { name: 'Lưu thay đổi' }).click()
     await expect(dialog).toHaveCount(0)
     await expect(page.getByRole('status')).toContainText('Thông tin nhà trọ được chỉnh sửa thành công.')
   })

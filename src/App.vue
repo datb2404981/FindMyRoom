@@ -124,14 +124,14 @@ function onPostClick() {
               menu = false;
             "
           >
-            <span class="avatar" aria-hidden="true">{{
+            <span class="avatar" aria-hidden="true"><img v-if="state.profile.avatar" :src="state.profile.avatar" alt=""><template v-else>{{
               state.user.name
                 .trim()
                 .split(/\s+/)
                 .map((s) => s[0])
                 .slice(-2)
                 .join("")
-            }}</span>
+            }}</template></span>
             <span class="account-summary"
               ><strong>{{ state.user.name }}</strong
               ><small>{{

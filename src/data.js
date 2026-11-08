@@ -215,7 +215,7 @@ export const rooms = rawRoomPosts.map((r, i) => {
     amenities: amenitiesList,
     image: images[0] || `/illustrations/room-${(i % 4) + 1}.svg`,
     images: images.length ? images : [`/illustrations/room-${(i % 4) + 1}.svg`],
-    status: r.status === 'active' ? 'Còn phòng' : 'Hết phòng',
+    status: r.status === 'active' ? 'Còn phòng' : r.status === 'hidden' ? 'Ẩn' : 'Hết phòng',
     desc,
     water: r.room_post_water_price || 18000,
     electric: r.room_post_electronic_price || 3500,

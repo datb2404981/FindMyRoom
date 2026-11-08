@@ -1,18 +1,17 @@
 <script setup>
-import { computed, reactive, ref, onUnmounted } from 'vue'
+import { computed, reactive, ref, watch, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Icon from '../components/Icon.vue'
-import RoomCard from '../components/RoomCard.vue'
 import RentalPostEditor from '../components/RentalPostEditor.vue'
 import AppDropdown from '../components/AppDropdown.vue'
 import { canThoUrbanWards } from '../data/can-tho-wards'
 import { rooms, money } from '../data'
-import { state, validateField, updateRentalPost } from '../store'
+import { state, validateField, updateManagedPost } from '../store'
+import { saveHouse, deleteHouse } from '../houses'
 
 const route = useRoute(),
   router = useRouter(),
   houses = computed(() => route.params.kind === 'nha-tro'),
-  saved = computed(() => route.params.kind === 'da-luu'),
   modal = ref(''),
   deleting = ref(null),
   editingId = ref(null),
@@ -32,25 +31,28 @@ function showNotice(message) {
 onUnmounted(() => clearTimeout(noticeTimer))
 
 const editingPost = ref(null),
-  postEditError = ref('')
+  postEditError = ref(''),
+  postSaving = ref(false)
 
 function editRental(post) {
   postEditError.value = ''
   editingPost.value = post
 }
 
-function saveRental(post) {
+async function saveRental(post) {
+  if (postSaving.value) return
+  postSaving.value = true
   try {
-    updateRentalPost(post)
+    postEditError.value = ''
+    await updateManagedPost(post)
     editingPost.value = null
     showNotice('Đã lưu thay đổi bài đăng.')
   } catch (error) {
     postEditError.value = error.message
-  }
+  } finally { postSaving.value = false }
 }
 
 const list = computed(() => {
-  if (saved.value) return rooms.filter(r => state.favorites.includes(r.id))
   if (!state.user) return []
   const expectedKind = state.user.role === 'student' ? 'roommate' : 'rental'
   return state.posts.filter(post => post.kind === expectedKind && post.ownerId === state.user.id)
@@ -74,6 +76,22 @@ const form = reactive({
 })
 
 const houseStep = ref(1)
+const houseSaving = ref(false), houseSaveError = ref('')
+const houseTabs = [
+  { step: 1, label: 'Thông tin chung', icon: 'info' },
+  { step: 2, label: 'Vị trí & Địa lý', icon: 'pin' },
+  { step: 3, label: 'Hình ảnh', icon: 'images' },
+]
+let housePreviousOverflow
+watch(modal, (value, previous) => {
+  if (value === 'house' && previous !== 'house') {
+    housePreviousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+  } else if (previous === 'house') document.body.style.overflow = housePreviousOverflow
+})
+onUnmounted(() => {
+  if (modal.value === 'house') document.body.style.overflow = housePreviousOverflow
+})
 const locating = ref(false)
 const locationNotice = ref('')
 const locationState = ref('')
@@ -91,6 +109,7 @@ const wardOptions = computed(() => [
 const nearbyChoices = computed(() => [...new Set([...nearbyOptions, form.nearby].filter(Boolean))])
 
 function open(h) {
+  houseSaveError.value = ''
   houseStep.value = 1
   locationRequest++
   locating.value = false
@@ -257,7 +276,9 @@ function goToStep(target) {
   houseStep.value = target
 }
 
-function save() {
+async function save() {
+  if (houseSaving.value) return
+  houseSaveError.value = ''
   Object.keys(errors).forEach(k => delete errors[k])
   if (!validateStep1()) {
     houseStep.value = 1
@@ -292,15 +313,20 @@ function save() {
     longitude: form.longitude,
   }
 
+  houseSaving.value = true
+  try {
+  const savedHouse = await saveHouse(item)
   if (editingId.value) {
     const idx = state.houses.findIndex(h => h.id === editingId.value)
-    if (idx >= 0) Object.assign(state.houses[idx], item)
+    if (idx >= 0) Object.assign(state.houses[idx], savedHouse)
   } else {
-    state.houses.push(item)
+    state.houses.push(savedHouse)
   }
 
   modal.value = ''
   showNotice(editingId.value ? 'Thông tin nhà trọ được chỉnh sửa thành công.' : 'Tạo nhà trọ thành công.')
+  } catch (error) { houseSaveError.value = error.message }
+  finally { houseSaving.value = false }
 }
 
 const relatedPostsCount = computed(() => {
@@ -309,11 +335,15 @@ const relatedPostsCount = computed(() => {
   return allPosts.filter(p => p.houseId === deleting.value.id || (!p.houseId && p.house === deleting.value.name)).length
 })
 
-function remove() {
+async function remove() {
   if (houses.value) {
     if (relatedPostsCount.value > 0) {
       showNotice('Không thể xóa nhà trọ vì đang có bài đăng liên quan.')
       return
+    }
+    if (deleting.value.ownerId) {
+      try { await deleteHouse(deleting.value.id) }
+      catch (error) { showNotice(error.message); return }
     }
     state.houses = state.houses.filter(h => h.id !== deleting.value.id)
   } else {
@@ -345,13 +375,13 @@ function remove() {
     <div class="section-heading">
       <div>
         <span class="eyebrow">Không gian của bạn</span>
-        <h1>{{ houses ? 'Quản lý nhà trọ' : saved ? 'Tin đã lưu' : 'Bài đăng ghép trọ' }}</h1>
+        <h1>{{ houses ? 'Quản lý nhà trọ' : (state.user.role === 'landlord' ? 'Bài đăng cho thuê' : 'Bài đăng ghép trọ') }}</h1>
       </div>
       <button v-if="houses" class="button primary add-house" @click="open()">
         <Icon name="plus" :size="18" />Thêm nhà trọ
       </button>
       <RouterLink
-        v-else-if="!saved"
+        v-else
         :to="'/dang-bai/' + (state.user.role === 'landlord' ? 'rental' : 'roommate')"
         class="button primary"
       >
@@ -422,13 +452,8 @@ function remove() {
       </div>
     </template>
 
-    <!-- Saved Listings -->
-    <div v-else-if="saved && list.length" class="room-grid">
-      <RoomCard v-for="r in list" :key="r.id" :room="r" />
-    </div>
-
     <!-- Posts List -->
-    <template v-else-if="!saved && list.length">
+    <template v-else-if="list.length">
       <div class="manage-list">
         <article
           v-for="r in list.slice(0, more ? list.length : 3)"
@@ -451,7 +476,6 @@ function remove() {
           </div>
           <div class="manage-post-actions">
             <button
-              v-if="(r.kind || 'rental') === 'rental'"
               type="button"
               class="icon-button manage-edit"
               aria-label="Chỉnh sửa"
@@ -460,15 +484,6 @@ function remove() {
             >
               <Icon name="edit" :size="17" />
             </button>
-            <RouterLink
-              v-else
-              :to="'/dang-bai/' + r.kind + '?edit=' + r.id"
-              class="icon-button manage-edit"
-              aria-label="Chỉnh sửa"
-              title="Chỉnh sửa"
-            >
-              <Icon name="edit" :size="17" />
-            </RouterLink>
             <button
               class="icon-button manage-delete"
               @click="deleting = r"
@@ -488,14 +503,14 @@ function remove() {
     </template>
 
     <div v-else class="empty-state">
-      <span class="empty-icon"><Icon :name="saved ? 'heart' : 'grid'" :size="38" /></span>
-      <h2>{{ saved ? 'Bạn chưa lưu phòng nào' : 'Chưa có bài đăng' }}</h2>
-      <p>{{ saved ? 'Lưu lại những căn phòng bạn muốn xem thêm.' : 'Bắt đầu bằng một bài đăng giới thiệu không gian của bạn.' }}</p>
+      <span class="empty-icon"><Icon name="grid" :size="38" /></span>
+      <h2>Chưa có bài đăng</h2>
+      <p>Bắt đầu bằng một bài đăng giới thiệu không gian của bạn.</p>
       <RouterLink
-        :to="saved ? '/tim-tro' : '/dang-bai/' + (state.user.role === 'landlord' ? 'rental' : 'roommate')"
+        :to="'/dang-bai/' + (state.user.role === 'landlord' ? 'rental' : 'roommate')"
         class="button primary"
       >
-        {{ saved ? 'Tìm phòng trọ' : 'Tạo bài đăng' }}
+        Tạo bài đăng
       </RouterLink>
     </div>
 
@@ -505,6 +520,7 @@ function remove() {
       :save-error="postEditError"
       @close="editingPost = null"
       @save="saveRental"
+      :saving="postSaving"
     />
 
     <Teleport to="body">
@@ -553,15 +569,36 @@ function remove() {
       <!-- House Form Modal / Full Page Wizard -->
       <div
         v-if="modal === 'house'"
-        class="house-wizard-overlay modal large house-wizard-modal"
+        :class="editingId ? 'modal-backdrop house-editor-backdrop' : ''"
+        @click.self="editingId && (modal = '')"
+        @keydown.esc="modal = ''"
+      >
+      <section
+        :class="editingId ? 'house-editor' : 'house-wizard-overlay modal large house-wizard-modal'"
         v-dialog-focus
         role="dialog"
         aria-modal="true"
         aria-labelledby="house-title"
       >
-        <div class="house-wizard-page container page post-page">
+        <aside v-if="editingId" class="house-editor-sidebar">
+          <strong class="house-editor-brand"><Icon name="building" :size="20" />Nhà trọ</strong>
+          <nav aria-label="Các phần chỉnh sửa nhà trọ">
+            <button v-for="item in houseTabs" :key="item.step" type="button"
+              :class="{ active: houseStep === item.step }"
+              :aria-current="houseStep === item.step ? 'page' : undefined"
+              @click="houseStep = item.step">
+              <Icon :name="item.icon" :size="18" />{{ item.label }}
+            </button>
+          </nav>
+        </aside>
+        <div :class="editingId ? 'house-editor-main' : 'house-wizard-page container page post-page'">
+          <header v-if="editingId" class="house-editor-header">
+            <div><span id="house-title" class="eyebrow">Chỉnh sửa nhà trọ</span>
+              <h2>{{ houseTabs[houseStep - 1].label }}</h2></div>
+            <button type="button" class="icon-button" aria-label="Đóng" @click="modal = ''"><Icon name="close" :size="22" /></button>
+          </header>
           <!-- Top bar with Back/Close button -->
-          <div class="house-wizard-topbar">
+          <div v-if="!editingId" class="house-wizard-topbar">
             <button
               type="button"
               class="button secondary house-back-btn"
@@ -581,7 +618,7 @@ function remove() {
           </div>
 
           <!-- Hero Heading (giống PostForm) -->
-          <div class="center house-wizard-hero">
+          <div v-if="!editingId" class="center house-wizard-hero">
             <span class="eyebrow">QUẢN LÝ NHÀ TRỌ · BƯỚC {{ houseStep }}/3</span>
             <h1 id="house-title" class="house-wizard-title">
               {{ editingId ? 'Chỉnh sửa nhà trọ' : 'Tạo nhà trọ' }}
@@ -592,7 +629,7 @@ function remove() {
           </div>
 
           <!-- Desktop Stepper (HH-21, HH-37, HH-38, HH-39) -->
-          <nav class="house-stepper desktop-stepper stepper" aria-label="Các bước tạo nhà trọ">
+          <nav v-if="!editingId" class="house-stepper desktop-stepper stepper" aria-label="Các bước tạo nhà trọ">
             <div class="stepper-item" :class="{ active: houseStep === 1, current: houseStep === 1, completed: houseStep > 1, complete: houseStep > 1 }">
               <button
                 type="button"
@@ -633,7 +670,7 @@ function remove() {
           </nav>
 
           <!-- Mobile Tabs Bar (HH-34, HH-36) -->
-          <div class="mobile-tabs-bar" role="tablist" aria-label="Các bước thông tin">
+          <div v-if="!editingId" class="mobile-tabs-bar" role="tablist" aria-label="Các bước thông tin">
             <button
               type="button"
               role="tab"
@@ -666,7 +703,8 @@ function remove() {
             </button>
           </div>
 
-          <form class="form-panel post-panel house-wizard-form" @submit.prevent="houseStep < 3 ? nextStep() : save()" novalidate>
+          <form id="house-form" class="form-panel post-panel house-wizard-form" @submit.prevent="editingId || houseStep === 3 ? save() : nextStep()" novalidate>
+            <p v-if="houseSaveError && !editingId" class="error" role="alert">{{ houseSaveError }}</p>
             <!-- Step 1: Thông tin chung (HH-21, HH-34) -->
             <div v-show="houseStep === 1" class="wizard-step-pane">
               <h2>Thông tin chung</h2>
@@ -835,6 +873,7 @@ function remove() {
             <!-- Step 3: Hình ảnh (HH-38, HH-39, HH-36) -->
             <div v-show="houseStep === 3" class="wizard-step-pane">
               <h2>Hình ảnh nhà trọ</h2>
+              <p class="house-cover-hint">Ảnh đầu tiên là ảnh bìa. Bạn có thể đặt ảnh khác làm ảnh bìa trước khi lưu.</p>
               <input
                 ref="fileInput"
                 type="file"
@@ -852,38 +891,20 @@ function remove() {
                 class="images-step-layout"
                 :class="{ 'with-previews': form.images.length > 0 }"
               >
-                <!-- Previews (HH-39, HH-36) -->
-                <div v-if="form.images.length > 0" class="thumbnails-grid">
-                  <div
-                    v-for="(img, idx) in form.images"
-                    :key="idx"
-                    class="thumbnail-card"
-                  >
-                    <img :src="img" :alt="'Ảnh ' + (idx + 1)" />
-                    <button
-                      type="button"
-                      class="thumb-delete-btn"
-                      @click="removeImage(idx)"
-                      :aria-label="'Xóa ảnh ' + (idx + 1)"
-                    >
-                      <Icon name="close" :size="14" />
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Dropzone (HH-38, HH-39) -->
+                <!-- Khi không có hình: hiển thị khung upload lớn ở giữa (HH-38) -->
                 <div
-                  class="upload-dropzone"
+                  v-if="form.images.length === 0"
+                  class="upload-dropzone is-empty"
                   @click="triggerUpload"
                   @dragover.prevent
-                  @drop.prevent="onDrop"
+                  @drop.stop.prevent="onDrop"
                   role="button"
                   tabindex="0"
                   @keydown.enter.prevent="triggerUpload"
                   @keydown.space.prevent="triggerUpload"
                 >
                   <div class="upload-dropzone-icon">
-                    <Icon name="upload" :size="28" />
+                    <Icon name="upload" :size="32" />
                   </div>
                   <p class="upload-dropzone-title">Nhấp duyệt file ảnh chi tiết từ máy</p>
                   <p class="upload-dropzone-subtitle">
@@ -896,6 +917,51 @@ function remove() {
                     <span class="upload-bullet">·</span>
                     <span class="upload-limit-badge">Tối đa 5MB</span>
                   </p>
+                </div>
+
+                <!-- Khi đã có hình: hiển thị grid ảnh 3 cột kèm ô upload (HH-39) -->
+                <div
+                  v-else
+                  class="thumbnails-grid"
+                  @dragover.prevent
+                  @drop.stop.prevent="onDrop"
+                >
+                  <div
+                    v-for="(img, idx) in form.images"
+                    :key="idx"
+                    class="thumbnail-card"
+                  >
+                    <img :src="img" :alt="'Ảnh ' + (idx + 1)" />
+                    <span v-if="idx === 0" class="badge cream thumb-cover-badge">Ảnh bìa</span>
+                    <button v-else type="button" class="thumb-cover-btn" @click="form.images.unshift(...form.images.splice(idx, 1))">Đặt làm ảnh bìa</button>
+                    <button
+                      type="button"
+                      class="thumb-delete-btn"
+                      @click="removeImage(idx)"
+                      :aria-label="'Xóa ảnh ' + (idx + 1)"
+                    >
+                      <Icon name="close" :size="14" />
+                    </button>
+                  </div>
+
+                  <!-- Ô upload nằm cùng hàng trong Grid -->
+                  <div
+                    v-if="form.images.length < 10"
+                    class="upload-dropzone thumbnail-upload-card"
+                    @click="triggerUpload"
+                    @dragover.prevent
+                    @drop.stop.prevent="onDrop"
+                    role="button"
+                    tabindex="0"
+                    aria-label="Thêm ảnh"
+                    title="Thêm ảnh"
+                    @keydown.enter.prevent="triggerUpload"
+                    @keydown.space.prevent="triggerUpload"
+                  >
+                    <div class="upload-dropzone-icon mini-icon">
+                      <Icon name="upload" :size="24" />
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -922,7 +988,13 @@ function remove() {
               </div>
             </div>
           </form>
+          <footer v-if="editingId" class="house-editor-footer">
+            <p v-if="houseSaveError" class="error" role="alert">{{ houseSaveError }}</p>
+            <button type="button" class="button secondary" @click="modal = ''">Hủy</button>
+            <button type="submit" form="house-form" class="button primary" :disabled="houseSaving"><Icon name="check" :size="18" />{{ houseSaving ? 'Đang lưu…' : 'Lưu thay đổi' }}</button>
+          </footer>
         </div>
+      </section>
       </div>
     </Teleport>
   </div>
@@ -1504,15 +1576,12 @@ function remove() {
 }
 
 .images-step-layout.with-previews {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 28px;
-  align-items: start;
+  display: block;
 }
 
 .thumbnails-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
 
@@ -1531,26 +1600,33 @@ function remove() {
   height: 100%;
   object-fit: cover;
 }
+.house-cover-hint { margin: 0 0 16px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+.thumb-cover-badge { position: absolute; top: 8px; left: 8px; }
+.thumb-cover-btn { position: absolute; bottom: 0; left: 0; width: 100%; min-height: 44px; padding: 8px; background: #fffffff0; color: var(--ink); font-size: 12px; }
+.thumb-cover-btn:hover { background: var(--cream-deep); }
 
 .thumb-delete-btn {
   position: absolute;
   top: 8px;
   right: 8px;
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: rgba(19, 20, 20, 0.75);
-  color: #fff;
-  border: none;
+  background: rgba(255, 255, 255, 0.92);
+  color: #374151;
+  border: 1px solid rgba(0, 0, 0, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .thumb-delete-btn:hover {
-  background: #c93636;
+  background: #ef4444;
+  color: #fff;
+  border-color: #ef4444;
 }
 
 .upload-dropzone {
@@ -1569,11 +1645,43 @@ function remove() {
   min-height: 240px;
 }
 
+.upload-dropzone.is-empty {
+  min-height: 320px;
+  width: 100%;
+}
+
 .upload-dropzone:hover,
 .upload-dropzone:focus-visible {
   border-color: #638d92;
   background: #f3f8f8;
   outline: none;
+}
+
+.thumbnail-upload-card {
+  aspect-ratio: 4 / 3;
+  min-height: auto;
+  padding: 0;
+  border-radius: 12px;
+  border: 2px dashed #9ca3af;
+  background: #fafafa;
+}
+
+.thumbnail-upload-card:hover {
+  border-color: #638d92;
+  background: #f3f8f8;
+}
+
+.thumbnail-upload-card .mini-icon {
+  margin: 0;
+  width: 44px;
+  height: 44px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
 }
 
 .upload-dropzone-icon {
@@ -1750,5 +1858,44 @@ function remove() {
     width: 100%;
     justify-content: flex-end;
   }
+}
+.house-editor-backdrop { padding: 24px; }
+.house-editor { display: grid; grid-template-columns: 210px minmax(0, 1fr); width: min(1100px, 100%); height: min(800px, calc(100dvh - 48px)); overflow: hidden; background: #fff; border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); }
+.house-editor-sidebar { padding: 26px 16px; background: var(--cream); border-right: 1px solid var(--line); }
+.house-editor-brand { display: flex; align-items: center; gap: 10px; padding: 0 10px 24px; font-size: 16px; }
+.house-editor-sidebar nav { display: grid; gap: 8px; }
+.house-editor-sidebar nav button { display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 12px; border-radius: 9px; text-align: left; font-size: 13px; }
+.house-editor-sidebar nav button:hover, .house-editor-sidebar nav button.active { background: var(--cream-deep); }
+.house-editor-sidebar nav button.active { font-weight: 600; }
+.house-editor-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.house-editor-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 24px 30px 20px; border-bottom: 1px solid var(--line); }
+.house-editor-header h2 { margin: 5px 0 0; font-size: 23px; }
+.house-editor-header .icon-button { flex-shrink: 0; width: 44px; height: 44px; }
+.house-editor .house-wizard-form { flex: 1; min-height: 0; width: 100%; max-width: none; margin: 0; overflow-y: auto; padding: 24px 30px; border: 0; border-radius: 0; box-shadow: none; scroll-padding-block: 20px; }
+.house-editor .wizard-step-pane > h2, .house-editor .wizard-actions { display: none; }
+.house-editor .address-box-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.house-editor .address-box-grid > :last-child { grid-column: 1 / -1; }
+.house-editor-footer { display: flex; justify-content: flex-end; gap: 12px; padding: 18px 30px; border-top: 1px solid var(--line); background: #fff; }
+.house-editor-footer .button { min-height: 44px; font-size: 13px; }
+.house-editor-footer { flex-wrap: wrap; }
+.house-editor-footer > p { flex-basis: 100%; margin: 0; }
+@media (max-width: 700px) {
+  .house-editor-backdrop { padding: 12px; }
+  .house-editor { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); height: calc(100dvh - 24px); border-radius: 14px; }
+  .house-editor-sidebar { padding: 10px; border-right: 0; border-bottom: 1px solid var(--line); }
+  .house-editor-brand { display: none; }
+  .house-editor-sidebar nav { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+  .house-editor-sidebar nav button { justify-content: center; gap: 5px; padding: 10px 4px; font-size: 12px; }
+  .house-editor-sidebar nav button svg { width: 16px; flex-shrink: 0; }
+  .house-editor-header { padding: 16px 18px; }
+  .house-editor-header h2 { font-size: 20px; }
+  .house-editor .house-wizard-form { padding: 20px 18px; }
+  .house-editor .address-box-grid, .house-editor .nearby-location-row { grid-template-columns: minmax(0, 1fr); }
+  .house-editor .nearby-location-row > .location-feedback { grid-column: 1; }
+  .thumbnails-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .house-editor-footer { padding: 14px 18px; }
 }
 </style>

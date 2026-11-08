@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
     "test": "npm run test:api && playwright test",
-    "test:api": "node --test server/auth.test.js"
+    "test:api": "node --test server/auth.test.js server/boarding-houses.test.js"
   },
   "dependencies": {
     "@lucide/vue": "^1.66.0",

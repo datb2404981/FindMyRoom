@@ -66,9 +66,10 @@ test("switching accounts separates profiles and redirects legacy saved route", a
   ).toBeVisible();
   await signIn(page, "chutro@example.com");
   await expect(page).toHaveURL(/quan-ly\/nha-tro/);
+  const landlordSession = await (await page.request.get('/api/auth/session')).json();
   await page.goto("/#/ho-so");
   await expect(page.getByLabel("Họ và tên", { exact: true })).toHaveValue(
-    "Nguyễn Minh An",
+    landlordSession.user.name,
   );
   await page.goto("/#/quan-ly/da-luu");
   await expect(page).toHaveURL(/quan-ly\/bai-dang/);

@@ -1,11 +1,13 @@
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import Icon from "../components/Icon.vue";
 import MapPanel from "../components/MapPanel.vue";
 import { rooms, money, sampleHouseReviews, boardingHouses } from "../data";
 import { roommateListings } from "../listings";
-import { state, toggleFavorite } from "../store";
+import { state } from "../store";
+import { houseDirectory, loadHouses } from '../houses'
+onMounted(() => { loadHouses().catch(() => {}) })
 
 const route = useRoute(),
   router = useRouter();
@@ -16,7 +18,7 @@ const room = computed(() => {
 });
 const isRoommate = computed(() => room.value?.kind === "roommate");
 const relatedHouse = computed(() => {
-  const all = [...state.houses];
+  const all = [...houseDirectory.houses, ...state.houses];
   for (const h of boardingHouses) {
     if (!all.some((existing) => existing.id === h.id || existing.name === h.name)) {
       all.push(h);
@@ -167,11 +169,10 @@ const internetPrice = computed(
     room.value?.internet ?? rooms.find((item) => item.id === route.params.id)?.internet,
 );
 
-function act(kind) {
+function showContact() {
   if (!state.user)
     return router.push("/dang-nhap?redirect=" + encodeURIComponent(route.fullPath));
-  if (kind === "save") toggleFavorite(room.value.id);
-  else contact.value = true;
+  contact.value = true;
 }
 
 const backTo = computed(() => {
@@ -260,15 +261,6 @@ function formatDate(dateStr) {
             <h1>{{ room.title }}</h1>
             <p class="muted location"><Icon name="pin" :size="17" />{{ room.address }}</p>
           </div>
-          <button
-            v-if="!isRoommate"
-            class="icon-button outlined"
-            :class="{ 'saved-heart': state.favorites.includes(room.id) }"
-            @click="act('save')"
-            :aria-label="state.favorites.includes(room.id) ? 'Bỏ lưu tin' : 'Lưu tin'"
-          >
-            <Icon name="heart" />
-          </button>
         </div>
 
         <!-- Giá hiển thị -->
@@ -527,7 +519,7 @@ function formatDate(dateStr) {
             <button v-else class="button primary contact-phone" disabled>
               <Icon name="phone" :size="18" />Chưa có số điện thoại
             </button>
-            <button class="button secondary" @click="act('chat')">Chat Zalo</button>
+            <button class="button secondary" @click="showContact">Chat Zalo</button>
           </div>
           <p v-if="contact" class="notice">
             {{
@@ -584,7 +576,7 @@ function formatDate(dateStr) {
             <button v-else class="button primary contact-phone" disabled>
               <Icon name="phone" :size="18" />Chưa có số điện thoại
             </button>
-            <button class="button secondary" @click="act('chat')">Chat Zalo</button>
+            <button class="button secondary" @click="showContact">Chat Zalo</button>
           </div>
           <p v-if="contact" class="notice">
             {{
@@ -1035,14 +1027,6 @@ function formatDate(dateStr) {
   .roommate-detail .spec-grid > div {padding: 12px 14px}
   .roommate-detail .cost-grid {grid-template-columns: 1fr;gap: 0}
   .roommate-detail .cost-grid p {padding: 12px 0}
-}
-.saved-heart {
-  background: var(--coral, #f8d6cc);
-  border-color: #f27058;
-}
-.saved-heart svg {
-  fill: #c93636;
-  color: #c93636;
 }
 .house-tag {
   background: var(--cream-deep, #f8eed3);

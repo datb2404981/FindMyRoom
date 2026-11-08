@@ -7,6 +7,7 @@ import { promisify } from 'node:util'
 const scrypt = promisify(scryptCallback)
 const defaultUsersFile = fileURLToPath(new URL('../data/users.json', import.meta.url))
 const defaultReviewsFile = fileURLToPath(new URL('../data/house-reviews.json', import.meta.url))
+const defaultHousesFile = fileURLToPath(new URL('../data/managed-houses.json', import.meta.url))
 const cookieName = 'findmyroom_session'
 const sessionDuration = 8 * 60 * 60 * 1000
 
@@ -61,10 +62,31 @@ async function readBody(req, maxBytes = 10_240) {
   } catch { throw fail(400, 'Dữ liệu JSON không hợp lệ.') }
 }
 
-export function createAuthMiddleware({ usersFile = defaultUsersFile, reviewsFile = defaultReviewsFile } = {}) {
+export function createAuthMiddleware({ usersFile = defaultUsersFile, reviewsFile = defaultReviewsFile, housesFile = defaultHousesFile } = {}) {
   const sessions = new Map()
   let writes = Promise.resolve()
   let reviewWrites = Promise.resolve()
+  let houseWrites = Promise.resolve()
+  async function readHouses() {
+    try {
+      const houses = JSON.parse(await readFile(housesFile, 'utf8'))
+      if (!Array.isArray(houses)) throw new Error('Invalid houses file')
+      return houses
+    } catch (error) { if (error.code === 'ENOENT') return []; throw error }
+  }
+  function updateHouses(change) {
+    const task = houseWrites.then(async () => {
+      const houses = await readHouses()
+      const result = change(houses)
+      const temporaryFile = `${housesFile}.${randomUUID()}.tmp`
+      await mkdir(dirname(housesFile), { recursive: true })
+      await writeFile(temporaryFile, JSON.stringify(houses, null, 2) + '\n', { mode: 0o600 })
+      await rename(temporaryFile, housesFile)
+      return result
+    })
+    houseWrites = task.catch(() => {})
+    return task
+  }
 
   async function readReviews() {
     try {
@@ -140,13 +162,70 @@ export function createAuthMiddleware({ usersFile = defaultUsersFile, reviewsFile
   return async (req, res, next) => {
     const url = new URL(req.url, 'http://localhost')
     const path = url.pathname
-    if (!path.startsWith('/api/auth/') && path !== '/api/house-reviews') return next()
+    if (!path.startsWith('/api/auth/') && path !== '/api/house-reviews' && path !== '/api/boarding-houses' && !path.startsWith('/api/boarding-houses/')) return next()
     const reply = (status, data) => {
       res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' })
       res.end(JSON.stringify(data))
     }
     try {
       if (req.method !== 'GET' && req.headers.origin && new URL(req.headers.origin).host !== req.headers.host) throw fail(403, 'Nguồn yêu cầu không hợp lệ.')
+      if (path === '/api/boarding-houses' && req.method === 'GET') {
+        const { users } = await readUsers()
+        const owners = new Set(users.filter(user => user.role === 'landlord').map(user => user.id))
+        return reply(200, { houses: (await readHouses()).filter(house => owners.has(house.ownerId)) })
+      }
+      if (path.startsWith('/api/boarding-houses/') && ['PUT', 'DELETE'].includes(req.method)) {
+        const user = await currentUser(req)
+        if (!user) throw fail(401, 'Vui lòng đăng nhập.')
+        if (user.role !== 'landlord') throw fail(403, 'Chỉ chủ trọ được quản lý nhà trọ.')
+        const id = path.slice('/api/boarding-houses/'.length)
+        if (!/^[\w-]{1,100}$/.test(id)) throw fail(400, 'Mã nhà trọ không hợp lệ.')
+        if (req.method === 'DELETE') {
+          await updateHouses(houses => {
+            const index = houses.findIndex(house => house.id === id)
+            if (index < 0) throw fail(404, 'Không tìm thấy nhà trọ.')
+            if (houses[index].ownerId !== user.id) throw fail(403, 'Bạn không có quyền xóa nhà trọ này.')
+            houses.splice(index, 1)
+          })
+          return reply(200, { deleted: id })
+        }
+        const body = await readBody(req, 70 * 1024 * 1024)
+        for (const [field, limit] of [['name', 100], ['address', 500]]) {
+          if (typeof body[field] !== 'string' || !body[field].trim() || body[field].length > limit) throw fail(400, 'Tên và địa chỉ nhà trọ không hợp lệ.')
+        }
+        const house = { id, ownerId: user.id, name: body.name.trim(), address: body.address.trim() }
+        for (const field of ['desc', 'rules', 'city', 'ward', 'street', 'nearby']) {
+          if (body[field] != null && (typeof body[field] !== 'string' || body[field].length > 5000)) throw fail(400, 'Thông tin nhà trọ không hợp lệ.')
+          house[field] = body[field] || ''
+        }
+        house.status = body.status === 'Ẩn' ? 'Ẩn' : 'Đang hoạt động'
+        house.rooms = body.rooms == null ? 0 : Number(body.rooms)
+        if (!Number.isInteger(house.rooms) || house.rooms < 0) throw fail(400, 'Số phòng không hợp lệ.')
+        for (const [field, limit] of [['latitude', 90], ['longitude', 180]]) {
+          house[field] = body[field] == null ? null : Number(body[field])
+          if (house[field] != null && (!Number.isFinite(house[field]) || Math.abs(house[field]) > limit)) throw fail(400, 'Tọa độ không hợp lệ.')
+        }
+        const photos = body.images || (body.image ? [body.image] : [])
+        if (!Array.isArray(photos) || photos.length > 10) throw fail(400, 'Chỉ được lưu tối đa 10 ảnh.')
+        house.images = photos.map(photo => {
+          if (typeof photo !== 'string') throw fail(400, 'Ảnh nhà trọ không hợp lệ.')
+          if (/^https?:\/\/[^\s]+$/.test(photo) || /^\/(?!\/)[\w/.-]+$/.test(photo)) {
+            if (photo.length > 2000) throw fail(400, 'URL ảnh quá dài.')
+            return photo
+          }
+          const match = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/]+={0,2})$/.exec(photo)
+          if (!match || Buffer.byteLength(match[2], 'base64') > 5 * 1024 * 1024) throw fail(400, 'Ảnh nhà trọ phải là JPG, PNG, WEBP tối đa 5 MB.')
+          return photo
+        })
+        house.image = house.images[0] || '/illustrations/room-1.svg'
+        await updateHouses(houses => {
+          const index = houses.findIndex(item => item.id === id)
+          if (index >= 0 && houses[index].ownerId !== user.id) throw fail(403, 'Bạn không có quyền sửa nhà trọ này.')
+          if (index >= 0) houses[index] = house
+          else houses.push(house)
+        })
+        return reply(200, { house })
+      }
       if (path === '/api/house-reviews' && req.method === 'GET') {
         const houseId = url.searchParams.get('houseId')
         if (!houseId || !/^[\w-]{1,160}$/.test(houseId)) throw fail(400, 'Mã nhà trọ không hợp lệ.')
@@ -221,12 +300,12 @@ export function createAuthMiddleware({ usersFile = defaultUsersFile, reviewsFile
       }
       reply(404, { message: 'Không tìm thấy API.' })
     } catch (error) {
-      reply(error.status || 503, { message: error.status ? error.message : path === '/api/house-reviews' ? 'Không thể đọc hoặc lưu bình luận. Vui lòng thử lại.' : 'Không đọc hoặc ghi được dữ liệu tài khoản. Kiểm tra file data/users.json.', ...(error.field ? { field: error.field } : {}) })
+      reply(error.status || 503, { message: error.status ? error.message : path.startsWith('/api/boarding-houses') ? 'Không đọc hoặc lưu được dữ liệu nhà trọ. Vui lòng thử lại.' : path === '/api/house-reviews' ? 'Không thể đọc hoặc lưu bình luận. Vui lòng thử lại.' : 'Không đọc hoặc ghi được dữ liệu tài khoản. Kiểm tra file data/users.json.', ...(error.field ? { field: error.field } : {}) })
     }
   }
 }
 
 export function jsonAuthPlugin() {
-  const install = server => { server.middlewares.use(createAuthMiddleware({ usersFile: process.env.AUTH_USERS_FILE || defaultUsersFile, reviewsFile: process.env.HOUSE_REVIEWS_FILE || defaultReviewsFile })) }
+  const install = server => { server.middlewares.use(createAuthMiddleware({ usersFile: process.env.AUTH_USERS_FILE || defaultUsersFile, reviewsFile: process.env.HOUSE_REVIEWS_FILE || defaultReviewsFile, housesFile: process.env.MANAGED_HOUSES_FILE || defaultHousesFile })) }
   return { name: 'findmyroom-json-auth', configureServer: install, configurePreviewServer: install }
 }
