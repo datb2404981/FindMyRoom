@@ -1,13 +1,16 @@
 import { randomBytes, randomUUID, scrypt as scryptCallback, timingSafeEqual } from 'node:crypto'
 import { readFile, writeFile, rename, mkdir } from 'node:fs/promises'
-import { dirname } from 'node:path'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
+import { reviewStore, houseAliases } from './reviews.js'
+import { roommateStore } from './roommates.js'
+import { jsonCollection, houseFields, rentalFields } from './json-collection.js'
 
 const scrypt = promisify(scryptCallback)
-const defaultUsersFile = fileURLToPath(new URL('../data/users.json', import.meta.url))
-const defaultReviewsFile = fileURLToPath(new URL('../data/house-reviews.json', import.meta.url))
-const defaultHousesFile = fileURLToPath(new URL('../data/managed-houses.json', import.meta.url))
+const defaultAccountsFile = fileURLToPath(new URL('../data/account.json', import.meta.url))
+const defaultReviewsFile = fileURLToPath(new URL('../data/review.json', import.meta.url))
+const defaultHousesFile = fileURLToPath(new URL('../data/boarding_house.json', import.meta.url))
 const cookieName = 'findmyroom_session'
 const sessionDuration = 8 * 60 * 60 * 1000
 
@@ -62,70 +65,67 @@ async function readBody(req, maxBytes = 10_240) {
   } catch { throw fail(400, 'Dữ liệu JSON không hợp lệ.') }
 }
 
-export function createAuthMiddleware({ usersFile = defaultUsersFile, reviewsFile = defaultReviewsFile, housesFile = defaultHousesFile } = {}) {
+const defaultRentalFile = fileURLToPath(new URL('../data/room_post.json', import.meta.url))
+export function createAuthMiddleware({
+  accountsFile = defaultAccountsFile, reviewsFile = defaultReviewsFile, reviewImagesFile = join(dirname(reviewsFile), 'review_image.json'), housesFile = defaultHousesFile,
+  houseImagesFile = housesFile === defaultHousesFile ? fileURLToPath(new URL('../data/boarding_house_image.json', import.meta.url)) : housesFile.replace(/\.json$/, '-images.json'),
+  rentalsFile = defaultRentalFile,
+  rentalImagesFile = rentalsFile === defaultRentalFile ? fileURLToPath(new URL('../data/room_post_image.json', import.meta.url)) : rentalsFile.replace(/\.json$/, '-images.json'),
+  rentalAmenitiesFile = rentalsFile === defaultRentalFile ? fileURLToPath(new URL('../data/room_post_amenity.json', import.meta.url)) : rentalsFile.replace(/\.json$/, '-amenities.json'),
+  catalogFile = join(dirname(rentalsFile), 'amenity.json'),
+  roommatesFile = join(dirname(rentalsFile), 'roommate_post.json'),
+  roommateImagesFile = join(dirname(rentalsFile), 'roommate_post_image.json'),
+  roommateAmenitiesFile = join(dirname(rentalsFile), 'roommate_post_amenity.json'),
+  studentsFile = join(dirname(rentalsFile), 'student_profile.json'),
+} = {}) {
   const sessions = new Map()
   let writes = Promise.resolve()
-  let reviewWrites = Promise.resolve()
-  let houseWrites = Promise.resolve()
-  async function readHouses() {
-    try {
-      const houses = JSON.parse(await readFile(housesFile, 'utf8'))
-      if (!Array.isArray(houses)) throw new Error('Invalid houses file')
-      return houses
-    } catch (error) { if (error.code === 'ENOENT') return []; throw error }
+  const reviewsData = reviewStore({ file: reviewsFile, imagesFile: reviewImagesFile, studentsFile })
+  const housesData = jsonCollection(housesFile, houseImagesFile, houseFields, 'house_image_id')
+  const rentalsData = jsonCollection(rentalsFile, rentalImagesFile, rentalFields, 'room_post_image_id', { linksFile: rentalAmenitiesFile, catalogFile })
+  const roommatesData = roommateStore({ file: roommatesFile, imagesFile: roommateImagesFile, linksFile: roommateAmenitiesFile, catalogFile, studentsFile, universitiesFile: fileURLToPath(new URL('../data/university.json', import.meta.url)) })
+  const readHouses = async () => (await housesData.read()).map(house => {
+    const parts = (house.address || '').split(',').map(part => part.trim())
+    return { ...house, desc: house.rules || '', city: parts.at(-1) || '', ward: parts.length > 2 ? parts.at(-2) : '', street: parts.slice(0, -2).join(', ') || house.address, rooms: 0, status: '\u0110ang ho\u1ea1t \u0111\u1ed9ng' }
+  })
+  const updateHouses = housesData.update
+  const rentalOwner = (post, houses) => houses.find(house => house.id === post.houseId)?.ownerId
+  const readRentals = async () => {
+    const houses = await readHouses()
+    return (await rentalsData.read()).map(post => ({ ...post, ownerId: rentalOwner(post, houses), count: post.status === '\u0048\u1ebft ph\u00f2ng' ? 0 : 1 }))
   }
-  function updateHouses(change) {
-    const task = houseWrites.then(async () => {
-      const houses = await readHouses()
-      const result = change(houses)
-      const temporaryFile = `${housesFile}.${randomUUID()}.tmp`
-      await mkdir(dirname(housesFile), { recursive: true })
-      await writeFile(temporaryFile, JSON.stringify(houses, null, 2) + '\n', { mode: 0o600 })
-      await rename(temporaryFile, housesFile)
-      return result
+  const updateRentals = async change => {
+    const houses = await readHouses()
+    return rentalsData.update(posts => {
+      for (const post of posts) post.ownerId = rentalOwner(post, houses)
+      return change(posts)
     })
-    houseWrites = task.catch(() => {})
-    return task
   }
 
-  async function readReviews() {
-    try {
-      const reviews = JSON.parse(await readFile(reviewsFile, 'utf8'))
-      if (!Array.isArray(reviews)) throw new Error('Invalid reviews file')
-      return reviews
-    } catch (error) {
-      if (error.code === 'ENOENT') return []
-      throw error
-    }
+  async function readAccounts() {
+    const rows = JSON.parse(await readFile(accountsFile, 'utf8'))
+    if (!Array.isArray(rows)) throw new Error('Invalid account file')
+    return rows
   }
-
-  function addReview(review) {
-    const task = reviewWrites.then(async () => {
-      const reviews = await readReviews()
-      reviews.push(review)
-      const temporaryFile = `${reviewsFile}.${randomUUID()}.tmp`
-      await mkdir(dirname(reviewsFile), { recursive: true })
-      await writeFile(temporaryFile, JSON.stringify(reviews, null, 2) + '\n', { mode: 0o600 })
-      await rename(temporaryFile, reviewsFile)
-    })
-    reviewWrites = task.catch(() => {})
-    return task
-  }
-
-  async function readUsers() {
-    const data = JSON.parse(await readFile(usersFile, 'utf8'))
-    if (!Array.isArray(data.users)) throw new Error('Invalid users file')
-    return data
-  }
+  const asUser = row => ({ id: row.account_id, name: row.full_name, email: row.email,
+    phone: row.phone, role: row.role, passwordHash: row.password, createdAt: row.created_at, isActive: row.is_active !== false && row.is_active !== 0 })
+  async function readUsers() { return { users: (await readAccounts()).map(asUser) } }
 
   function updateUsers(change) {
     const task = writes.then(async () => {
-      const data = await readUsers()
-      const result = await change(data.users)
-      const temporaryFile = `${usersFile}.${randomUUID()}.tmp`
-      await mkdir(dirname(usersFile), { recursive: true })
-      await writeFile(temporaryFile, JSON.stringify(data, null, 2) + '\n', { mode: 0o600 })
-      await rename(temporaryFile, usersFile)
+      const rows = await readAccounts(), users = rows.map(asUser)
+      const result = await change(users)
+      const accounts = users.map(user => {
+        const existing = rows.find(row => row.account_id === user.id)
+        return { account_id: user.id, full_name: user.name, email: user.email, password: user.passwordHash,
+          phone: user.phone, avatar_url: existing?.avatar_url || null, role: user.role,
+          zalo_phone: existing?.zalo_phone ?? user.phone, zalo_url: existing?.zalo_url ?? null,
+          is_active: existing?.is_active ?? true, provider: existing?.provider || 'local', created_at: user.createdAt }
+      })
+      const temporaryFile = `${accountsFile}.${randomUUID()}.tmp`
+      await mkdir(dirname(accountsFile), { recursive: true })
+      await writeFile(temporaryFile, JSON.stringify(accounts, null, 2) + '\n', { mode: 0o600 })
+      await rename(temporaryFile, accountsFile)
       return result
     })
     writes = task.catch(() => {})
@@ -156,13 +156,13 @@ export function createAuthMiddleware({ usersFile = defaultUsersFile, reviewsFile
     if (!session) return null
     if (session.expiresAt <= Date.now()) { sessions.delete(token); return null }
     const { users } = await readUsers()
-    return users.find(user => user.id === session.userId) || null
+    return users.find(user => user.id === session.userId && user.isActive) || null
   }
 
   return async (req, res, next) => {
     const url = new URL(req.url, 'http://localhost')
     const path = url.pathname
-    if (!path.startsWith('/api/auth/') && path !== '/api/house-reviews' && path !== '/api/boarding-houses' && !path.startsWith('/api/boarding-houses/')) return next()
+    if (path !== '/api/roommates' && !path.startsWith('/api/roommates/') && path !== '/api/rentals' && !path.startsWith('/api/rentals/') && !path.startsWith('/api/auth/') && path !== '/api/house-reviews' && path !== '/api/boarding-houses' && !path.startsWith('/api/boarding-houses/')) return next()
     const reply = (status, data) => {
       res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' })
       res.end(JSON.stringify(data))
@@ -181,6 +181,7 @@ export function createAuthMiddleware({ usersFile = defaultUsersFile, reviewsFile
         const id = path.slice('/api/boarding-houses/'.length)
         if (!/^[\w-]{1,100}$/.test(id)) throw fail(400, 'Mã nhà trọ không hợp lệ.')
         if (req.method === 'DELETE') {
+          if ((await readRentals()).some(post => post.houseId === id)) throw fail(409, 'Nhà trọ đang có bài đăng liên quan.')
           await updateHouses(houses => {
             const index = houses.findIndex(house => house.id === id)
             if (index < 0) throw fail(404, 'Không tìm thấy nhà trọ.')
@@ -198,6 +199,7 @@ export function createAuthMiddleware({ usersFile = defaultUsersFile, reviewsFile
           if (body[field] != null && (typeof body[field] !== 'string' || body[field].length > 5000)) throw fail(400, 'Thông tin nhà trọ không hợp lệ.')
           house[field] = body[field] || ''
         }
+        house.rules ||= body.desc || ''
         house.status = body.status === 'Ẩn' ? 'Ẩn' : 'Đang hoạt động'
         house.rooms = body.rooms == null ? 0 : Number(body.rooms)
         if (!Number.isInteger(house.rooms) || house.rooms < 0) throw fail(400, 'Số phòng không hợp lệ.')
@@ -226,33 +228,113 @@ export function createAuthMiddleware({ usersFile = defaultUsersFile, reviewsFile
         })
         return reply(200, { house })
       }
+      if (path === '/api/roommates' && req.method === 'GET') {
+        const user = await currentUser(req), { users } = await readUsers()
+        const posts = await roommatesData.read(await readHouses(), users)
+        return reply(200, { posts: posts.filter(post => post.status !== '\u1ea8n' || post.ownerId === user?.id) })
+      }
+      if (path.startsWith('/api/roommates/') && ['PUT', 'DELETE'].includes(req.method)) {
+        const user = await currentUser(req), id = path.slice('/api/roommates/'.length)
+        if (!/^[\w-]{1,100}$/.test(id)) throw fail(400, 'Mã bài đăng không hợp lệ.')
+        if (req.method === 'DELETE') { await roommatesData.remove(id, user); return reply(200, { deleted: id }) }
+        const post = await roommatesData.save(id, await readBody(req, 70 * 1024 * 1024), user, await readHouses())
+        return reply(200, { post })
+      }
+      if (path === '/api/rentals' && req.method === 'GET') {
+        const user = await currentUser(req)
+        const houses = await readHouses(), { users } = await readUsers()
+        const posts = (await readRentals()).filter(post => users.some(user => user.id === post.ownerId && user.role === 'landlord' && !/^ACC\d+$/.test(user.id)) && houses.some(house => house.id === post.houseId && house.ownerId === post.ownerId))
+          .filter(post => ['Còn phòng', 'Hết phòng'].includes(post.status) || post.ownerId === user?.id)
+          .map(post => {
+            const house = houses.find(house => house.id === post.houseId), owner = users.find(owner => owner.id === post.ownerId)
+            return { ...post, kind: 'rental', house: house.name, address: [post.street, post.ward, post.city].filter(Boolean).join(', ') || house.address,
+              district: post.ward || house.ward, owner: owner?.name || '', phone: owner?.phone || '', email: owner?.email || '' }
+          })
+        return reply(200, { posts })
+      }
+      if (path.startsWith('/api/rentals/') && ['PUT', 'DELETE'].includes(req.method)) {
+        const user = await currentUser(req)
+        if (!user) throw fail(401, 'Vui lòng đăng nhập.')
+        if (user.role !== 'landlord') throw fail(403, 'Chỉ chủ trọ được quản lý bài đăng cho thuê.')
+        const id = path.slice('/api/rentals/'.length)
+        if (!/^[\w-]{1,100}$/.test(id)) throw fail(400, 'Mã bài đăng không hợp lệ.')
+        if (req.method === 'DELETE') {
+          await updateRentals(posts => {
+            const index = posts.findIndex(post => post.id === id)
+            if (index < 0) throw fail(404, 'Không tìm thấy bài đăng.')
+            if (posts[index].ownerId !== user.id) throw fail(403, 'Bạn không có quyền xóa bài đăng này.')
+            posts.splice(index, 1)
+          })
+          return reply(200, { deleted: id })
+        }
+        const body = await readBody(req, 70 * 1024 * 1024)
+        const house = (await readHouses()).find(house => house.id === body.houseId && house.ownerId === user.id)
+        if (!house) throw fail(400, 'Vui lòng chọn nhà trọ đã tạo trong tài khoản của bạn.')
+        if (!['Còn phòng', 'Hết phòng', 'Ẩn'].includes(body.status)) throw fail(400, 'Trạng thái bài đăng không hợp lệ.')
+        const post = { id, ownerId: user.id, houseId: house.id, status: body.status, postedAt: body.postedAt || new Date().toISOString() }
+        for (const field of ['title', 'desc', 'curfew', 'other', 'city', 'ward', 'street']) {
+          if (body[field] != null && (typeof body[field] !== 'string' || body[field].length > 10000)) throw fail(400, 'Thông tin bài đăng không hợp lệ.')
+          post[field] = body[field] || ''
+        }
+        if (!post.title.trim()) throw fail(400, 'Vui lòng nhập tiêu đề bài đăng.')
+        for (const field of ['price', 'area', 'people', 'count', 'electric', 'water', 'internet', 'deposit']) {
+          post[field] = Number(body[field] || 0)
+          if (!Number.isFinite(post[field]) || post[field] < 0 || (['price', 'area', 'people'].includes(field) && post[field] === 0) || (['people', 'count'].includes(field) && !Number.isInteger(post[field]))) throw fail(400, 'Giá, diện tích và số lượng không hợp lệ.')
+        }
+        for (const [field, limit] of [['latitude', 90], ['longitude', 180]]) {
+          post[field] = body[field] == null ? null : Number(body[field])
+          if (post[field] != null && (!Number.isFinite(post[field]) || Math.abs(post[field]) > limit)) throw fail(400, 'Tọa độ không hợp lệ.')
+        }
+        for (const field of ['amenities', 'nearby', 'lifestyles']) {
+          post[field] = body[field] || []
+          if (!Array.isArray(post[field]) || post[field].length > 50 || post[field].some(value => typeof value !== 'string' || value.length > 200)) throw fail(400, 'Tiện ích không hợp lệ.')
+        }
+        post.images = body.images || []
+        if (!Array.isArray(post.images) || !post.images.length || post.images.length > 10) throw fail(400, 'Bài đăng cần từ 1 đến 10 ảnh.')
+        for (const photo of post.images) {
+          if (typeof photo !== 'string') throw fail(400, 'Ảnh không hợp lệ.')
+          const data = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/]+={0,2})$/.exec(photo)
+          if (!(data && Buffer.byteLength(data[2], 'base64') <= 5 * 1024 * 1024) && !(photo.length <= 2000 && (/^https?:\/\/[^\s]+$/.test(photo) || /^\/(?!\/)[\w/.-]+$/.test(photo)))) throw fail(400, 'Ảnh phải là JPG, PNG, WEBP tối đa 5 MB.')
+        }
+        await updateRentals(posts => {
+          const index = posts.findIndex(item => item.id === id)
+          if (index >= 0 && posts[index].ownerId !== user.id) throw fail(403, 'Bạn không có quyền sửa bài đăng này.')
+          if (index >= 0) { post.postedAt = posts[index].postedAt; posts[index] = post } else posts.push(post)
+        })
+        return reply(200, { post: { ...post, kind: 'rental', house: house.name, image: post.images[0] } })
+      }
       if (path === '/api/house-reviews' && req.method === 'GET') {
-        const houseId = url.searchParams.get('houseId')
+        let houseId = url.searchParams.get('houseId')
         if (!houseId || !/^[\w-]{1,160}$/.test(houseId)) throw fail(400, 'Mã nhà trọ không hợp lệ.')
-        return reply(200, { reviews: (await readReviews()).filter(review => review.houseId === houseId).reverse() })
+        const houses = await readHouses()
+        if (!houses.some(house => house.id === houseId)) houseId = houseAliases[houseId] || houseId
+        const { users } = await readUsers()
+        return reply(200, { reviews: await reviewsData.read(houseId, users) })
       }
       if (path === '/api/house-reviews' && req.method === 'POST') {
         const user = await currentUser(req)
         if (!user) throw fail(401, 'Vui lòng đăng nhập để bình luận.')
         if (user.role !== 'student') throw fail(403, 'Chỉ sinh viên mới có thể gửi đánh giá nhà trọ.')
-        const body = await readBody(req, 1_500_000)
+        const body = await readBody(req, 70 * 1024 * 1024)
 
         if (typeof body.houseId !== 'string' || !/^[\w-]{1,160}$/.test(body.houseId)) throw fail(400, 'Mã nhà trọ không hợp lệ.')
         const content = typeof body.content === 'string' ? body.content.trim() : ''
         if (!content || content.length > 1000) throw fail(400, 'Bình luận cần từ 1 đến 1000 ký tự.')
         if (!Number.isInteger(body.rating) || body.rating < 1 || body.rating > 5) throw fail(400, 'Vui lòng chọn từ 1 đến 5 sao.')
-        let image = ''
-        if (body.image) {
-          if (typeof body.image !== 'string') throw fail(400, 'Ảnh không hợp lệ.')
-          const match = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/]+={0,2})$/.exec(body.image)
+        const houses = await readHouses()
+        const houseId = houses.some(house => house.id === body.houseId) ? body.houseId : houseAliases[body.houseId] || body.houseId
+        if (!houses.some(house => house.id === houseId)) throw fail(400, 'Nhà trọ không tồn tại.')
+        const images = body.images ?? (body.image ? [body.image] : [])
+        if (!Array.isArray(images) || images.length > 10) throw fail(400, 'Chỉ được đính kèm tối đa 10 ảnh.')
+        for (const image of images) {
+          if (typeof image !== 'string') throw fail(400, 'Ảnh không hợp lệ.')
+          const match = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/]+={0,2})$/.exec(image)
           if (!match) throw fail(400, 'Chỉ hỗ trợ ảnh JPG, PNG hoặc WEBP.')
           const bytes = Buffer.from(match[2], 'base64')
           const valid = match[1] === 'jpeg' ? bytes.subarray(0, 3).equals(Buffer.from([0xff, 0xd8, 0xff])) : match[1] === 'png' ? bytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) : bytes.subarray(0, 4).toString() === 'RIFF' && bytes.subarray(8, 12).toString() === 'WEBP'
           if (!valid || bytes.length > 5 * 1024 * 1024) throw fail(400, 'Ảnh không hợp lệ hoặc lớn hơn 5 MB.')
-          image = body.image
         }
-        const review = { id: randomUUID(), houseId: body.houseId, author: user.name, content, rating: body.rating, ...(image ? { images: [image] } : {}), createdAt: new Date().toISOString() }
-        await addReview(review)
+        const review = await reviewsData.add({ houseId, content, rating: body.rating, images }, user)
         return reply(201, { review })
       }
       if (path === '/api/auth/session' && req.method === 'GET') {
@@ -281,7 +363,7 @@ export function createAuthMiddleware({ usersFile = defaultUsersFile, reviewsFile
         if (typeof body.email !== 'string' || typeof body.password !== 'string' || body.password.length > 128) throw fail(400, 'Vui lòng nhập email và mật khẩu hợp lệ.')
         const { users } = await readUsers()
         const user = users.find(user => user.email.toLowerCase() === body.email.trim().toLowerCase())
-        if (!user || !await matchesPassword(body.password, user.passwordHash)) throw fail(401, 'Email hoặc mật khẩu không đúng.')
+        if (!user || !user.isActive || !await matchesPassword(body.password, user.passwordHash)) throw fail(401, 'Email hoặc mật khẩu không đúng.')
         return reply(200, startSession(req, res, user))
       }
       if (path === '/api/auth/profile' && req.method === 'PATCH') {
@@ -300,12 +382,42 @@ export function createAuthMiddleware({ usersFile = defaultUsersFile, reviewsFile
       }
       reply(404, { message: 'Không tìm thấy API.' })
     } catch (error) {
-      reply(error.status || 503, { message: error.status ? error.message : path.startsWith('/api/boarding-houses') ? 'Không đọc hoặc lưu được dữ liệu nhà trọ. Vui lòng thử lại.' : path === '/api/house-reviews' ? 'Không thể đọc hoặc lưu bình luận. Vui lòng thử lại.' : 'Không đọc hoặc ghi được dữ liệu tài khoản. Kiểm tra file data/users.json.', ...(error.field ? { field: error.field } : {}) })
+      reply(error.status || 503, { message: error.status ? error.message : (path.startsWith('/api/boarding-houses') || path.startsWith('/api/rentals') || path.startsWith('/api/roommates')) ? 'Không đọc hoặc lưu được dữ liệu nhà trọ. Vui lòng thử lại.' : path === '/api/house-reviews' ? 'Không thể đọc hoặc lưu bình luận. Vui lòng thử lại.' : 'Không đọc hoặc ghi được dữ liệu tài khoản. Kiểm tra file data/account.json.', ...(error.field ? { field: error.field } : {}) })
     }
   }
 }
 
+async function readUsersForBuild() { return JSON.parse(await readFile(defaultAccountsFile, 'utf8')).filter(account => !/^ACC\d+$/.test(account.account_id)).map(account => ({ id: account.account_id })) }
+
 export function jsonAuthPlugin() {
-  const install = server => { server.middlewares.use(createAuthMiddleware({ usersFile: process.env.AUTH_USERS_FILE || defaultUsersFile, reviewsFile: process.env.HOUSE_REVIEWS_FILE || defaultReviewsFile, housesFile: process.env.MANAGED_HOUSES_FILE || defaultHousesFile })) }
-  return { name: 'findmyroom-json-auth', configureServer: install, configurePreviewServer: install }
+  const install = server => { server.middlewares.use(createAuthMiddleware({ accountsFile: process.env.AUTH_ACCOUNTS_FILE || defaultAccountsFile, reviewsFile: process.env.HOUSE_REVIEWS_FILE || defaultReviewsFile, reviewImagesFile: process.env.REVIEW_IMAGES_FILE || join(dirname(process.env.HOUSE_REVIEWS_FILE || defaultReviewsFile), 'review_image.json'), housesFile: process.env.MANAGED_HOUSES_FILE || defaultHousesFile, houseImagesFile: process.env.HOUSE_IMAGES_FILE || fileURLToPath(new URL('../data/boarding_house_image.json', import.meta.url)), rentalsFile: process.env.RENTALS_FILE || fileURLToPath(new URL('../data/room_post.json', import.meta.url)), rentalImagesFile: process.env.RENTAL_IMAGES_FILE || fileURLToPath(new URL('../data/room_post_image.json', import.meta.url)), rentalAmenitiesFile: process.env.RENTAL_AMENITIES_FILE || fileURLToPath(new URL('../data/room_post_amenity.json', import.meta.url)), catalogFile: process.env.AMENITY_FILE || fileURLToPath(new URL('../data/amenity.json', import.meta.url)) })) }
+  return { name: 'findmyroom-json-auth', enforce: 'pre', configureServer: install, configurePreviewServer: install,
+    resolveId(id) { if (id === 'virtual:public-accounts') return '\0public-accounts' },
+    async load(id) {
+      if (id !== '\0public-accounts') return
+      const accounts = JSON.parse(await readFile(defaultAccountsFile, 'utf8'))
+      const profiles = accounts.filter(account => /^ACC\d+$/.test(account.account_id)).map(({ password, ...profile }) => profile)
+      return 'export default ' + JSON.stringify(profiles)
+    },
+    async transform(code, id) {
+      const file = id.replaceAll('\\', '/')
+      const name = file.split('/').at(-1)
+      const parents = { boarding_house: 'boarding_house_id', room_post: 'room_post_id', roommate_post: 'roommate_post_id', student_profile: 'student_code', review: 'review_id' }
+      const base = name?.replace(/_(image|amenity)\.json$/, '.json').replace(/\.json$/, '')
+      if (!file.includes('/data/') || !parents[base]) return
+      const owners = new Set((await readUsersForBuild()).map(user => user.id))
+      const houses = JSON.parse(await readFile(defaultHousesFile, 'utf8'))
+      const students = JSON.parse(await readFile(new URL('../data/student_profile.json', import.meta.url), 'utf8'))
+      const houseIds = new Set(houses.filter(row => owners.has(row.account_id)).map(row => row.boarding_house_id))
+      const studentCodes = new Set(students.filter(row => owners.has(row.account_id)).map(row => row.student_code))
+      const records = JSON.parse(await readFile(new URL('../data/' + base + '.json', import.meta.url), 'utf8'))
+      const privateIds = new Set(records.filter(row => base === 'boarding_house' || base === 'student_profile' ? owners.has(row.account_id) : base === 'room_post' ? houseIds.has(row.boarding_house_id) : studentCodes.has(row.student_code)).map(row => row[parents[base]]))
+      return { code: JSON.stringify(JSON.parse(code).filter(row => !privateIds.has(row[parents[base]]))), map: null }
+    },
+    // API writes must not reload the form while a save is in progress.
+    handleHotUpdate(context) {
+      const file = context.file.replaceAll('\\', '/')
+      if (/\/data\/(boarding_house|room_post|roommate_post|student_profile|review|amenity)(_(image|amenity))?\.json$/.test(file)) return []
+    },
+  }
 }

@@ -8,6 +8,8 @@ import { canThoUrbanWards } from '../data/can-tho-wards'
 import { rooms, money } from '../data'
 import { state, validateField, updateManagedPost } from '../store'
 import { saveHouse, deleteHouse } from '../houses'
+import { deleteRental, rentalDirectory } from '../rentals'
+import { deleteRoommate, roommateDirectory } from '../roommates'
 
 const route = useRoute(),
   router = useRouter(),
@@ -347,6 +349,14 @@ async function remove() {
     }
     state.houses = state.houses.filter(h => h.id !== deleting.value.id)
   } else {
+    if (deleting.value.kind === 'rental' && rentalDirectory.posts.some(post => post.id === deleting.value.id)) {
+      try { await deleteRental(deleting.value.id) }
+      catch (error) { showNotice(error.message); return }
+    }
+    if (deleting.value.kind === 'roommate' && roommateDirectory.posts.some(post => post.id === deleting.value.id)) {
+      try { await deleteRoommate(deleting.value.id) }
+      catch (error) { showNotice(error.message); return }
+    }
     state.posts = state.posts.filter(p => p.id !== deleting.value.id)
   }
   deleting.value = null

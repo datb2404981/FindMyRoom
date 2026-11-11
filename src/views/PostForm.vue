@@ -12,6 +12,8 @@ import { amenities, nearby, lifestyles, money, boardingHouses } from "../data";
 import { state, validateField } from "../store";
 import { rentalStatuses, rentalStatus } from '../rental-status'
 import { houseDirectory, loadHouses } from '../houses'
+import { saveRental } from '../rentals'
+import { saveRoommate } from '../roommates'
 const universityOptions = universities.map((university) => ({
   value: university.university_name,
   label: university.university_name,
@@ -32,6 +34,7 @@ const route = useRoute(),
   dragging = ref(false);
 const leaveModal = ref(false),
   initialItem = ref(null);
+const publishing = ref(false), publishError = ref('');
 let locationRequest = 0,
   pendingResolver = null,
   pendingAction = null;
@@ -47,13 +50,7 @@ const houseDropdownRef = ref(null);
 
 const systemHouses = computed(() => {
   if (!rental.value) return houseDirectory.houses.filter(house => house.status === 'Đang hoạt động')
-  const list = [...state.houses];
-  for (const h of boardingHouses) {
-    if (!list.some((item) => item.id === h.id || item.name === h.name)) {
-      list.push(h);
-    }
-  }
-  return list;
+  return houseDirectory.houses.filter(house => house.ownerId === state.user?.id && house.status === 'Đang hoạt động');
 });
 
 const matchingHouses = computed(() => {
@@ -187,6 +184,17 @@ const defaults = () => ({
   longitude: null,
 });
 const draft = reactive(defaults());
+watch(() => draft.houseId, id => {
+  if (!rental.value) return;
+  const house = systemHouses.value.find(house => house.id === id);
+  if (!house) return;
+  draft.house = house.name;
+  draft.street = house.street || house.address || '';
+  draft.ward = house.ward || '';
+  draft.city = house.city || 'Cần Thơ';
+  draft.latitude = house.latitude ?? null;
+  draft.longitude = house.longitude ?? null;
+});
 const wardOptions = computed(() => [
   { value: '', label: 'Chọn phường / xã' },
   ...canThoUrbanWards.map(ward => ({ value: ward, label: `Phường ${ward}` })),
@@ -535,6 +543,8 @@ function removeImage(i) {
   images.value.splice(i, 1);
 }
 async function publish() {
+  if (publishing.value) return;
+  publishError.value = '';
   if (!validate()) return;
   if (images.value.length < 4) {
     step.value = 3;
@@ -542,32 +552,42 @@ async function publish() {
     return;
   }
   const house = systemHouses.value.find((h) => h.id === draft.houseId) || state.houses.find((h) => h.id === draft.houseId);
-  const convertedPhotos = await Promise.all(
-    images.value.map(async (im) => {
-      if (im.base64Promise) return await im.base64Promise;
-      return im.url;
-    }),
-  );
-  const mainImage = convertedPhotos[0] || "/illustrations/room-1.svg";
-  const post = {
-    ...draft,
-    ...card.value,
-    id: route.query.edit || "post-" + Date.now(),
-    kind: kind.value,
-    ownerId: state.user.id,
-    status: rentalStatus(draft),
-    house: house?.name || draft.house,
-    houseId: house?.id || draft.houseId || "",
-    image: mainImage,
-    images: convertedPhotos,
-  };
-  const index = state.posts.findIndex((p) => p.id === post.id);
-  if (index >= 0) state.posts[index] = post;
-  else state.posts.unshift(post);
-  state.drafts[kind.value] = {};
-  success.value = true;
-  preview.value = false;
-  window.scrollTo({ top: 0 });
+  if (rental.value && !systemHouses.value.some(h => h.id === draft.houseId)) {
+    step.value = 1;
+    errors.houseId = 'Vui lòng chọn nhà trọ đã tạo trong tài khoản của bạn.';
+    return;
+  }
+  publishing.value = true;
+  try {
+    const convertedPhotos = await Promise.all(
+      images.value.map(async (im) => {
+        if (im.base64Promise) return await im.base64Promise;
+        return im.url;
+      }),
+    );
+    const mainImage = convertedPhotos[0] || "/illustrations/room-1.svg";
+    let post = {
+      ...draft,
+      ...card.value,
+      id: route.query.edit || "post-" + Date.now(),
+      kind: kind.value,
+      ownerId: state.user.id,
+      status: rentalStatus(draft),
+      house: house?.name || draft.house,
+      houseId: house?.id || draft.houseId || "",
+      image: mainImage,
+      images: convertedPhotos,
+    };
+    post = rental.value ? await saveRental(post) : await saveRoommate(post);
+    const index = state.posts.findIndex((p) => p.id === post.id);
+    if (index >= 0) state.posts[index] = post;
+    else state.posts.unshift(post);
+    state.drafts[kind.value] = {};
+    success.value = true;
+    preview.value = false;
+    window.scrollTo({ top: 0 });
+  } catch (error) { publishError.value = error.message; }
+  finally { publishing.value = false; }
 }
 function locate() {
   if (locating.value) return;
@@ -687,7 +707,7 @@ function locate() {
             >
               <option value="">Chọn nhà trọ của bạn</option>
               <option
-                v-for="h in state.houses.filter((h) => h.status === 'Đang hoạt động')"
+                v-for="h in systemHouses"
                 :key="h.id"
                 :value="h.id"
               >
@@ -982,13 +1002,15 @@ function locate() {
             <Icon name="eye" :size="17" />Xem trước</button
           ><button
             class="button primary"
+            :disabled="publishing"
             :class="{ 'post-submit': step === steps.length }"
           >
-            {{ step === steps.length ? "Đăng bài" : "Tiếp theo" }}
+            {{ publishing ? 'Đang lưu…' : step === steps.length ? "Đăng bài" : "Tiếp theo" }}
             <Icon name="arrow" :size="17" />
           </button>
         </div>
       </div>
+      <p v-if="publishError" role="alert" class="error">{{ publishError }}</p>
     </form>
     <Teleport to="body"
       ><div
@@ -1048,7 +1070,7 @@ function locate() {
           </div>
           <div class="form-actions">
             <button class="button secondary" @click="preview = false">Chỉnh sửa</button
-            ><button class="button primary post-submit" @click="publish">Đăng bài</button>
+            ><button class="button primary post-submit" :disabled="publishing" @click="publish">{{ publishing ? 'Đang lưu…' : 'Đăng bài' }}</button>
           </div>
         </section>
       </div></Teleport

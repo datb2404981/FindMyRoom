@@ -118,5 +118,11 @@
     "amenity_name": "Nuôi thú cưng",
     "category": "Khác",
     "description": "Cho phép nuôi thú cưng."
+  },
+  {
+    "amenity_id": "967f61e7-67fb-40db-a5b2-2f19837d655a",
+    "amenity_name": "Quán cafe",
+    "category": "Tiện ích ngoại khu",
+    "description": ""
   }
 ]

@@ -330,5 +330,17 @@
   {
     "roommate_post_id": "RMP0000010",
     "amenity_id": "AM00000022"
+  },
+  {
+    "roommate_post_id": "post-1794378168260",
+    "amenity_id": "AM00000008"
+  },
+  {
+    "roommate_post_id": "post-1794378168260",
+    "amenity_id": "AM00000017"
+  },
+  {
+    "roommate_post_id": "post-1794378168260",
+    "amenity_id": "AM00000021"
   }
 ]

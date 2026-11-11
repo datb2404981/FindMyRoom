@@ -8,6 +8,51 @@ async function register(page, role) {
   expect(response.status()).toBe(201)
 }
 
+test('landlord rental and its house are visible to a student after reload', async ({ page, browser }) => {
+  await register(page, 'landlord')
+  const name = `Nhà trọ cho thuê ${Date.now()}`
+  const created = await page.request.put(`/api/boarding-houses/rental-house-${Date.now()}`, { data: {
+    name, address: '123 đường 3/2, Ninh Kiều, Cần Thơ', street: '123 đường 3/2', ward: 'Ninh Kiều', city: 'Cần Thơ',
+    rooms: 4, desc: 'Nhà trọ được lưu trong JSON', images: ['/illustrations/room-1.svg'],
+  } })
+  expect(created.ok()).toBeTruthy()
+  const { house } = await created.json()
+  await page.goto('/#/dang-bai/rental')
+  const title = `Phòng cho thuê dùng chung ${Date.now()}`
+  await page.getByLabel('Tiêu đề bài đăng *', { exact: true }).fill(title)
+  await page.getByLabel('Chọn nhà trọ *', { exact: true }).selectOption(house.id)
+  await expect(page.getByLabel('Chọn nhà trọ *', { exact: true }).locator('option')).toHaveCount(2)
+  for (const input of await page.getByRole('spinbutton').all()) await input.fill('100')
+  await page.getByRole('button', { name: 'Tiếp theo', exact: true }).click()
+  await expect(page.getByLabel('Tên đường / số nhà *')).toHaveValue('123 đường 3/2')
+  await page.getByRole('button', { name: 'Tiếp theo', exact: true }).click()
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+kvKkAAAAASUVORK5CYII=', 'base64')
+  await page.getByLabel('Tải hình ảnh chỗ ở').setInputFiles([1, 2, 3, 4].map(i => ({ name: `room${i}.png`, mimeType: 'image/png', buffer: png })))
+  await page.getByRole('button', { name: 'Tiếp theo', exact: true }).click()
+  await page.getByLabel('Camera 24/7', { exact: true }).check()
+  await page.getByRole('button', { name: 'Tiếp theo', exact: true }).click()
+  await page.getByRole('button', { name: 'Đăng bài', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Bài đăng đã được lưu', exact: true })).toBeVisible()
+  const post = (await (await page.request.get('/api/rentals')).json()).posts.find(post => post.title === title)
+  expect(post.houseId).toBe(house.id)
+  const studentContext = await browser.newContext()
+  try {
+    const student = await studentContext.newPage()
+    await register(student, 'student')
+    await student.goto(`/#/?search=1&q=${encodeURIComponent(title)}`)
+    await student.getByRole('link', { name: `Xem chi tiết ${title}`, exact: true }).click()
+    await expect(student.getByRole('heading', { name: title, exact: true })).toBeVisible()
+    await expect(student.locator('.house-detail-card')).toContainText(name)
+    await student.getByRole('link', { name: 'Xem nhà trọ', exact: true }).click()
+    await expect(student.getByRole('heading', { name, exact: true })).toBeVisible()
+    await expect(student.getByText('Nhà trọ được lưu trong JSON', { exact: true })).toBeVisible()
+    await student.reload()
+    await expect(student.getByRole('heading', { name, exact: true })).toBeVisible()
+    await student.getByRole('link', { name: `Xem chi tiết ${title}`, exact: true }).click()
+    await expect(student.getByRole('heading', { name: title, exact: true })).toBeVisible()
+  } finally { await studentContext.close() }
+})
+
 test('student selects houses created by a landlord in a separate browser session', async ({ page, browser }) => {
   await register(page, 'landlord')
   await page.goto('/#/quan-ly/nha-tro')
@@ -52,6 +97,18 @@ test('student selects houses created by a landlord in a separate browser session
       return JSON.parse(localStorage.getItem(key)).posts.find(post => post.kind === 'roommate')
     })
     expect(savedPost.houseId).toBe(shared.id)
+    const persisted = (await (await student.request.get('/api/roommates')).json()).posts.find(post => post.id === savedPost.id)
+    expect(persisted).toBeTruthy()
+    const otherContext = await browser.newContext()
+    try {
+      const other = await otherContext.newPage()
+      await register(other, 'student')
+      await other.goto(`/#/phong/${savedPost.id}`)
+      await expect(other.getByRole('heading', { name: 'Ghép trọ cùng nhà trọ đã tạo', exact: true })).toBeVisible()
+      await expect(other.locator('.house-detail-card')).toContainText(name)
+      await other.reload()
+      await expect(other.getByRole('heading', { name: 'Ghép trọ cùng nhà trọ đã tạo', exact: true })).toBeVisible()
+    } finally { await otherContext.close() }
     // A landlord's later changes are read from the shared source, not the student's cache.
     await page.getByRole('button', { name: `Chỉnh sửa ${name}`, exact: true }).click()
     await dialog.getByLabel('Tên nhà trọ *', { exact: true }).fill(name + ' đã sửa')

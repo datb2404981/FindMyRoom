@@ -1,18 +1,23 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import Icon from '../components/Icon.vue'
 import RoomCard from '../components/RoomCard.vue'
 import { state } from '../store'
+import { boardingHouses } from '../data'
+import { houseDirectory, loadHouses } from '../houses'
+import { loadRentals } from '../rentals'
+import { publicRentals } from '../listings'
 
 const route = useRoute()
-const house = computed(() => state.houses.find(item => item.id === route.params.id))
-const posts = computed(() => house.value ? state.posts.filter(post => post.kind === 'rental' && (post.houseId === house.value.id || (!post.houseId && post.house === house.value.name))) : [])
+const house = computed(() => [...houseDirectory.houses, ...boardingHouses].find(item => item.id === route.params.id))
+const posts = computed(() => house.value ? publicRentals().filter(post => post.houseId === house.value.id || (!post.houseId && post.house === house.value.name)) : [])
+onMounted(() => { loadHouses().catch(() => {}); loadRentals().catch(() => {}) })
 </script>
 
 <template>
   <div class="container page house-detail-page">
-    <RouterLink to="/quan-ly/nha-tro" class="back-link"><Icon name="back" :size="18" />Quay lại quản lý nhà trọ</RouterLink>
+    <RouterLink :to="state.user?.role === 'landlord' ? '/quan-ly/nha-tro' : '/'" class="back-link"><Icon name="back" :size="18" />{{ state.user?.role === 'landlord' ? 'Quay lại quản lý nhà trọ' : 'Quay lại tìm trọ' }}</RouterLink>
     <template v-if="house">
       <span class="eyebrow">Thông tin nhà trọ</span>
       <h1>{{ house.name }}</h1>
@@ -32,7 +37,7 @@ const posts = computed(() => house.value ? state.posts.filter(post => post.kind 
         <p v-else class="muted">Nhà trọ này chưa có bài đăng phòng.</p>
       </section>
     </template>
-    <div v-else class="empty-state"><h1>Không tìm thấy nhà trọ</h1><p>Nhà trọ không còn trong danh sách quản lý của bạn.</p></div>
+    <div v-else class="empty-state"><h1>Không tìm thấy nhà trọ</h1><p>{{ houseDirectory.error || 'Nhà trọ không còn trong hệ thống.' }}</p></div>
   </div>
 </template>
 

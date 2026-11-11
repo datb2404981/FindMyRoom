@@ -1,3 +1,4 @@
+import { rentalStatus } from './rental-status'
 import rawAmenities from '../data/amenity.json'
 import rawHouses from '../data/boarding_house.json'
 import rawHouseImages from '../data/boarding_house_image.json'
@@ -7,7 +8,7 @@ import rawRoomAmenities from '../data/room_post_amenity.json'
 import rawRoommates from '../data/roommate_post.json'
 import rawRoommateImages from '../data/roommate_post_image.json'
 import rawRoommateAmenities from '../data/roommate_post_amenity.json'
-import rawAccounts from '../data/account.json'
+import rawAccounts from 'virtual:public-accounts'
 import rawStudents from '../data/student_profile.json'
 import rawPrefs from '../data/roommate_preference.json'
 import rawUnis from '../data/university.json'
@@ -215,7 +216,7 @@ export const rooms = rawRoomPosts.map((r, i) => {
     amenities: amenitiesList,
     image: images[0] || `/illustrations/room-${(i % 4) + 1}.svg`,
     images: images.length ? images : [`/illustrations/room-${(i % 4) + 1}.svg`],
-    status: r.status === 'active' ? 'Còn phòng' : r.status === 'hidden' ? 'Ẩn' : 'Hết phòng',
+    status: rentalStatus(r),
     desc,
     water: r.room_post_water_price || 18000,
     electric: r.room_post_electronic_price || 3500,
@@ -322,6 +323,7 @@ export const people = rawStudents.map((s, i) => {
   return {
     id,
     studentCode: s.student_code,
+    status: rentalStatus(roommatePost),
     title,
     image,
     name,

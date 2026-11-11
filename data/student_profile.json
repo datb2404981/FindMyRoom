@@ -98,5 +98,15 @@
     "academic_year": 2,
     "student_verified_at": "2026-10-10T14:30:45+07:00",
     "university_id": "UNI000003"
+  },
+  {
+    "account_id": "demo-student",
+    "student_code": "40153d8a-1e4b-48e0-b742-a0e6c37ded07",
+    "major": "",
+    "gender": null,
+    "date_of_birth": null,
+    "academic_year": null,
+    "student_verified_at": null,
+    "university_id": "UNI000001"
   }
 ]

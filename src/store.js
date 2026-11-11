@@ -3,6 +3,8 @@ import { rooms, boardingHouses } from "./data";
 import { rentalStatus } from './rental-status'
 import { readBrowserData, writeBrowserData } from './browser-storage'
 import { loadHouses, saveHouse } from './houses'
+import { loadRentals, saveRental } from './rentals'
+import { loadRoommates, saveRoommate } from './roommates'
 
 const key = "findmyroom-demo-v1";
 const defaults = () => ({
@@ -116,6 +118,27 @@ async function applyUser(user) {
       await persist()
     } catch { /* Keep the local list available when the server cannot be reached. */ }
   }
+  try {
+    const remote = await loadRentals()
+    if (user?.role === 'landlord') {
+      const owned = remote.filter(post => post.ownerId === user.id)
+      for (const post of saved.posts || []) {
+        if (post.kind === 'rental' && post.ownerId === user.id && post.status !== 'Bản nháp' && !remote.some(item => item.id === post.id) && state.houses.some(house => house.id === post.houseId && house.ownerId === user.id)) {
+          owned.push(await saveRental(post))
+        }
+      }
+      state.posts = [...state.posts.filter(post => !owned.some(item => item.id === post.id)), ...owned]
+      await persist()
+    }
+  } catch { /* Keep private drafts available if the shared directory is offline. */ }
+  try {
+    const remote = await loadRoommates()
+    if (user?.role === 'student') {
+      const owned = remote.filter(post => post.ownerId === user.id)
+      state.posts = [...state.posts.filter(post => !owned.some(item => item.id === post.id)), ...owned]
+      await persist()
+    }
+  } catch { /* Keep private drafts available if the shared directory is offline. */ }
 }
 
 async function authRequest(path, body, method = "POST") {
@@ -189,8 +212,9 @@ export async function updateManagedPost(post) {
     post.kind !== state.posts[index].kind
   )
     throw new Error("Không tìm thấy bài đăng của bạn để chỉnh sửa.");
+  const savedPost = post.kind === 'rental' ? await saveRental(post) : await saveRoommate(post);
   const posts = state.posts.map((item, i) =>
-    i === index ? { ...item, ...post } : item,
+    i === index ? { ...item, ...savedPost } : item,
   );
   const { user, ...data } = state;
   try {

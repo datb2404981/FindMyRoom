@@ -1,19 +1,20 @@
 <script setup>
 import { computed, ref, watch, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import Icon from "../components/Icon.vue";
 import MapPanel from "../components/MapPanel.vue";
 import { rooms, money, sampleHouseReviews, boardingHouses } from "../data";
 import { roommateListings } from "../listings";
 import { state } from "../store";
 import { houseDirectory, loadHouses } from '../houses'
-onMounted(() => { loadHouses().catch(() => {}) })
+import { rentalDirectory, loadRentals } from '../rentals'
+import { roommateDirectory, loadRoommates } from '../roommates'
+onMounted(() => { loadHouses().catch(() => {}); loadRentals().catch(() => {}); loadRoommates().catch(() => {}) })
 
-const route = useRoute(),
-  router = useRouter();
+const route = useRoute();
 const room = computed(() => {
   const id = route.params.id;
-  const all = [...state.posts, ...roommateListings, ...rooms];
+  const all = [...rentalDirectory.posts, ...roommateDirectory.posts, ...state.posts.filter(post => post.status === 'Bản nháp'), ...roommateListings, ...rooms];
   return all.find((r) => r.id === id || r.personId === id || r.id === `ghep-${id}`);
 });
 const isRoommate = computed(() => room.value?.kind === "roommate");
@@ -66,15 +67,18 @@ const reviews = ref([]),
   reviewError = ref(""),
   reviewsLoading = ref(false),
   reviewSaving = ref(false);
-const reviewRating = ref(0), reviewImage = ref("");
-const houseReviews = computed(() => [...reviews.value, ...sampleHouseReviews.filter(review => review.houseId === houseId.value)]);
+const reviewRating = ref(0), reviewImages = ref([]), reviewImagesLoading = ref(false)
+let reviewImageRequest = 0;
+const houseReviews = computed(() => [...reviews.value, ...sampleHouseReviews.filter(review => review.houseId === houseId.value && !reviews.value.some(item => item.id === review.id))]);
 watch(
   houseId,
   async (id, _, onCleanup) => {
     reviews.value = [];
     reviewContent.value = "";
     reviewRating.value = 0;
-    reviewImage.value = "";
+    reviewImages.value = [];
+    reviewImageRequest++;
+    reviewImagesLoading.value = false;
     reviewError.value = "";
     if (!id) {
       reviewsLoading.value = false;
@@ -111,14 +115,14 @@ async function submitReview() {
     return;
   }
   if (!reviewRating.value) { reviewError.value = "Vui lòng chọn số sao."; return; }
-  if (!id || reviewSaving.value) return;
+  if (!id || reviewSaving.value || reviewImagesLoading.value) return;
   reviewError.value = "";
   reviewSaving.value = true;
   try {
     const response = await fetch("/api/house-reviews", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ houseId: id, content, rating: reviewRating.value, image: reviewImage.value }),
+      body: JSON.stringify({ houseId: id, content, rating: reviewRating.value, images: reviewImages.value }),
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Không gửi được bình luận.");
@@ -126,7 +130,9 @@ async function submitReview() {
       reviews.value.unshift(data.review);
       reviewContent.value = "";
       reviewRating.value = 0;
-      reviewImage.value = "";
+      reviewImages.value = [];
+      reviewImageRequest++;
+      reviewImagesLoading.value = false;
     }
   } catch (error) {
     if (houseId.value === id)
@@ -135,19 +141,33 @@ async function submitReview() {
     reviewSaving.value = false;
   }
 }
-function selectReviewImage(event) {
-  const file = event.target.files?.[0];
-  reviewImage.value = "";
-  event.target.value = "";
-  if (!file) return;
-  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 5 * 1024 * 1024) { reviewError.value = "Chọn ảnh JPG, PNG hoặc WEBP không quá 5 MB."; return; }
-  const reader = new FileReader();
-  reader.onload = () => { reviewImage.value = reader.result; reviewError.value = ""; };
-  reader.onerror = () => { reviewError.value = "Không đọc được ảnh. Vui lòng chọn lại."; };
-  reader.readAsDataURL(file);
+async function selectReviewImages(event) {
+  const files = [...(event.target.files || [])]
+  event.target.value = ''
+  if (!files.length || reviewSaving.value || reviewImagesLoading.value) return
+  const request = ++reviewImageRequest
+  reviewImagesLoading.value = true
+  reviewError.value = ''
+  try {
+    for (const file of files) {
+      if (request !== reviewImageRequest) return
+      if (reviewImages.value.length >= 10) { reviewError.value = '\u0054\u1ed1i \u0111a 10 \u1ea3nh cho m\u1ed7i \u0111\u00e1nh gi\u00e1.'; break }
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+        reviewError.value = 'Ch\u1ec9 ch\u1ecdn \u1ea3nh JPG, PNG, WEBP t\u1ed1i \u0111a 5 MB m\u1ed7i \u1ea3nh.'
+        continue
+      }
+      const image = await new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result)
+        reader.onerror = () => reject(new Error('Kh\u00f4ng \u0111\u1ecdc \u0111\u01b0\u1ee3c \u1ea3nh. Vui l\u00f2ng ch\u1ecdn l\u1ea1i.'))
+        reader.readAsDataURL(file)
+      })
+      if (request === reviewImageRequest) reviewImages.value.push(image)
+    }
+  } catch (error) { if (request === reviewImageRequest) reviewError.value = error.message }
+  finally { if (request === reviewImageRequest) reviewImagesLoading.value = false }
 }
-const slide = ref(0),
-  contact = ref(false);
+const slide = ref(0);
 
 const contactPhone = computed(() => {
   const post = room.value;
@@ -161,6 +181,11 @@ const contactPhone = computed(() => {
   );
 });
 
+const zaloUrl = computed(() => {
+  const phone = contactPhone.value.replace(/\D/g, '')
+  return phone ? `https://zalo.me/${phone}` : ''
+});
+
 const remainingRooms = computed(
   () => room.value?.count ?? rooms.find((item) => item.id === route.params.id)?.count,
 );
@@ -168,12 +193,6 @@ const internetPrice = computed(
   () =>
     room.value?.internet ?? rooms.find((item) => item.id === route.params.id)?.internet,
 );
-
-function showContact() {
-  if (!state.user)
-    return router.push("/dang-nhap?redirect=" + encodeURIComponent(route.fullPath));
-  contact.value = true;
-}
 
 const backTo = computed(() => {
   const path = route.query.returnTo;
@@ -405,14 +424,20 @@ function formatDate(dateStr) {
                 :aria-invalid="!!reviewError"
                 :aria-describedby="reviewError ? 'review-error' : undefined"
               ></textarea>
-              <div v-if="reviewImage" class="review-image-preview"><img :src="reviewImage" alt="Ảnh đánh giá đã chọn"><button type="button" @click="reviewImage = ''">Xóa ảnh</button></div>
+              <div v-if="reviewImages.length" class="review-image-previews">
+                <div v-for="(image, index) in reviewImages" :key="index" class="review-image-preview">
+                  <img :src="image" :alt="'Ảnh đánh giá đã chọn ' + (index + 1)">
+                  <button type="button" :aria-label="'Xóa ảnh đánh giá ' + (index + 1)" :disabled="reviewSaving || reviewImagesLoading" @click="reviewImages.splice(index, 1)">Xóa ảnh</button>
+                </div>
+              </div>
+              <p class="help">Tối đa 10 ảnh JPG, PNG, WEBP · tối đa 5 MB mỗi ảnh.</p>
               <p v-if="reviewError" id="review-error" class="review-error" role="alert">
                 {{ reviewError }}
               </p>
-              <div class="review-actions"><div><label class="review-upload" for="review-image"><Icon name="camera" :size="18" /><span>Thêm ảnh</span></label><input id="review-image" class="review-file-input" type="file" accept="image/jpeg,image/png,image/webp" @change="selectReviewImage"></div><button
+              <div class="review-actions"><div><label class="review-upload" for="review-image"><Icon name="camera" :size="18" /><span>{{ reviewImagesLoading ? 'Đang đọc ảnh…' : 'Thêm ảnh' }}</span></label><input id="review-image" class="review-file-input" type="file" multiple :disabled="reviewSaving || reviewImagesLoading || reviewImages.length >= 10" accept="image/jpeg,image/png,image/webp" @change="selectReviewImages"></div><button
                 type="submit"
                 class="button primary"
-                :disabled="reviewSaving || reviewsLoading"
+                :disabled="reviewSaving || reviewsLoading || reviewImagesLoading"
               >
                 {{ reviewSaving ? "Đang gửi…" : "Gửi bình luận" }}
               </button></div>
@@ -509,27 +534,19 @@ function formatDate(dateStr) {
             </div>
           </div>
           <div class="inline contact-actions">
-            <a
+            <span
               v-if="contactPhone"
               class="button primary contact-phone"
-              :href="'tel:' + contactPhone"
             >
               <Icon name="phone" :size="18" />{{ contactPhone }}
-            </a>
-            <button v-else class="button primary contact-phone" disabled>
+            </span>
+            <span v-else class="button primary contact-phone">
               <Icon name="phone" :size="18" />Chưa có số điện thoại
-            </button>
-            <button class="button secondary" @click="showContact">Chat Zalo</button>
+            </span>
+            <a v-if="zaloUrl" class="button secondary contact-zalo" :href="zaloUrl" target="_blank" rel="noopener noreferrer">Chat Zalo</a>
+            <button v-else class="button secondary" disabled>Chat Zalo</button>
           </div>
-          <p v-if="contact" class="notice">
-            {{
-              room.phone
-                ? "Số điện thoại: " +
-                  room.phone +
-                  (room.email ? " · Email: " + room.email : "")
-                : "Chức năng liên hệ thực tế sẽ hoạt động khi kết nối dữ liệu chủ trọ."
-            }}
-          </p>
+
         </section>
         <!-- Thẻ tóm tắt người đăng ghép trọ (có tích hợp nút liên hệ) -->
         <section
@@ -566,27 +583,19 @@ function formatDate(dateStr) {
 
           <!-- Nút liên hệ đưa vào trong Hồ sơ người đăng -->
           <div class="profile-contact-actions inline">
-            <a
+            <span
               v-if="contactPhone"
               class="button primary contact-phone"
-              :href="'tel:' + contactPhone"
             >
               <Icon name="phone" :size="18" />{{ contactPhone }}
-            </a>
-            <button v-else class="button primary contact-phone" disabled>
+            </span>
+            <span v-else class="button primary contact-phone">
               <Icon name="phone" :size="18" />Chưa có số điện thoại
-            </button>
-            <button class="button secondary" @click="showContact">Chat Zalo</button>
+            </span>
+            <a v-if="zaloUrl" class="button secondary contact-zalo" :href="zaloUrl" target="_blank" rel="noopener noreferrer">Chat Zalo</a>
+            <button v-else class="button secondary" disabled>Chat Zalo</button>
           </div>
-          <p v-if="contact" class="notice">
-            {{
-              room.phone
-                ? "Số điện thoại: " +
-                  room.phone +
-                  (room.email ? " · Email: " + room.email : "")
-                : "Chức năng liên hệ thực tế sẽ hoạt động khi kết nối tài khoản người đăng."
-            }}
-          </p>
+
         </section>
 
         <!-- Tiện ích & Không gian sống đưa qua bên phải -->
@@ -644,6 +653,7 @@ function formatDate(dateStr) {
 </template>
 
 <style scoped>
+.contact-phone{cursor:default}
 .detail-badges .available-badge{background:#276b50;color:#fff}
 .detail-photo .icon-button{width:44px;height:44px}
 @media(hover:hover){.detail-photo .icon-button{opacity:0;transition:opacity .2s,background-color .2s}.detail-photo .icon-button::before{content:'';position:absolute;inset:-30px -12px}.detail-photo .icon-button:hover,.detail-photo .icon-button:focus-visible{opacity:1}}
@@ -664,7 +674,8 @@ function formatDate(dateStr) {
 .rating-choice label:hover{background:#fff3d8}
 .rating-choice input{position:absolute;opacity:0}
 .rating-choice label:has(input:focus-visible){outline:3px solid #638d92;outline-offset:2px;border-radius:8px}
-.review-image-preview{display:flex;align-items:end;gap:12px}
+.review-image-previews{display:flex;flex-wrap:wrap;gap:16px}
+.review-image-preview{display:flex;flex-direction:column;align-items:start;gap:4px}
 .review-image-preview img{width:120px;height:80px;object-fit:cover;border-radius:8px}
 .review-image-preview button{text-decoration:underline;min-height:44px}
 .review-intro {

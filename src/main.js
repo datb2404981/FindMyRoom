@@ -25,7 +25,7 @@ export const router = createRouter({
     { path: "/", component: Home },
     { path: "/tim-tro", redirect: to => ({ path: "/", query: { ...to.query, search: "1" } }) },
     { path: "/phong/:id", component: Detail },
-    { path: "/nha-tro/:id", component: HouseDetail, meta: { landlordOnly: true } },
+    { path: "/nha-tro/:id", component: HouseDetail },
     { path: "/ghep-tro", component: Match },
     { path: "/dang-nhap", component: Auth },
     { path: "/dang-ky", component: Auth },

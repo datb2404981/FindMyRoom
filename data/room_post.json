@@ -13,7 +13,7 @@
     "max_occupants": 2,
     "room_post_description": "Phòng thoáng, có nhà vệ sinh riêng và chỗ để xe.",
     "curfew": null,
-    "status": "active",
+    "status": "Còn phòng",
     "posted_at": "2026-10-15T14:30:45+07:00"
   },
   {
@@ -30,7 +30,7 @@
     "max_occupants": 3,
     "room_post_description": "Phòng thoáng, có nhà vệ sinh riêng và chỗ để xe.",
     "curfew": "00:00:00",
-    "status": "hidden",
+    "status": "Ẩn",
     "posted_at": "2026-10-16T14:30:45+07:00"
   },
   {
@@ -47,7 +47,7 @@
     "max_occupants": 2,
     "room_post_description": "Phòng thoáng, có nhà vệ sinh riêng và chỗ để xe.",
     "curfew": "00:00:00",
-    "status": "active",
+    "status": "Còn phòng",
     "posted_at": "2026-10-17T14:30:45+07:00"
   },
   {
@@ -64,7 +64,7 @@
     "max_occupants": 3,
     "room_post_description": "Phòng thoáng, có nhà vệ sinh riêng và chỗ để xe.",
     "curfew": null,
-    "status": "complete",
+    "status": "Hết phòng",
     "posted_at": "2026-10-18T14:30:45+07:00"
   },
   {
@@ -81,7 +81,7 @@
     "max_occupants": 2,
     "room_post_description": "Phòng thoáng, có nhà vệ sinh riêng và chỗ để xe.",
     "curfew": "00:00:00",
-    "status": "active",
+    "status": "Còn phòng",
     "posted_at": "2026-10-19T14:30:45+07:00"
   },
   {
@@ -98,7 +98,7 @@
     "max_occupants": 3,
     "room_post_description": "Phòng thoáng, có nhà vệ sinh riêng và chỗ để xe.",
     "curfew": "00:00:00",
-    "status": "hidden",
+    "status": "Ẩn",
     "posted_at": "2026-10-20T14:30:45+07:00"
   },
   {
@@ -115,7 +115,7 @@
     "max_occupants": 2,
     "room_post_description": "Phòng thoáng, có nhà vệ sinh riêng và chỗ để xe.",
     "curfew": null,
-    "status": "complete",
+    "status": "Hết phòng",
     "posted_at": "2026-10-21T14:30:45+07:00"
   },
   {
@@ -132,7 +132,7 @@
     "max_occupants": 3,
     "room_post_description": "Phòng thoáng, có nhà vệ sinh riêng và chỗ để xe.",
     "curfew": "00:00:00",
-    "status": "active",
+    "status": "Còn phòng",
     "posted_at": "2026-10-22T14:30:45+07:00"
   },
   {
@@ -149,7 +149,7 @@
     "max_occupants": 2,
     "room_post_description": "Phòng thoáng, có nhà vệ sinh riêng và chỗ để xe.",
     "curfew": "00:00:00",
-    "status": "hidden",
+    "status": "Ẩn",
     "posted_at": "2026-10-23T14:30:45+07:00"
   },
   {
@@ -166,7 +166,58 @@
     "max_occupants": 3,
     "room_post_description": "Phòng thoáng, có nhà vệ sinh riêng và chỗ để xe.",
     "curfew": null,
-    "status": "active",
+    "status": "Còn phòng",
     "posted_at": "2026-10-24T14:30:45+07:00"
+  },
+  {
+    "room_post_id": "post-1794144209745",
+    "boarding_house_id": "house-1793885411162",
+    "room_post_title": "123",
+    "room_post_area": 210,
+    "room_post_price": 123,
+    "deposit": 123,
+    "room_post_water_price": 123,
+    "room_post_electronic_price": 123,
+    "room_post_internet_price": 123,
+    "room_post_other_service_fee": "213",
+    "max_occupants": 1213,
+    "room_post_description": "",
+    "curfew": "",
+    "status": "Còn phòng",
+    "posted_at": "2026-11-11T06:20:57.693Z"
+  },
+  {
+    "room_post_id": "post-1794144182609",
+    "boarding_house_id": "house-1793885411162",
+    "room_post_title": "123",
+    "room_post_area": 123,
+    "room_post_price": 123,
+    "deposit": 123,
+    "room_post_water_price": 213,
+    "room_post_electronic_price": 213,
+    "room_post_internet_price": 213,
+    "room_post_other_service_fee": "123",
+    "max_occupants": 1,
+    "room_post_description": "",
+    "curfew": "",
+    "status": "Còn phòng",
+    "posted_at": "2026-11-11T06:20:57.768Z"
+  },
+  {
+    "room_post_id": "post-1794140657920",
+    "boarding_house_id": "house-1793885419018",
+    "room_post_title": "123",
+    "room_post_area": 123,
+    "room_post_price": 123,
+    "deposit": 123,
+    "room_post_water_price": 123,
+    "room_post_electronic_price": 123,
+    "room_post_internet_price": 123,
+    "room_post_other_service_fee": "123",
+    "max_occupants": 1,
+    "room_post_description": "123",
+    "curfew": "",
+    "status": "Còn phòng",
+    "posted_at": "2026-11-11T06:20:57.837Z"
   }
 ]

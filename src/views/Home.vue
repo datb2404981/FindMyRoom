@@ -15,6 +15,8 @@ import {
   searchQueryError,
 } from "../search-filters";
 import { publicRentals, searchableText } from "../listings";
+import { loadRentals } from '../rentals';
+onMounted(() => { loadRentals().catch(() => {}); });
 
 const route = useRoute(),
   router = useRouter();
@@ -95,7 +97,6 @@ const appliedKeyword = computed(() =>
 );
 const rentals = computed(() => {
   const listings = new Map(publicRentals(state.posts).map((room) => [room.id, room]));
-  for (const post of state.posts) if (post.kind === "rental") listings.set(post.id, post);
   return [...listings.values()].filter((room) => room.status === "Còn phòng");
 });
 const priceOrder = computed(() =>
@@ -335,8 +336,8 @@ function goToPage(page) {
             class="text-button"
             @click="reset"
           >
-            Xóa bộ lọc</button
-          ><RouterLink to="/" class="text-button">Về trang chủ</RouterLink>
+            Xóa bộ lọc
+          </button>
         </div>
       </div>
       <div v-if="queryError" class="home-empty-state" role="alert">

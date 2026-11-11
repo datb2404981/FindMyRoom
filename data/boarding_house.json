@@ -1,92 +1,137 @@
 [
   {
     "boarding_house_id": "BH00000001",
+    "account_id": "ACC000011",
     "house_name": "Nhà trọ An Phú",
     "house_address": "100, đường 3/2, quận Ninh Kiều, Cần Thơ",
     "house_latitude": 10.025,
     "house_longitude": 105.765,
-    "rules": "Giữ vệ sinh chung, hạn chế tiếng ồn sau 22 giờ.",
-    "account_id": "ACC000011"
+    "rules": "Giữ vệ sinh chung, hạn chế tiếng ồn sau 22 giờ."
   },
   {
     "boarding_house_id": "BH00000002",
+    "account_id": "ACC000012",
     "house_name": "Nhà trọ Bình Minh",
     "house_address": "101, đường Nguyễn Văn Cừ, quận Ninh Kiều, Cần Thơ",
     "house_latitude": 10.026,
     "house_longitude": 105.766,
-    "rules": "Giữ vệ sinh chung, hạn chế tiếng ồn sau 22 giờ.",
-    "account_id": "ACC000012"
+    "rules": "Giữ vệ sinh chung, hạn chế tiếng ồn sau 22 giờ."
   },
   {
     "boarding_house_id": "BH00000003",
+    "account_id": "ACC000013",
     "house_name": "Nhà trọ Hoa Sen",
     "house_address": "102, đường Mậu Thân, quận Ninh Kiều, Cần Thơ",
     "house_latitude": 10.027,
     "house_longitude": 105.767,
-    "rules": "Giữ vệ sinh chung, hạn chế tiếng ồn sau 22 giờ.",
-    "account_id": "ACC000013"
+    "rules": "Giữ vệ sinh chung, hạn chế tiếng ồn sau 22 giờ."
   },
   {
     "boarding_house_id": "BH00000004",
+    "account_id": "ACC000014",
     "house_name": "Nhà trọ Hướng Dương",
     "house_address": "103, đường Trần Hưng Đạo, quận Ninh Kiều, Cần Thơ",
     "house_latitude": 10.028,
     "house_longitude": 105.768,
-    "rules": "Giữ vệ sinh chung, hạn chế tiếng ồn sau 22 giờ.",
-    "account_id": "ACC000014"
+    "rules": "Giữ vệ sinh chung, hạn chế tiếng ồn sau 22 giờ."
   },
   {
     "boarding_house_id": "BH00000005",
+    "account_id": "ACC000015",
     "house_name": "Nhà trọ Minh Tâm",
     "house_address": "104, đường Nguyễn Văn Linh, quận Ninh Kiều, Cần Thơ",
     "house_latitude": 10.029,
     "house_longitude": 105.769,
-    "rules": "Giữ vệ sinh chung, hạn chế tiếng ồn sau 22 giờ.",
-    "account_id": "ACC000015"
+    "rules": "Giữ vệ sinh chung, hạn chế tiếng ồn sau 22 giờ."
   },
   {
     "boarding_house_id": "BH00000006",
+    "account_id": "ACC000016",
     "house_name": "Nhà trọ Phúc An",
     "house_address": "105, đường Võ Văn Kiệt, quận Ninh Kiều, Cần Thơ",
     "house_latitude": 10.03,
     "house_longitude": 105.77,
-    "rules": "Giữ vệ sinh chung, hạn chế tiếng ồn sau 22 giờ.",
-    "account_id": "ACC000016"
+    "rules": "Giữ vệ sinh chung, hạn chế tiếng ồn sau 22 giờ."
   },
   {
     "boarding_house_id": "BH00000007",
+    "account_id": "ACC000017",
     "house_name": "Nhà trọ Sông Hậu",
     "house_address": "106, đường Cách Mạng Tháng Tám, quận Ninh Kiều, Cần Thơ",
     "house_latitude": 10.031,
     "house_longitude": 105.771,
-    "rules": "Giữ vệ sinh chung, hạn chế tiếng ồn sau 22 giờ.",
-    "account_id": "ACC000017"
+    "rules": "Giữ vệ sinh chung, hạn chế tiếng ồn sau 22 giờ."
   },
   {
     "boarding_house_id": "BH00000008",
+    "account_id": "ACC000018",
     "house_name": "Nhà trọ Thanh Bình",
     "house_address": "107, đường Lê Hồng Phong, quận Ninh Kiều, Cần Thơ",
     "house_latitude": 10.032,
     "house_longitude": 105.772,
-    "rules": "Giữ vệ sinh chung, hạn chế tiếng ồn sau 22 giờ.",
-    "account_id": "ACC000018"
+    "rules": "Giữ vệ sinh chung, hạn chế tiếng ồn sau 22 giờ."
   },
   {
     "boarding_house_id": "BH00000009",
+    "account_id": "ACC000019",
     "house_name": "Nhà trọ Thảo Nguyên",
     "house_address": "108, đường Trần Hoàng Na, quận Ninh Kiều, Cần Thơ",
     "house_latitude": 10.033,
     "house_longitude": 105.773,
-    "rules": "Giữ vệ sinh chung, hạn chế tiếng ồn sau 22 giờ.",
-    "account_id": "ACC000019"
+    "rules": "Giữ vệ sinh chung, hạn chế tiếng ồn sau 22 giờ."
   },
   {
     "boarding_house_id": "BH00000010",
+    "account_id": "ACC000020",
     "house_name": "Nhà trọ Trúc Xanh",
     "house_address": "109, đường Nguyễn Văn Linh, quận Ninh Kiều, Cần Thơ",
     "house_latitude": 10.034,
     "house_longitude": 105.774,
-    "rules": "Giữ vệ sinh chung, hạn chế tiếng ồn sau 22 giờ.",
-    "account_id": "ACC000020"
+    "rules": "Giữ vệ sinh chung, hạn chế tiếng ồn sau 22 giờ."
+  },
+  {
+    "boarding_house_id": "house-1793885408098",
+    "account_id": "demo-landlord",
+    "house_name": "123",
+    "house_address": "123, 123, Cần Thơ",
+    "house_latitude": null,
+    "house_longitude": null,
+    "rules": "Giờ giấc tự do, giữ gìn vệ sinh chung."
+  },
+  {
+    "boarding_house_id": "house-1793885411162",
+    "account_id": "demo-landlord",
+    "house_name": "123",
+    "house_address": "123",
+    "house_latitude": null,
+    "house_longitude": null,
+    "rules": "123"
+  },
+  {
+    "boarding_house_id": "house-1793885419018",
+    "account_id": "demo-landlord",
+    "house_name": "123",
+    "house_address": "123",
+    "house_latitude": null,
+    "house_longitude": null,
+    "rules": "13"
+  },
+  {
+    "boarding_house_id": "house-1793885422090",
+    "account_id": "demo-landlord",
+    "house_name": "123",
+    "house_address": "213",
+    "house_latitude": null,
+    "house_longitude": null,
+    "rules": "123"
+  },
+  {
+    "boarding_house_id": "house-1793885427322",
+    "account_id": "demo-landlord",
+    "house_name": "123",
+    "house_address": "123",
+    "house_latitude": null,
+    "house_longitude": null,
+    "rules": "123"
   }
 ]

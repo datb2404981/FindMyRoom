@@ -9,16 +9,17 @@ import { createAuthMiddleware, hashPassword } from './auth.js'
 
 async function fixture(t) {
   const directory = await mkdtemp(join(tmpdir(), 'findmyroom-api-'))
-  const usersFile = join(directory, 'users.json')
-  await writeFile(usersFile, JSON.stringify({ users: [{ id: 'test-student', name: 'Test Student',
-    email: 'sinhvien@example.com', phone: '0987654321', role: 'student', passwordHash: await hashPassword('demopass123') }] }))
+  const accountsFile = join(directory, 'account.json')
+  await writeFile(accountsFile, JSON.stringify([{ account_id: 'test-student', full_name: 'Test Student',
+    email: 'sinhvien@example.com', phone: '0987654321', role: 'student', password: await hashPassword('demopass123'),
+    avatar_url: null, zalo_phone: '0987654321', zalo_url: null, is_active: true, provider: 'local', created_at: '2026-11-01T00:00:00Z' }]))
   const servers = []
   t.after(async () => {
     await Promise.all(servers.map(server => new Promise(resolve => server.close(resolve))))
     await rm(directory, { recursive: true, force: true })
   })
   function start() {
-    const middleware = createAuthMiddleware({ usersFile })
+    const middleware = createAuthMiddleware({ accountsFile })
     const server = createServer((req, res) => middleware(req, res, () => { res.writeHead(404); res.end() }))
     servers.push(server)
     return (async () => {
@@ -35,21 +36,24 @@ async function fixture(t) {
       }
     })()
   }
-  return { usersFile, start, request: await start() }
+  return { accountsFile, start, request: await start() }
 }
 
 const account = { name: 'Lê Thảo Nguyên', email: 'new@example.com', phone: '0912345678', role: 'student', password: 'testpass123', terms: true }
 
 test('registration writes a password hash to JSON and works after a new server starts', async t => {
-  const { request, usersFile, start } = await fixture(t)
+  const { request, accountsFile, start } = await fixture(t)
   const result = await request('register', account)
   assert.equal(result.status, 201)
   assert.equal(result.data.user.name, account.name)
   assert.equal('passwordHash' in result.data.user, false)
   assert.match(result.cookie, /HttpOnly; SameSite=Lax/)
-  const contents = await readFile(usersFile, 'utf8')
-  const stored = JSON.parse(contents).users.find(user => user.email === account.email)
-  assert.match(stored.passwordHash, /^scrypt:/)
+  const contents = await readFile(accountsFile, 'utf8')
+  const stored = JSON.parse(contents).find(user => user.email === account.email)
+  assert.match(stored.password, /^scrypt:[a-f0-9]{32}:[a-f0-9]{128}$/)
+  assert.deepEqual(Object.keys(stored).sort(), ['account_id', 'full_name', 'email', 'password', 'phone', 'avatar_url', 'role', 'zalo_phone', 'zalo_url', 'is_active', 'provider', 'created_at'].sort())
+  assert.equal(stored.full_name, account.name)
+  assert.equal('password' in result.data.user, false)
   assert.equal(contents.includes(account.password), false)
   const restarted = await start()
   assert.equal((await restarted('login', { email: ' NEW@EXAMPLE.COM ', password: account.password })).status, 200)
@@ -70,25 +74,47 @@ test('login rejects wrong credentials, uses stored roles, and logout invalidates
 })
 
 test('concurrent signups cannot overwrite another registration or duplicate an email', async t => {
-  const { request, usersFile } = await fixture(t)
+  const { request, accountsFile } = await fixture(t)
   const results = await Promise.all([
     request('register', account),
     request('register', { ...account, email: 'NEW@EXAMPLE.COM' }),
     request('register', { ...account, email: 'another@example.com', role: 'landlord' }),
   ])
   assert.deepEqual(results.map(result => result.status).sort(), [201, 201, 409])
-  const { users } = JSON.parse(await readFile(usersFile, 'utf8'))
+  const users = JSON.parse(await readFile(accountsFile, 'utf8'))
   assert.equal(users.filter(user => user.email === account.email).length, 1)
   assert.equal(users.filter(user => user.email === 'another@example.com').length, 1)
+  assert.notEqual(users.find(user => user.email === account.email).password, users.find(user => user.email === 'another@example.com').password)
+})
+
+test('profile updates preserve account columns and inactive accounts cannot sign in', async t => {
+  const { request, accountsFile, start } = await fixture(t)
+  const login = await request('login', { email: 'sinhvien@example.com', password: 'demopass123' })
+  const headers = { Cookie: login.cookie.split(';')[0] }
+  const before = JSON.parse(await readFile(accountsFile, 'utf8'))[0]
+  const updated = await request('profile', { name: 'Updated Name', email: 'updated@example.com', phone: '0912345678' }, { method: 'PATCH', headers })
+  assert.equal(updated.status, 200)
+  assert.equal(updated.data.user.id, before.account_id)
+  const rows = JSON.parse(await readFile(accountsFile, 'utf8'))
+  assert.equal(rows[0].full_name, 'Updated Name')
+  assert.equal(rows[0].password, before.password)
+  assert.equal(rows[0].created_at, before.created_at)
+  assert.equal(rows[0].provider, before.provider)
+  const restarted = await start()
+  assert.equal((await restarted('login', { email: 'updated@example.com', password: 'demopass123' })).status, 200)
+  rows[0].is_active = false
+  await writeFile(accountsFile, JSON.stringify(rows))
+  assert.equal((await request('session', undefined, { headers })).data.user, null)
+  assert.equal((await restarted('login', { email: 'updated@example.com', password: 'demopass123' })).status, 401)
 })
 
 test('API validates registration, blocks foreign origins, and does not overwrite malformed JSON', async t => {
-  const { request, usersFile } = await fixture(t)
+  const { request, accountsFile } = await fixture(t)
   for (const changes of [{ role: 'admin' }, { terms: false }, { password: 'short' }, { phone: '123' }]) {
     assert.equal((await request('register', { ...account, ...changes })).status, 400)
   }
   assert.equal((await request('register', account, { headers: { Origin: 'https://foreign.example' } })).status, 403)
-  await writeFile(usersFile, '{broken')
+  await writeFile(accountsFile, '{broken')
   assert.equal((await request('register', account)).status, 503)
-  assert.equal(await readFile(usersFile, 'utf8'), '{broken')
+  assert.equal(await readFile(accountsFile, 'utf8'), '{broken')
 })
