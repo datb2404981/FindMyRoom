@@ -241,8 +241,8 @@ test("home pagination stays on home view and only shows roommates and houses whe
   await expect(page.locator(".group-roommates")).toHaveCount(0);
   await expect(page.locator(".group-houses")).toHaveCount(0);
 
-  await submitSearch(page, "");
-  await expect(page).toHaveURL(/#\/\?search=1/);
+  await submitSearch(page, "Cần Thơ");
+  await expect(page).toHaveURL(/#\/\?.*search=1/);
   await expect(page.locator(".locations")).toHaveCount(0);
   await expect(page.locator(".group-rentals .room-card")).toHaveCount(8);
   await expect(page.locator(".group-roommates .room-card")).toHaveCount(4);

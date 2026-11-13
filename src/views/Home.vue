@@ -15,6 +15,7 @@ import {
   searchQueryError,
 } from "../search-filters";
 import { publicRentals, publicRoommates, publicHouses, matchesKeyword } from "../listings";
+import { rentalStatus } from "../rental-status";
 import { loadRentals } from '../rentals';
 import { loadRoommates } from '../roommates';
 import { loadHouses } from '../houses';
@@ -99,9 +100,16 @@ const appliedFilters = computed(() => filtersFromQuery(route.query));
 const appliedKeyword = computed(() =>
   typeof route.query.q === "string" ? route.query.q.trim() : "",
 );
+const hasFilterCriteria = computed(() => {
+  const f = appliedFilters.value;
+  return Boolean(f.school || f.district || f.prices?.length || f.amenities?.length);
+});
+const isKeywordSearch = computed(() =>
+  Boolean(appliedKeyword.value && !hasFilterCriteria.value),
+);
 const rentals = computed(() => {
   const listings = new Map(publicRentals(state.posts).map((room) => [room.id, room]));
-  return [...listings.values()].filter((room) => room.status === "Còn phòng");
+  return [...listings.values()].filter((room) => rentalStatus(room) === "Còn phòng");
 });
 const roommates = computed(() => publicRoommates(state.posts));
 const houses = computed(() => publicHouses(rentals.value));
@@ -140,6 +148,18 @@ const groups = computed(() => {
         empty: "Chưa có phòng cho thuê phù hợp với tìm kiếm này.",
       },
     ];
+  }
+  if (!isKeywordSearch.value) {
+    return [
+      {
+        id: "rentals",
+        title: "Phòng cho thuê",
+        summaryLabel: "phòng cho thuê",
+        icon: "home",
+        items: matching(rentals.value),
+        empty: "Chưa có phòng cho thuê phù hợp với tìm kiếm này.",
+      },
+    ].filter((group) => group.items.length > 0);
   }
   return [
     {

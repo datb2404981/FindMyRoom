@@ -16,7 +16,7 @@ const defaults = () => ({
     studentId: "",
     birth: "",
     gender: "Nam",
-    school: "Đại học Cần Thơ",
+    school: "",
     major: "",
     phone: "",
     zalo: "",
@@ -95,6 +95,7 @@ async function applyUser(user) {
             email: user.email,
             phone: user.phone,
             zalo: saved.profile?.zalo || user.phone,
+            school: user.school !== undefined ? user.school : (saved.profile?.school ?? base.profile.school),
           }
         : {}),
     },
@@ -193,11 +194,13 @@ export async function logout() {
 export async function updateAccount(profile) {
   const payload = { name: profile.name, email: profile.email, phone: profile.phone };
   if (profile.role) payload.role = profile.role;
+  if (profile.school !== undefined) payload.school = profile.school;
   const user = await authRequest("profile", payload, "PATCH");
   const nextProfile = { ...state.profile, ...profile,
     name: user.name,
     email: user.email,
     phone: user.phone,
+    school: user.school !== undefined ? user.school : (profile.school ?? state.profile.school),
   };
   const { user: currentUser, ...data } = state;
   await writeBrowserData(storageKey(user), { ...data, profile: nextProfile });

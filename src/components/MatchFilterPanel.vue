@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import Icon from './Icon.vue'
 
 import AppDropdown from './AppDropdown.vue'
-import { amenities, districts, money } from '../data'
+import { amenities, nearby, districts, money } from '../data'
 
 import { schools } from '../search-filters'
 

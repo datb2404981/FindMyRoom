@@ -386,7 +386,6 @@ const fields = computed(() =>
           "Ví dụ: Phòng có gác gần Đại học Cần Thơ",
         ],
         ["houseId", "Chọn nhà trọ", "house", true],
-        ["status", "Trạng thái", "status", true],
         ["count", "Số lượng phòng", "number", true],
         ["deposit", "Tiền cọc (đ)", "number", false],
         ["price", "Giá thuê (đ/tháng)", "number", true],
@@ -405,7 +404,6 @@ const fields = computed(() =>
           true,
           "Ví dụ: Tìm bạn nữ ở ghép gần trường",
         ],
-        ["status", "Trạng thái", "status", true],
         ["gender", "Đối tượng (nam/nữ)", "gender", true],
         ["school", "Trường đại học nhắm tới", "school", false],
         ["moveIn", "Ngày có thể chuyển vào", "date", true],
@@ -561,6 +559,12 @@ function removeImage(i) {
     } catch {}
   }
   images.value.splice(i, 1);
+}
+
+function setCoverImage(i) {
+  if (i > 0 && i < images.value.length) {
+    images.value.unshift(...images.value.splice(i, 1));
+  }
 }
 async function publish() {
   if (publishing.value) return;
@@ -945,11 +949,17 @@ function locate() {
         </p>
         <div class="upload-grid">
           <div v-for="(im, i) in images" :key="im.id">
-            <img :src="im.url" :alt="'Ảnh phòng ' + (i + 1)" /><span
-              v-if="i === 0"
-              class="badge"
-              >Ảnh bìa</span
-            ><button
+            <img :src="im.url" :alt="'Ảnh phòng ' + (i + 1)" />
+            <span v-if="i === 0" class="badge">Ảnh bìa</span>
+            <button
+              v-else
+              type="button"
+              class="photo-cover-btn"
+              @click="setCoverImage(i)"
+            >
+              Đặt làm ảnh bìa
+            </button>
+            <button
               type="button"
               class="icon-button"
               @click="removeImage(i)"

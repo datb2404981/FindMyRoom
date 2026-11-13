@@ -38,10 +38,20 @@ for (const ra of rawRoomAmenities) {
 
 const roommateImagesMap = new Map(rawRoommateImages.map(r => [r.roommate_post_id, r.images_url]))
 const roommateAmenitiesMap = new Map()
+const roommateNearbyMap = new Map()
+const roommateLifestylesMap = new Map()
 for (const ra of rawRoommateAmenities) {
-  if (!roommateAmenitiesMap.has(ra.roommate_post_id)) roommateAmenitiesMap.set(ra.roommate_post_id, [])
-  const name = amenityMap.get(ra.amenity_id)?.amenity_name
-  if (name && !roommateAmenitiesMap.get(ra.roommate_post_id).includes(name)) roommateAmenitiesMap.get(ra.roommate_post_id).push(name)
+  const amenity = amenityMap.get(ra.amenity_id)
+  if (!amenity) continue
+  const target = amenity.category === 'Tiện ích ngoại khu'
+    ? roommateNearbyMap
+    : amenity.category === 'Khác'
+      ? roommateLifestylesMap
+      : roommateAmenitiesMap
+  if (!target.has(ra.roommate_post_id)) target.set(ra.roommate_post_id, [])
+  if (!target.get(ra.roommate_post_id).includes(amenity.amenity_name)) {
+    target.get(ra.roommate_post_id).push(amenity.amenity_name)
+  }
 }
 
 const accountMap = new Map(rawAccounts.map(a => [a.account_id, a]))
@@ -225,6 +235,8 @@ export const people = rawStudents.map((s, i) => {
   const uni = uniMap.get(s.university_id) || {}
   const roommatePost = rawRoommates[i] || {}
   const postAmenities = roommateAmenitiesMap.get(roommatePost.roommate_post_id) || []
+  const postNearby = roommateNearbyMap.get(roommatePost.roommate_post_id) || []
+  const postLifestyles = roommateLifestylesMap.get(roommatePost.roommate_post_id) || []
   const birthYear = s.date_of_birth ? new Date(s.date_of_birth).getFullYear() : 2004
   const age = Math.max(18, 2026 - birthYear)
 
@@ -253,7 +265,7 @@ export const people = rawStudents.map((s, i) => {
   let tags = ['Yên tĩnh', 'Không hút thuốc']
   let bio = roommatePost.description || 'Tìm bạn ở ghép cùng chia sẻ không gian sống văn minh, sạch sẽ.'
   let amenitiesList = postAmenities.length ? postAmenities : ['Camera 24/7', 'Máy giặt', 'Wifi tốc độ cao', 'Nhà xe']
-  let nearbyList = ['Gần chợ/BHX', 'Quán ăn', 'Nhà thuốc', 'Trạm xe buýt']
+  let nearbyList = postNearby.length ? postNearby : ['Gần chợ/BHX', 'Quán ăn', 'Nhà thuốc', 'Trạm xe buýt']
 
   if (i === 0) {
     gender = 'Nữ'

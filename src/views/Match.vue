@@ -351,13 +351,14 @@ async function begin(){
       />
 
       <section ref="stage" class="match-stage" aria-label="Kết quả ghép trọ" tabindex="-1">
-        <div class="match-stage-top">
-          <div v-if="!started" class="match-stage-title">
+        <div v-if="!started" class="match-stage-top">
+          <div class="match-stage-title">
             <span class="eyebrow">Cùng một mái nhà, cùng nhịp sống</span>
             <h1>Không chỉ tìm phòng<br>Tìm người đồng hành</h1>
           </div>
+        </div>
+        <div v-else class="match-stage-top match-stage-top-started">
           <button
-            v-if="started"
             type="button"
             class="button secondary reset-start-btn"
             @click="resetToStart"
@@ -370,7 +371,7 @@ async function begin(){
         </div>
 
         <div v-if="!started" class="match-welcome">
-          <img src="/images/roommates.png?v=3" alt="Hai người bạn ở cùng">
+          <img src="/images/roommates.png?v=4" alt="Hai người bạn ở cùng">
         </div>
 
         <template v-else-if="current">
@@ -508,8 +509,11 @@ async function begin(){
   margin-bottom: 0;
   text-align: center;
 }
+.match-stage-top-started {
+  display: none;
+}
 .reset-start-btn {
-  display: inline-flex;
+  display: none;
   align-items: center;
   gap: 8px;
   min-height: 42px;
@@ -799,7 +803,9 @@ async function begin(){
   .mobile-filter-hidden {
     display: none !important;
   }
-  .match-stage-top {
+  .match-stage-top,
+  .match-stage-top-started {
+    display: flex;
     flex-direction: column;
     align-items: center;
     gap: 14px;
@@ -807,6 +813,7 @@ async function begin(){
     text-align: center;
   }
   .reset-start-btn {
+    display: inline-flex;
     align-self: center;
     min-height: 44px;
     padding: 10px 18px;
