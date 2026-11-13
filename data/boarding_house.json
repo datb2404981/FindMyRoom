@@ -133,5 +133,14 @@
     "house_latitude": null,
     "house_longitude": null,
     "rules": "123"
+  },
+  {
+    "boarding_house_id": "house-1794382356590",
+    "account_id": "4e9e40c3-d7dd-4d33-a3c1-25a48d7de515",
+    "house_name": "Minh Khoa",
+    "house_address": "123, Ninh Kiều, Cần Thơ",
+    "house_latitude": null,
+    "house_longitude": null,
+    "rules": "231"
   }
 ]

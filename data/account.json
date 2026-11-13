@@ -418,5 +418,47 @@
     "is_active": true,
     "provider": "local",
     "created_at": "2026-11-06T14:44:31.347Z"
+  },
+  {
+    "account_id": "dea0864b-d7f2-4bde-90ab-907ab7baf412",
+    "full_name": "Nguyễn Phúc Minh Khoa",
+    "email": "minhkhoa123@gmail.com",
+    "password": "scrypt:def4045d763a2f2444da9cc98e715dc9:3f3859b23c0f9d7baea7ca0c573bbfb0c4bd1af549972d87488265c2205a9520c007050071f27e7163768885d754b46636eb41bd6e0b8aa07aabaa9afd9e879a",
+    "phone": "0912345678",
+    "avatar_url": null,
+    "role": "landlord",
+    "zalo_phone": "0912345678",
+    "zalo_url": null,
+    "is_active": true,
+    "provider": "local",
+    "created_at": "2026-11-11T07:14:09.779Z"
+  },
+  {
+    "account_id": "4e9e40c3-d7dd-4d33-a3c1-25a48d7de515",
+    "full_name": "Nguyễn Phúc Minh Khoa",
+    "email": "minhkhoa@gmail.com123456",
+    "password": "scrypt:c0ed75395e89a31dac51859dd55cdbad:968f90b4b245a6576d7113fdc8a60b288e02ba4517cccf7274a015736e35e4d44a6119f1f8ac914c7617b93290db05e8e0dde7cce16bbe628a08d8908fb7bdee",
+    "phone": "0912345678",
+    "avatar_url": null,
+    "role": "landlord",
+    "zalo_phone": "0912345678",
+    "zalo_url": null,
+    "is_active": true,
+    "provider": "local",
+    "created_at": "2026-11-11T07:16:19.239Z"
+  },
+  {
+    "account_id": "cdd29dff-4808-4103-8336-1a72822554c9",
+    "full_name": "Nguyễn Văn Đạt",
+    "email": "1232456@gmail.com",
+    "password": "scrypt:b4308c7ab0b7d78fb4434387de806ed3:3c7724106d932bd270e87d9d52c199985194cf4b01f4045594a2985d1bbd2400130db89973c235ef517e1bbad2434405e9d55a209b1835990f09e76c41a94f99",
+    "phone": "0912312121",
+    "avatar_url": null,
+    "role": "student",
+    "zalo_phone": "0912312121",
+    "zalo_url": null,
+    "is_active": true,
+    "provider": "local",
+    "created_at": "2026-11-11T07:38:59.410Z"
   }
 ]

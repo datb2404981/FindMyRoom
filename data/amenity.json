@@ -124,5 +124,11 @@
     "amenity_name": "Quán cafe",
     "category": "Tiện ích ngoại khu",
     "description": ""
+  },
+  {
+    "amenity_id": "6406a3a2-f4fd-45e5-958b-ce0033f976be",
+    "amenity_name": "Người thân qua đêm",
+    "category": "Khác",
+    "description": ""
   }
 ]

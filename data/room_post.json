@@ -219,5 +219,22 @@
     "curfew": "",
     "status": "Còn phòng",
     "posted_at": "2026-11-11T06:20:57.837Z"
+  },
+  {
+    "room_post_id": "post-1794382540015",
+    "boarding_house_id": "house-1794382356590",
+    "room_post_title": "123123123",
+    "room_post_area": 1231,
+    "room_post_price": 123123,
+    "deposit": 123123,
+    "room_post_water_price": 23,
+    "room_post_electronic_price": 1231,
+    "room_post_internet_price": 121,
+    "room_post_other_service_fee": "123",
+    "max_occupants": 1,
+    "room_post_description": "",
+    "curfew": "",
+    "status": "Còn phòng",
+    "posted_at": "2026-11-11T07:35:40.062Z"
   }
 ]

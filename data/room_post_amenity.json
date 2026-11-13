@@ -346,5 +346,17 @@
   {
     "room_post_id": "post-1794140657920",
     "amenity_id": "AM00000021"
+  },
+  {
+    "room_post_id": "post-1794382540015",
+    "amenity_id": "AM00000008"
+  },
+  {
+    "room_post_id": "post-1794382540015",
+    "amenity_id": "AM00000017"
+  },
+  {
+    "room_post_id": "post-1794382540015",
+    "amenity_id": "6406a3a2-f4fd-45e5-958b-ce0033f976be"
   }
 ]

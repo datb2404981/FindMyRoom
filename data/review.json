@@ -118,5 +118,21 @@
     "rating": 5,
     "content": "Phòng xấu",
     "reviewed_at": "2026-11-11T06:56:40.531Z"
+  },
+  {
+    "review_id": "419e8f4b-0da9-481c-aedb-4799eb68042d",
+    "boarding_house_id": "BH00000002",
+    "student_code": "140f335c-e7ce-4a33-b060-ce5148a5d512",
+    "rating": 1,
+    "content": "Xấu",
+    "reviewed_at": "2026-11-11T07:50:20.082Z"
+  },
+  {
+    "review_id": "bb6e04b3-d115-4912-a2f7-4ef473f6c53e",
+    "boarding_house_id": "BH00000002",
+    "student_code": "140f335c-e7ce-4a33-b060-ce5148a5d512",
+    "rating": 4,
+    "content": "Phòng đẹp",
+    "reviewed_at": "2026-11-11T07:50:45.717Z"
   }
 ]

@@ -108,5 +108,15 @@
     "academic_year": null,
     "student_verified_at": null,
     "university_id": "UNI000001"
+  },
+  {
+    "account_id": "cdd29dff-4808-4103-8336-1a72822554c9",
+    "student_code": "140f335c-e7ce-4a33-b060-ce5148a5d512",
+    "major": "",
+    "gender": null,
+    "date_of_birth": null,
+    "academic_year": null,
+    "student_verified_at": null,
+    "university_id": "UNI000001"
   }
 ]
