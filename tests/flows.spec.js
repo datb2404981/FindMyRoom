@@ -656,24 +656,6 @@ test("roommate posting validates, retains draft and unlocks management only for 
     page.locator("header").getByRole("link", { name: "Quản lý bài đăng", exact: true }),
   ).toHaveCount(0);
 });
-test("all 140 references load and select desktop/mobile source", async ({
-  page,
-  request,
-}) => {
-  const index = await (await request.get("/references/index.json")).json();
-  expect(index).toHaveLength(140);
-  for (const s of index) {
-    const r = await request.get("/references/" + s.screenCode + ".json");
-    expect(r.ok()).toBeTruthy();
-    const d = await r.json();
-    expect(d.canvas.width).toBe(s.width);
-  }
-  await page.goto("/#/wireframes?screen=GT-06");
-  await expect(page.locator(".wireframe-canvas")).toBeVisible();
-  await expect(page.locator(".reference-toolbar strong")).toContainText("GT-06");
-  await page.getByLabel("Chế độ đối chiếu").selectOption("original");
-  await expect(page.getByAltText(/wireframe gốc/)).toBeVisible();
-});
 test("desktop and mobile layouts have no horizontal overflow", async ({ page }) => {
   for (const width of [1440, 390, 360]) {
     await page.setViewportSize({ width, height: 900 });
@@ -741,7 +723,7 @@ test("signup creates an account that can log out and log back in", async ({ page
     "Lê Thảo Nguyên",
   );
 });
-test("landlord five-step rental posting, preview, save and edit", async ({ page }) => {
+test("landlord four-step rental posting, preview modal, save and edit", async ({ page }) => {
   await login(page, "landlord", "/dang-bai/rental");
   await page
     .getByLabel("Tiêu đề bài đăng *", { exact: true })
@@ -765,7 +747,7 @@ test("landlord five-step rental posting, preview, save and edit", async ({ page 
   await page
     .getByLabel("Tải hình ảnh chỗ ở")
     .setInputFiles(
-      [1, 2, 3].map((i) => ({
+      [1, 2, 3, 4].map((i) => ({
         name: "room" + i + ".png",
         mimeType: "image/png",
         buffer: png,
@@ -773,11 +755,14 @@ test("landlord five-step rental posting, preview, save and edit", async ({ page 
     );
   await page.getByRole("button", { name: "Tiếp theo", exact: true }).click();
   await page.getByLabel("Wifi tốc độ cao", { exact: true }).check();
-  await page.getByRole("button", { name: "Tiếp theo", exact: true }).click();
+  await expect(page.locator(".stepper li")).toHaveCount(4);
+  await page.getByRole("button", { name: "Xem trước", exact: true }).click();
+  const previewDialog = page.getByRole("dialog");
   await expect(
-    page.getByRole("heading", { name: "Xem trước bài đăng", exact: true }),
+    previewDialog.getByRole("heading", { name: "Xem trước bài đăng", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Đăng bài", exact: true }).click();
+  await expect(previewDialog).toContainText("Cho thuê phòng kiểm thử");
+  await previewDialog.getByRole("button", { name: "Đăng bài", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Bài đăng đã được lưu" })).toBeVisible();
   await page.goto("/#/quan-ly/bai-dang");
   await page

@@ -3501,8 +3501,13 @@ select[aria-invalid="true"] {
 }
 
 .bottom-nav.unified-home-nav {
+  grid-template-columns: none;
   grid-auto-flow: column;
   grid-auto-columns: minmax(0, 1fr);
+}
+.bottom-nav.unified-home-nav a {
+  min-width: 0;
+  white-space: nowrap;
 }
 @media (max-width: 800px) {
   body.match-active .site-footer {

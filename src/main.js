@@ -10,7 +10,6 @@ import Profile from "./views/Profile.vue";
 import Manage from "./views/Manage.vue";
 import PostForm from "./views/PostForm.vue";
 import Guide from "./views/Guide.vue";
-import References from "./views/References.vue";
 import "./style.css";
 import { restoreSession, state } from "./store";
 export const router = createRouter({
@@ -19,6 +18,7 @@ export const router = createRouter({
     if (saved) return saved;
     if (to.path === "/" && from.path === "/" && to.query.sort !== from.query.sort && Object.keys({ ...to.query, ...from.query }).every(key => ['sort', 'page'].includes(key) || to.query[key] === from.query[key])) return false;
     if (to.path === "/" && from.path === "/" && to.query.page !== from.query.page) return { el: "#home-listings", top: 24 };
+    if (to.path === "/ghep-tro" && from.path === "/ghep-tro") return false;
     return { top: 0 };
   },
   routes: [
@@ -35,7 +35,6 @@ export const router = createRouter({
     { path: "/quan-ly/:kind", component: Manage },
     { path: "/dang-bai/:kind", component: PostForm },
     { path: "/huong-dan", component: Guide },
-    { path: "/wireframes", component: References },
     { path: "/:pathMatch(.*)*", redirect: "/" },
   ],
 });

@@ -133,5 +133,14 @@
     "house_latitude": null,
     "house_longitude": null,
     "rules": "123"
+  },
+  {
+    "boarding_house_id": "minh-an",
+    "account_id": "demo-landlord",
+    "house_name": "Nhà trọ Minh An",
+    "house_address": "100, đường 3/2, quận Ninh Kiều, Cần Thơ",
+    "house_latitude": 10.025,
+    "house_longitude": 105.765,
+    "rules": "Giữ vệ sinh chung, hạn chế tiếng ồn sau 22 giờ."
   }
 ]

@@ -247,7 +247,7 @@ export function createAuthMiddleware({
           .filter(post => ['Còn phòng', 'Hết phòng'].includes(post.status) || post.ownerId === user?.id)
           .map(post => {
             const house = houses.find(house => house.id === post.houseId), owner = users.find(owner => owner.id === post.ownerId)
-            return { ...post, kind: 'rental', house: house.name, address: [post.street, post.ward, post.city].filter(Boolean).join(', ') || house.address,
+            return { ...post, kind: 'rental', house: house.name, rules: house.rules || '', address: [post.street, post.ward, post.city].filter(Boolean).join(', ') || house.address,
               district: post.ward || house.ward, owner: owner?.name || '', phone: owner?.phone || '', email: owner?.email || '' }
           })
         return reply(200, { posts })

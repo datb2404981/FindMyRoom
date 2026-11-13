@@ -228,28 +228,5 @@
     "move_in_date": "2026-11-03",
     "hobbies": "Cầu lông, chơi cờ",
     "expires_at": "2026-11-02T14:30:45+07:00"
-  },
-  {
-    "roommate_post_id": "post-1794378168260",
-    "university_id": "UNI000001",
-    "student_code": "40153d8a-1e4b-48e0-b742-a0e6c37ded07",
-    "title": "123",
-    "description": "",
-    "distance_to_school": null,
-    "preferred_gender": "Tất cả",
-    "current_room_price": 123,
-    "electric_price": 123,
-    "water_price": 123,
-    "internet_price": 123,
-    "other_service_fee": "123",
-    "current_address": "123",
-    "longitude": null,
-    "latitude": null,
-    "status": "Còn phòng",
-    "posted_at": "2026-11-11T06:46:27.928Z",
-    "vacancies": 1123,
-    "move_in_date": "2026-11-21",
-    "hobbies": "",
-    "expires_at": null
   }
 ]

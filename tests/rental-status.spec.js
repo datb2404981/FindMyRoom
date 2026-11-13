@@ -34,7 +34,6 @@ for (const status of ['Còn phòng', 'Hết phòng', 'Ẩn']) {
     const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+kvKkAAAAASUVORK5CYII=', 'base64')
     await page.getByLabel('Tải hình ảnh chỗ ở').setInputFiles([1, 2, 3, 4].map(i => ({ name: `photo${i}.png`, mimeType: 'image/png', buffer: png })))
     await page.getByRole('button', { name: 'Tiếp theo', exact: true }).click()
-    await page.getByRole('button', { name: 'Tiếp theo', exact: true }).click()
     await page.getByRole('button', { name: 'Đăng bài', exact: true }).click()
     await expect(page.getByRole('heading', { name: 'Bài đăng đã được lưu', exact: true })).toBeVisible()
     await page.getByRole('link', { name: 'Quản lý bài đăng', exact: true }).last().click()

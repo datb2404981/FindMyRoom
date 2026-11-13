@@ -14,9 +14,15 @@ import {
   matchesFilters,
   searchQueryError,
 } from "../search-filters";
-import { publicRentals, searchableText } from "../listings";
+import { publicRentals, publicRoommates, publicHouses, matchesKeyword } from "../listings";
 import { loadRentals } from '../rentals';
-onMounted(() => { loadRentals().catch(() => {}); });
+import { loadRoommates } from '../roommates';
+import { loadHouses } from '../houses';
+onMounted(() => {
+  loadRentals().catch(() => {});
+  loadRoommates().catch(() => {});
+  loadHouses().catch(() => {});
+});
 
 const route = useRoute(),
   router = useRouter();
@@ -25,7 +31,7 @@ const keyword = ref(""),
 const filterControl = ref(null);
 const featuredTrack = ref(null),
   locationTrack = ref(null);
-const pageSize = 8;
+const pageSize = 1;
 const isMobile = ref(false),
   mobileLimit = ref(pageSize),
   loadMoreTrigger = ref(null);
@@ -91,14 +97,14 @@ const hasCriteria = computed(() =>
 );
 const appliedFilters = computed(() => filtersFromQuery(route.query));
 const appliedKeyword = computed(() =>
-  searchableText({
-    title: typeof route.query.q === "string" ? route.query.q.trim() : "",
-  }),
+  typeof route.query.q === "string" ? route.query.q.trim() : "",
 );
 const rentals = computed(() => {
   const listings = new Map(publicRentals(state.posts).map((room) => [room.id, room]));
   return [...listings.values()].filter((room) => room.status === "Còn phòng");
 });
+const roommates = computed(() => publicRoommates(state.posts));
+const houses = computed(() => publicHouses(rentals.value));
 const priceOrder = computed(() =>
   ["asc", "desc"].includes(route.query.sort) ? route.query.sort : "",
 );
@@ -119,20 +125,57 @@ function matching(listings) {
   return listings.filter(
     (listing) =>
       matchesFilters(listing, appliedFilters.value) &&
-      (!appliedKeyword.value || searchableText(listing).includes(appliedKeyword.value)),
+      matchesKeyword(listing, appliedKeyword.value),
   );
 }
-const groups = computed(() => [
-  {
-    id: "rentals",
-    title: "Phòng cho thuê",
-    icon: "home",
-    items: matching(rentals.value),
-    empty: "Chưa có phòng cho thuê phù hợp với tìm kiếm này.",
-  },
-]);
+const groups = computed(() => {
+  if (!isSearching.value) {
+    return [
+      {
+        id: "rentals",
+        title: "Phòng cho thuê",
+        summaryLabel: "phòng cho thuê",
+        icon: "home",
+        items: rentals.value,
+        empty: "Chưa có phòng cho thuê phù hợp với tìm kiếm này.",
+      },
+    ];
+  }
+  return [
+    {
+      id: "rentals",
+      title: "Phòng cho thuê",
+      summaryLabel: "phòng cho thuê",
+      icon: "home",
+      items: matching(rentals.value),
+      empty: "Chưa có phòng cho thuê phù hợp với tìm kiếm này.",
+    },
+    {
+      id: "roommates",
+      title: "Phòng ghép trọ",
+      summaryLabel: "phòng ghép trọ",
+      icon: "users",
+      items: matching(roommates.value),
+      empty: "Chưa có phòng ghép trọ phù hợp với tìm kiếm này.",
+    },
+    {
+      id: "houses",
+      title: "Nhà trọ",
+      summaryLabel: "nhà trọ",
+      icon: "building",
+      items: matching(houses.value),
+      empty: "Chưa có nhà trọ phù hợp với tìm kiếm này.",
+    },
+  ].filter((group) => group.items.length > 0);
+});
 const resultCount = computed(() =>
   groups.value.reduce((count, group) => count + group.items.length, 0),
+);
+const maxGroupCount = computed(() =>
+  Math.max(0, ...groups.value.map((group) => group.items.length)),
+);
+const resultSummary = computed(() =>
+  groups.value.map((group) => `${group.items.length} ${group.summaryLabel}`).join(", "),
 );
 const pageCount = computed(() =>
   Math.max(1, ...groups.value.map((group) => Math.ceil(group.items.length / pageSize))),
@@ -150,10 +193,12 @@ const pageNumbers = computed(() => {
 const visibleGroups = computed(() =>
   groups.value.map((group) => {
     const items = priceOrder.value
-      ? [...group.items].sort(
-          (a, b) =>
-            (Number(a.price) - Number(b.price)) * (priceOrder.value === "asc" ? 1 : -1),
-        )
+      ? [...group.items].sort((a, b) => {
+          const fallback = priceOrder.value === "asc" ? Infinity : -Infinity;
+          const pa = a.price == null ? fallback : Number(a.price);
+          const pb = b.price == null ? fallback : Number(b.price);
+          return (pa - pb) * (priceOrder.value === "asc" ? 1 : -1);
+        })
       : group.items;
     return {
       ...group,
@@ -322,8 +367,7 @@ function goToPage(page) {
           <h2>{{ isSearching ? "Kết quả tìm kiếm" : "Danh sách phòng trọ" }}</h2>
           <p v-if="isSearching && !queryError && resultCount" class="muted" role="status">
             {{
-              resultCount +
-              " phòng cho thuê" +
+              resultSummary +
               (route.query.q ? " cho “" + route.query.q + "”" : "") +
               "."
             }}
@@ -333,10 +377,12 @@ function goToPage(page) {
           <button
             v-if="hasCriteria && resultCount && !queryError"
             type="button"
-            class="text-button"
+            class="clear-filters-button"
+            aria-label="Xóa bộ lọc"
+            title="Xóa bộ lọc"
             @click="reset"
           >
-            Xóa bộ lọc
+            <Icon name="back" :size="20" />
           </button>
         </div>
       </div>
@@ -415,7 +461,7 @@ function goToPage(page) {
           </p>
         </section>
         <button
-          v-if="isMobile && mobileLimit < resultCount"
+          v-if="isMobile && mobileLimit < maxGroupCount"
           ref="loadMoreTrigger"
           type="button"
           class="button secondary mobile-load-more"
@@ -596,7 +642,7 @@ function goToPage(page) {
 }
 @media (hover: none) {
   .featured-arrow {
-    opacity: 1;
+    pointer-events: none;
   }
 }
 .featured-track {
@@ -667,8 +713,25 @@ function goToPage(page) {
   font-size: 14px;
   line-height: 1.5;
 }
-.home-listings-heading .text-button {
-  flex-shrink: 0;
+.clear-filters-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--cream);
+  color: var(--ink);
+  cursor: pointer;
+}
+.clear-filters-button:hover {
+  background: var(--cream-deep);
+}
+.clear-filters-button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
 }
 .home-listings-actions {
   display: flex;
@@ -741,7 +804,8 @@ function goToPage(page) {
 }
 .home-listing-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 320px);
+  justify-content: center;
   gap: 20px;
 }
 .group-empty {
@@ -830,11 +894,6 @@ function goToPage(page) {
   }
   .home-listing-grid {
     gap: 14px;
-  }
-}
-@media (max-width: 800px) {
-  .home-listing-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 @media (max-width: 600px) {

@@ -418,5 +418,19 @@
     "is_active": true,
     "provider": "local",
     "created_at": "2026-11-06T14:44:31.347Z"
+  },
+  {
+    "account_id": "1c9c77fc-97fc-4811-b33c-dfb38ced855c",
+    "full_name": "nguyễn văn đẹt",
+    "email": "det7092006@gmail.com",
+    "password": "scrypt:ad49fec98ec8ae1baa0132cd3548dc65:894968f465f2779ddd25ae795101456b51ab05f31c1d5390937ceb2ecc8c4cb01f52c813eec8f79bdba7035f6dc8510bc8d27820a0294886e9532423d7a06a43",
+    "phone": "0923456789",
+    "avatar_url": null,
+    "role": "landlord",
+    "zalo_phone": "0923456789",
+    "zalo_url": null,
+    "is_active": true,
+    "provider": "local",
+    "created_at": "2026-11-13T02:48:11.505Z"
   }
 ]

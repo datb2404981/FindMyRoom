@@ -15,22 +15,32 @@ import rawUnis from '../data/university.json'
 import rawReviews from '../data/review.json'
 import rawReviewImages from '../data/review_image.json'
 
-const amenityMap = new Map(rawAmenities.map(a => [a.amenity_id, a.amenity_name]))
+const amenityMap = new Map(rawAmenities.map(a => [a.amenity_id, a]))
 const houseMap = new Map(rawHouses.map(h => [h.boarding_house_id, h]))
 const houseImagesMap = new Map(rawHouseImages.map(h => [h.boarding_house_id, h.images_url]))
 const roomImagesMap = new Map(rawRoomImages.map(r => [r.room_post_id, r.images_url]))
 const roomAmenitiesMap = new Map()
+const roomNearbyMap = new Map()
+const roomLifestylesMap = new Map()
 for (const ra of rawRoomAmenities) {
-  if (!roomAmenitiesMap.has(ra.room_post_id)) roomAmenitiesMap.set(ra.room_post_id, [])
-  const name = amenityMap.get(ra.amenity_id)
-  if (name && !roomAmenitiesMap.get(ra.room_post_id).includes(name)) roomAmenitiesMap.get(ra.room_post_id).push(name)
+  const amenity = amenityMap.get(ra.amenity_id)
+  if (!amenity) continue
+  const target = amenity.category === 'Tiện ích ngoại khu'
+    ? roomNearbyMap
+    : amenity.category === 'Khác'
+      ? roomLifestylesMap
+      : roomAmenitiesMap
+  if (!target.has(ra.room_post_id)) target.set(ra.room_post_id, [])
+  if (!target.get(ra.room_post_id).includes(amenity.amenity_name)) {
+    target.get(ra.room_post_id).push(amenity.amenity_name)
+  }
 }
 
 const roommateImagesMap = new Map(rawRoommateImages.map(r => [r.roommate_post_id, r.images_url]))
 const roommateAmenitiesMap = new Map()
 for (const ra of rawRoommateAmenities) {
   if (!roommateAmenitiesMap.has(ra.roommate_post_id)) roommateAmenitiesMap.set(ra.roommate_post_id, [])
-  const name = amenityMap.get(ra.amenity_id)
+  const name = amenityMap.get(ra.amenity_id)?.amenity_name
   if (name && !roommateAmenitiesMap.get(ra.roommate_post_id).includes(name)) roommateAmenitiesMap.get(ra.roommate_post_id).push(name)
 }
 
@@ -86,16 +96,33 @@ export const districts = [
   'Vĩnh Thạnh',
 ]
 
-export const boardingHouses = rawHouses.map((h, i) => {
+function normalizeDistrictText(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/gi, 'd')
+    .toLowerCase()
+}
+
+export function extractDistrict(address) {
+  const normalized = normalizeDistrictText(address)
+  return districts.find(district => normalized.includes(normalizeDistrictText(district))) || ''
+}
+
+export const boardingHouses = rawHouses.map((h) => {
   const images = houseImagesMap.get(h.boarding_house_id) || []
+  const landlord = accountMap.get(h.account_id) || {}
   return {
-    id: i === 0 ? 'minh-an' : h.boarding_house_id,
+    id: h.boarding_house_id,
     code: h.boarding_house_id,
-    name: i === 0 ? 'Nhà trọ Minh An' : h.house_name,
+    name: h.house_name,
     address: h.house_address,
+    district: extractDistrict(h.house_address),
     rooms: 36,
     status: 'Đang hoạt động',
     desc: h.rules || 'Trọ sạch sẽ, thoáng mát, an ninh tốt',
+    rules: h.rules || '',
+    owner: landlord.full_name || '',
     image: images[0] || '/illustrations/room-1.svg',
     images: images.length ? images : ['/illustrations/room-1.svg'],
     latitude: h.house_latitude,
@@ -135,97 +162,45 @@ export const rooms = rawRoomPosts.map((r, i) => {
   const landlord = accountMap.get(house.account_id) || {}
   const rawImages = roomImagesMap.get(r.room_post_id) || []
   const postAmenities = roomAmenitiesMap.get(r.room_post_id) || []
-  const district = roomDistricts[i] || 'Ninh Kiều'
+  const postNearby = roomNearbyMap.get(r.room_post_id) || []
+  const postLifestyles = roomLifestylesMap.get(r.room_post_id) || []
+  const address = house.house_address || ''
+  const district = extractDistrict(address)
   const schoolIds = roomSchoolIds[i] || ['ctu']
-
-  let id = i === 0 ? 'minh-an' : (i === 1 ? 'an-binh' : (i === 2 ? 'hung-phu' : (i === 3 ? 'binh-thuy' : r.room_post_id.toLowerCase())))
-  let title = r.room_post_title
-  let houseName = house.house_name || 'Nhà trọ'
-  let houseId = house.boarding_house_id || id
-  let address = house.house_address || ''
-  let price = r.room_post_price
-  let area = r.room_post_area
-  let people = r.max_occupants || 2
-  let desc = r.room_post_description || ''
-  let amenitiesList = [...postAmenities]
-  let count = i === 0 ? 3 : (i === 1 ? 2 : 1)
-
-  // Ensure room 0 has at least 4 photos for gallery counter test
-  let images = [...rawImages]
-  if (i === 0 && images.length < 4) {
-    images = [
-      ...images,
-      'https://images.pexels.com/photos/10649527/pexels-photo-10649527.jpeg',
-      'https://images.pexels.com/photos/20854915/pexels-photo-20854915.jpeg',
-    ].slice(0, 4)
-  }
-
-  if (i === 0) {
-    title = 'Phòng có gác, gần Đại học Cần Thơ'
-    houseName = 'Nhà trọ Minh An'
-    houseId = 'minh-an'
-    address = 'Hẻm 51, đường 3/2, Xuân Khánh, Ninh Kiều, Cần Thơ'
-    price = 1800000
-    area = 24
-    amenitiesList = ['Wifi tốc độ cao', 'Nhà xe', 'Camera 24/7', 'Giường/nệm']
-    desc = 'Phòng thoáng, có gác lửng và cửa sổ. Khu trọ yên tĩnh, phù hợp cho sinh viên. Đi bộ đến trường và chợ Xuân Khánh.'
-    count = 3
-  } else if (i === 1) {
-    title = 'Phòng studio sáng thoáng, đầy đủ tiện nghi'
-    houseName = 'Nhà trọ An Bình'
-    houseId = 'an-binh'
-    address = 'Nguyễn Văn Cừ nối dài, An Bình, Ninh Kiều, Cần Thơ'
-    price = 2700000
-    area = 30
-    people = 3
-    amenitiesList = ['Máy lạnh', 'Wifi tốc độ cao', 'Tủ lạnh', 'Nhà xe']
-    desc = 'Studio có bếp riêng, cửa sổ lớn, chỗ để xe an toàn. Gần Đại học Y Dược và siêu thị.'
-    count = 2
-  } else if (i === 2) {
-    title = 'Phòng trọ có ban công tại Hưng Phú'
-    houseName = 'Nhà trọ Hưng Phú'
-    houseId = 'hung-phu'
-    address = 'Đường B5, Hưng Phú, Cái Răng, Cần Thơ'
-    price = 2200000
-    area = 28
-    amenitiesList = ['Nhà xe', 'Giờ giấc tự do', 'Wifi tốc độ cao', 'Máy giặt']
-    desc = 'Phòng có ban công và khu bếp. Khu dân cư an ninh, giờ giấc tự do, chủ trọ thân thiện.'
-  } else if (i === 3) {
-    title = 'Phòng gác lửng trong khu trọ yên tĩnh Bình Thủy'
-    houseName = 'Nhà trọ Bình Thủy'
-    houseId = 'binh-thuy'
-    address = 'Lê Hồng Phong, Bình Thủy, Cần Thơ'
-    price = 1500000
-    area = 22
-    amenitiesList = ['Wifi tốc độ cao', 'Nhà xe', 'Camera 24/7']
-    desc = 'Phòng sạch sẽ, gác rộng, có khu phơi đồ. Phù hợp với sinh viên cần không gian học tập yên tĩnh.'
-  }
+  const id = r.room_post_id.toLowerCase()
+  const price = r.room_post_price
+  const images = rawImages.length ? [...rawImages] : [`/illustrations/room-${(i % 4) + 1}.svg`]
+  const status = rentalStatus(r)
 
   return {
     id,
     roomPostId: r.room_post_id,
     schoolIds,
-    title,
-    house: houseName,
-    houseId,
+    title: r.room_post_title,
+    house: house.house_name || 'Nhà trọ',
+    houseId: house.boarding_house_id || r.boarding_house_id || id,
     price,
-    area,
-    people,
+    area: r.room_post_area,
+    people: r.max_occupants || 2,
     district,
     address,
-    amenities: amenitiesList,
-    image: images[0] || `/illustrations/room-${(i % 4) + 1}.svg`,
-    images: images.length ? images : [`/illustrations/room-${(i % 4) + 1}.svg`],
-    status: rentalStatus(r),
-    desc,
+    amenities: postAmenities,
+    nearby: postNearby,
+    lifestyles: postLifestyles,
+    image: images[0],
+    images,
+    status,
+    desc: r.room_post_description || '',
+    rules: house.rules || '',
     water: r.room_post_water_price || 18000,
     electric: r.room_post_electronic_price || 3500,
     deposit: r.deposit || price,
-    count,
+    count: r.count ?? (status === 'Hết phòng' ? 0 : 1),
     internet: r.room_post_internet_price || 100000,
     other: r.room_post_other_service_fee || '',
     curfew: r.curfew || null,
     ownerId: house.account_id || null,
+    owner: landlord.full_name || '',
     phone: landlord.phone || '',
     zaloPhone: landlord.zalo_phone || '',
   }
@@ -320,12 +295,16 @@ export const people = rawStudents.map((s, i) => {
     }
   }
 
+  const rawImages = roommateImagesMap.get(roommatePost.roommate_post_id) || []
+  const images = rawImages.length ? [...rawImages] : [image]
+
   return {
     id,
     studentCode: s.student_code,
     status: rentalStatus(roommatePost),
     title,
-    image,
+    image: images[0],
+    images,
     name,
     age,
     school,
@@ -333,6 +312,11 @@ export const people = rawStudents.map((s, i) => {
     gender,
     price,
     district,
+    address: roommatePost.current_address || '',
+    hobbies: roommatePost.hobbies || '',
+    vacancies: roommatePost.vacancies ?? 1,
+    other: roommatePost.other_service_fee || '',
+    moveIn: roommatePost.move_in_date || '',
     tags: [...new Set(tags)],
     bio,
     color: pastelColors[i % pastelColors.length],

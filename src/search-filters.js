@@ -54,8 +54,8 @@ export function queryFromFilters(filters, keyword = '') {
 export function matchesFilters(room, filters) {
   return (!filters.school || room.schoolIds?.includes(filters.school)) &&
     (!filters.district || room.district === filters.district) &&
-    (!filters.prices.length || priceRanges.some(range => filters.prices.includes(range.id) && room.price >= range.min && room.price < range.max)) &&
-    filters.amenities.every(amenity => room.amenities.includes(amenity))
+    (!filters.prices.length || (room.price != null && Number.isFinite(Number(room.price)) && priceRanges.some(range => filters.prices.includes(range.id) && room.price >= range.min && room.price < range.max))) &&
+    filters.amenities.every(amenity => room.amenities?.includes(amenity))
 }
 
 export function searchQueryError(query) {

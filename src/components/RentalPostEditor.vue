@@ -27,7 +27,12 @@ const dragging = ref(false)
 let dragDepth = 0
 function dragEnter() { dragDepth++; dragging.value = true }
 function dragLeave() { dragDepth = Math.max(0, dragDepth - 1); dragging.value = dragDepth > 0 }
-const tabs = [{ id: 'general', label: 'Thông tin chung', icon: 'info' }, { id: 'images', label: 'Hình ảnh', icon: 'images' }, { id: 'amenities', label: 'Tiện ích', icon: 'grid' }]
+const tabs = [
+  { id: 'general', label: 'Thông tin chung', icon: 'info' },
+  { id: 'address', label: 'Địa chỉ', icon: 'pin' },
+  { id: 'images', label: 'Hình ảnh', icon: 'images' },
+  { id: 'amenities', label: 'Tiện ích', icon: 'grid' },
+]
 const numericFields = roommate ? [
   ['people', 'Số người cần tìm', 1, true], ['area', 'Diện tích (m²)', 1, true],
   ['price', 'Tiền trọ (đ)', 1, true], ['perPerson', 'Dự kiến giá/người (đ)', 1, true],
@@ -47,9 +52,10 @@ const amenityGroups = computed(() => [
 for (const key of ['amenities', 'nearby', 'lifestyles']) form[key] ||= []
 const houseOptions = computed(() => {
   const houses = [...state.houses]
-  if (form.houseId && !houses.some(h => h.id === form.houseId)) houses.push({ id: form.houseId, name: props.post.house || 'Nhà trọ hiện tại' })
+  if (form.houseId && !houses.some(h => h.id === form.houseId)) houses.push({ id: form.houseId, name: props.post.house || 'Nhà trọ hiện tại', address: props.post.address || '' })
   return houses
 })
+const selectedHouseAddress = computed(() => houseOptions.value.find(h => h.id === form.houseId)?.address || form.address || '')
 form.status = rentalStatus(form)
 let previousOverflow
 onMounted(() => { previousOverflow = document.body.style.overflow; document.body.style.overflow = 'hidden'; if (roommate) loadHouses().catch(() => {}) })
@@ -86,6 +92,7 @@ async function save() {
   if (!form.title?.trim()) errors.title = 'Vui lòng nhập tiêu đề bài đăng.'
   if (!roommate && !form.houseId) errors.houseId = 'Vui lòng chọn nhà trọ.'
   if (roommate && form.houseId && !houseDirectory.houses.some(house => house.id === form.houseId && house.status === 'Đang hoạt động')) errors.houseId = 'Vui lòng chọn lại nhà trọ trong danh sách của chủ trọ.'
+  if (roommate && !form.address?.trim()) errors.address = 'Vui lòng nhập địa chỉ.'
   if (roommate && !['Tất cả', 'Nam', 'Nữ'].includes(form.gender)) errors.gender = 'Vui lòng chọn đối tượng.'
   if (roommate && !/^\d{4}-\d{2}-\d{2}$/.test(form.moveIn || '')) errors.moveIn = 'Vui lòng chọn ngày có thể chuyển vào.'
   for (const [key, , min, required] of numericFields) {
@@ -93,10 +100,12 @@ async function save() {
     if ((required && missing) || (!missing && (!Number.isFinite(Number(form[key])) || Number(form[key]) < min))) errors[key] = `Vui lòng nhập số từ ${min} trở lên.`
     if (!missing && ['area', 'count', 'people'].includes(key) && !Number.isInteger(Number(form[key]))) errors[key] = 'Vui lòng nhập số nguyên.'
   }
-  if (Object.keys(errors).length) {
-    tab.value = 'general'
+  const errorKeys = Object.keys(errors)
+  if (errorKeys.length) {
+    const addressErrorKeys = new Set(['houseId', 'address'])
+    tab.value = errorKeys.every(key => addressErrorKeys.has(key)) ? 'address' : 'general'
     await nextTick()
-    document.querySelector('.rental-editor [aria-invalid="true"]')?.focus()
+    document.querySelector(`.rental-editor [data-tab="${tab.value}"] [aria-invalid="true"]`)?.focus()
     return
   }
   if (!photos.value.length) { tab.value = 'images'; imageError.value = 'Giữ lại ít nhất một ảnh cho bài đăng.'; return }
@@ -117,7 +126,14 @@ async function save() {
     updated.house = house.name
     updated.curfew = form.curfew || null
     if (form.houseId !== props.post.houseId && house.address) updated.address = house.address
-  } else if (form.house !== props.post.house) updated.houseId = ''
+  } else {
+    updated.address = (form.address || '').trim()
+    const linkedHouse = houseDirectory.houses.find(item => item.id === form.houseId)
+    if (linkedHouse && updated.address !== (linkedHouse.address || '').trim()) {
+      updated.houseId = ''
+      updated.house = ''
+    }
+  }
   for (const [key] of numericFields) if (form[key] !== '' && form[key] != null) updated[key] = Number(form[key])
   if (roommate) updated.totalRent = updated.price
   emit('save', updated)
@@ -142,24 +158,31 @@ async function save() {
             <button type="button" class="icon-button" aria-label="Đóng chỉnh sửa bài đăng" @click="emit('close')"><Icon name="close"/></button>
           </header>
           <form id="rental-edit-form" class="editor-content" novalidate @submit.prevent="save">
-            <div v-show="tab === 'general'" class="editor-grid">
+            <div v-show="tab === 'general'" data-tab="general" class="editor-grid">
               <label class="field title-field"><span>Tiêu đề bài đăng *</span><input v-model="form.title" aria-label="Tiêu đề bài đăng *" maxlength="100" :aria-invalid="!!errors.title"><small v-if="errors.title" class="error">{{ errors.title }}</small></label>
               <div class="field status-field"><span>Trạng thái</span><AppDropdown v-model="form.status" label="Trạng thái" :options="statuses" /></div>
               <template v-if="roommate">
                 <div class="field"><span>Đối tượng (nam/nữ) *</span><AppDropdown v-model="form.gender" label="Đối tượng (nam/nữ) *" :options="['Tất cả', 'Nam', 'Nữ']" :invalid="!!errors.gender"/><small v-if="errors.gender" class="error">{{ errors.gender }}</small></div>
                 <div class="field"><span>Trường đại học nhắm tới</span><AppDropdown v-model="form.school" label="Trường đại học nhắm tới" :options="universityOptions"/></div>
                 <label class="field"><span>Ngày có thể chuyển vào *</span><input v-model="form.moveIn" type="date" :aria-invalid="!!errors.moveIn"><small v-if="errors.moveIn" class="error">{{ errors.moveIn }}</small></label>
-                <div class="field full-width"><span>Nhà trọ</span><AppDropdown :model-value="form.houseId || ''" @update:model-value="selectRoommateHouse" label="Nhà trọ" :options="roommateHouseOptions" :invalid="!!errors.houseId" :disabled="houseDirectory.loading"/><small v-if="houseDirectory.error || errors.houseId" class="error">{{ houseDirectory.error || errors.houseId }}</small></div>
-                <label class="field full-width"><span>Địa chỉ</span><input v-model="form.address"></label>
               </template>
               <template v-else>
-                <div class="field"><span>Chọn nhà trọ *</span><AppDropdown v-model="form.houseId" label="Chọn nhà trọ *" :invalid="!!errors.houseId" :options="[{ value: '', label: 'Chọn nhà trọ' }, ...houseOptions.map(h => ({ value: h.id, label: h.name }))]" /><small v-if="errors.houseId" class="error">{{ errors.houseId }}</small></div>
                 <label class="field"><span>Giờ giấc</span><input v-model="form.curfew" type="time"><small class="help">Để trống nếu giờ giấc tự do.</small></label>
               </template>
               <label v-for="[key, label, min, required] in numericFields" :key="key" class="field"><span>{{ label }}{{ required ? ' *' : '' }}</span><input v-model="form[key]" :aria-label="label+(required ? ' *' : '')" type="number" :min="min" :step="['area', 'count', 'people'].includes(key) ? 1 : 'any'" :aria-invalid="!!errors[key]"><small v-if="errors[key]" class="error">{{ errors[key] }}</small></label>
               <label class="field full-width"><span>Chi phí khác</span><input v-model="form.other" placeholder="Ví dụ: Giữ xe 50.000đ; rác 20.000đ"></label>
               <label class="field full-width"><span>Mô tả chi tiết phòng</span><textarea v-model="form.desc" rows="4"/></label>
               <label v-if="roommate" class="field full-width"><span>Thói quen sống / lưu ý khác</span><textarea v-model="form.habits" rows="3"/></label>
+            </div>
+            <div v-show="tab === 'address'" data-tab="address" class="editor-grid">
+              <template v-if="roommate">
+                <div class="field full-width"><span>Nhà trọ</span><AppDropdown :model-value="form.houseId || ''" @update:model-value="selectRoommateHouse" label="Nhà trọ" :options="roommateHouseOptions" :invalid="!!errors.houseId" :disabled="houseDirectory.loading"/><small v-if="houseDirectory.error || errors.houseId" class="error">{{ houseDirectory.error || errors.houseId }}</small><small v-else class="help">Chọn nhà trọ trong hệ thống để tự động điền địa chỉ hoặc nhập địa chỉ thủ công bên dưới.</small></div>
+                <label class="field full-width"><span>Địa chỉ *</span><input v-model="form.address" aria-label="Địa chỉ *" placeholder="Ví dụ: 123 đường 3/2, Ninh Kiều, Cần Thơ" :aria-invalid="!!errors.address"><small v-if="errors.address" class="error">{{ errors.address }}</small></label>
+              </template>
+              <template v-else>
+                <div class="field full-width"><span>Chọn nhà trọ *</span><AppDropdown v-model="form.houseId" label="Chọn nhà trọ *" :invalid="!!errors.houseId" :options="[{ value: '', label: 'Chọn nhà trọ' }, ...houseOptions.map(h => ({ value: h.id, label: h.name }))]" /><small v-if="errors.houseId" class="error">{{ errors.houseId }}</small></div>
+                <label class="field full-width"><span>Địa chỉ</span><input :value="selectedHouseAddress" readonly aria-label="Địa chỉ"><small class="help">Địa chỉ được lấy tự động từ nhà trọ đã chọn.</small></label>
+              </template>
             </div>
             <div v-show="tab === 'images'">
               <p class="muted editor-intro">Ảnh đầu tiên là ảnh bìa. Bạn có thể đặt ảnh khác làm ảnh bìa trước khi lưu.</p>
@@ -247,8 +270,8 @@ async function save() {
   .rental-editor { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); height: calc(100dvh - 24px); border-radius: 14px; }
   .editor-sidebar { padding: 10px; border-right: 0; border-bottom: 1px solid var(--line); }
   .editor-brand { display: none; }
-  .editor-sidebar nav { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
-  .editor-sidebar nav button { justify-content: center; gap: 5px; padding: 10px 4px; font-size: 12px; }
+  .editor-sidebar nav { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  .editor-sidebar nav button { justify-content: center; gap: 6px; min-height: 44px; padding: 8px 10px; font-size: 12px; }
   .editor-sidebar nav button svg { width: 16px; flex-shrink: 0; }
   .editor-header { padding: 16px 18px; }
   .editor-header h2 { font-size: 20px; }

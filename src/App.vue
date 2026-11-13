@@ -37,7 +37,6 @@ watch(
         "/ghep-tro": "Tìm bạn ở ghép",
         "/tim-tro": "Tìm phòng trọ",
         "/huong-dan": "Hướng dẫn sử dụng",
-        "/wireframes": "Đối chiếu wireframe",
       }[route.path] || "Không gian của bạn");
   },
 );
@@ -231,12 +230,11 @@ function onPostClick() {
         <RouterLink to="/dang-nhap">Đăng nhập</RouterLink>
         <RouterLink to="/dang-ky">Đăng ký</RouterLink>
       </template>
-      <RouterLink to="/wireframes">Đối chiếu wireframe</RouterLink>
     </nav>
   </header>
   <p v-if="logoutError" class="container notice" role="alert">{{ logoutError }}</p>
   <main id="main" tabindex="-1"><RouterView @role-step="isAuthRoleStep = $event" /></main>
-  <footer v-if="route.path !== '/wireframes' && !isAuthRoleStep" class="site-footer">
+  <footer v-if="!isAuthRoleStep" class="site-footer">
     <div class="container footer-grid">
       <div>
         <RouterLink
@@ -304,6 +302,11 @@ function onPostClick() {
       to="/dang-bai/roommate"
       @click="onPostClick"
       ><Icon name="plus" /><span>Đăng bài</span></RouterLink
+    ><RouterLink
+      v-if="state.user?.role !== 'landlord' && canManagePosts"
+      to="/quan-ly/bai-dang"
+      aria-label="Quản lý bài đăng"
+      ><Icon name="grid" /><span>Quản lý</span></RouterLink
     ><RouterLink :to="state.user ? '/ho-so' : '/dang-nhap'"
       ><Icon name="user" /><span>{{
         state.user ? "Hồ sơ" : "Đăng nhập"

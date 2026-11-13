@@ -30,13 +30,20 @@ const defaults = () => ({
   posts: rooms.slice(0, 3).map((room) => ({ ...room, kind: "rental" })),
   drafts: { roommate: {}, rental: {} },
 });
+const legacySamplePostIds = new Set(["minh-an", "an-binh", "hung-phu", "binh-thuy"]);
+const roomsById = new Map(rooms.map((room) => [room.id, room]));
 async function savedData(storageKey) {
   try {
     const saved = await readBrowserData(storageKey);
     delete saved.favorites;
-    if (Array.isArray(saved.posts)) saved.posts = saved.posts.map(post =>
-      ['rental', 'roommate'].includes(post.kind || 'rental') && post.status !== 'Bản nháp' ? { ...post, status: rentalStatus(post) } : post,
-    );
+    if (Array.isArray(saved.posts)) saved.posts = saved.posts
+      .filter(post => !(legacySamplePostIds.has(post.id) && (!post.ownerId || /^ACC\d+$/.test(post.ownerId))))
+      .map(post => {
+        if (roomsById.has(post.id) && (!post.ownerId || /^ACC\d+$/.test(post.ownerId))) {
+          return { ...roomsById.get(post.id), kind: 'rental' };
+        }
+        return ['rental', 'roommate'].includes(post.kind || 'rental') && post.status !== 'Bản nháp' ? { ...post, status: rentalStatus(post) } : post;
+      });
     return saved;
   } catch {
     return {};

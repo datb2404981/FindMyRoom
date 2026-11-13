@@ -127,5 +127,14 @@
     "house_image_id": "a2e894d6-711f-4c46-8b75-52920e31bb4d",
     "boarding_house_id": "house-1793885427322",
     "images_url": []
+  },
+  {
+    "house_image_id": "c28eda8f-6f6b-4ac5-a3bb-f1c919f6443c",
+    "boarding_house_id": "minh-an",
+    "images_url": [
+      "https://images.pexels.com/photos/6444255/pexels-photo-6444255.jpeg",
+      "https://images.pexels.com/photos/7533839/pexels-photo-7533839.jpeg",
+      "https://images.pexels.com/photos/34961506/pexels-photo-34961506.jpeg"
+    ]
   }
 ]
