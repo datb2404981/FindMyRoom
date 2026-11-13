@@ -2,6 +2,7 @@
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
 import Icon from './Icon.vue'
 import AppDropdown from './AppDropdown.vue'
+import MoneyInput from './MoneyInput.vue'
 import { amenities, nearby, lifestyles } from '../data'
 import { state } from '../store'
 import { rentalStatuses as statuses, rentalStatus } from '../rental-status'
@@ -13,6 +14,15 @@ const props = defineProps({ post: { type: Object, required: true }, saveError: {
 const emit = defineEmits(['close', 'save'])
 const form = reactive(JSON.parse(JSON.stringify(props.post)))
 const roommate = props.post.kind === 'roommate'
+const moneyFields = new Set(['price', 'perPerson', 'electric', 'water', 'internet', 'deposit'])
+for (const key of ['people', 'area', 'count']) {
+  if (form[key] == null || form[key] === '' || Number(form[key]) < 1) form[key] = 1
+}
+function updatePositiveNumber(key, event) {
+  const value = event.target.value
+  form[key] = value === '' ? '' : Math.max(1, Number(value))
+  if (value !== '' && Number(value) < 1) event.target.value = '1'
+}
 const universityOptions = computed(() => [...new Set([...universities.map(item => item.university_name), form.school].filter(Boolean))])
 const roommateHouseOptions = computed(() => [{ value: '', label: 'Không chọn nhà trọ' }, ...houseDirectory.houses.filter(house => house.status === 'Đang hoạt động').map(house => ({ value: house.id, label: `${house.name} · ${house.address}` }))])
 function selectRoommateHouse(id) {
@@ -39,7 +49,7 @@ const numericFields = roommate ? [
   ['electric', 'Tiền điện (đ/kWh)', 1, true], ['water', 'Tiền nước (đ/m³)', 1, true],
   ['internet', 'Tiền internet (đ/tháng)', 0, false],
 ] : [
-  ['people', 'Số người tối đa', 1, true], ['count', 'Số phòng còn lại', 0, true],
+  ['people', 'Số người tối đa', 1, true], ['count', 'Số phòng còn lại', 1, true],
   ['price', 'Giá thuê (đ/tháng)', 1, true], ['area', 'Diện tích (m²)', 1, true],
   ['electric', 'Giá điện (đ/kWh)', 1, true], ['water', 'Giá nước (đ/m³)', 1, true],
   ['internet', 'Tiền internet (đ/tháng)', 0, false], ['deposit', 'Tiền cọc (đ)', 0, false],
@@ -169,7 +179,12 @@ async function save() {
               <template v-else>
                 <label class="field"><span>Giờ giấc</span><input v-model="form.curfew" type="time"><small class="help">Để trống nếu giờ giấc tự do.</small></label>
               </template>
-              <label v-for="[key, label, min, required] in numericFields" :key="key" class="field"><span>{{ label }}{{ required ? ' *' : '' }}</span><input v-model="form[key]" :aria-label="label+(required ? ' *' : '')" type="number" :min="min" :step="['area', 'count', 'people'].includes(key) ? 1 : 'any'" :aria-invalid="!!errors[key]"><small v-if="errors[key]" class="error">{{ errors[key] }}</small></label>
+              <div v-for="[key, label, min, required] in numericFields" :key="key" class="field">
+                <span>{{ label }}{{ required ? ' *' : '' }}</span>
+                <MoneyInput v-if="moneyFields.has(key)" v-model="form[key]" :label="label + (required ? ' *' : '')" :invalid="!!errors[key]" />
+                <input v-else :value="form[key]" :aria-label="label + (required ? ' *' : '')" type="number" min="1" step="1" :aria-invalid="!!errors[key]" @input="updatePositiveNumber(key, $event)" @blur="form[key] = form[key] === '' ? 1 : Math.max(1, Number(form[key]))">
+                <small v-if="errors[key]" class="error">{{ errors[key] }}</small>
+              </div>
               <label class="field full-width"><span>Chi phí khác</span><input v-model="form.other" placeholder="Ví dụ: Giữ xe 50.000đ; rác 20.000đ"></label>
               <label class="field full-width"><span>Mô tả chi tiết phòng</span><textarea v-model="form.desc" rows="4"/></label>
               <label v-if="roommate" class="field full-width"><span>Thói quen sống / lưu ý khác</span><textarea v-model="form.habits" rows="3"/></label>
@@ -270,8 +285,8 @@ async function save() {
   .rental-editor { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); height: calc(100dvh - 24px); border-radius: 14px; }
   .editor-sidebar { padding: 10px; border-right: 0; border-bottom: 1px solid var(--line); }
   .editor-brand { display: none; }
-  .editor-sidebar nav { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-  .editor-sidebar nav button { justify-content: center; gap: 6px; min-height: 44px; padding: 8px 10px; font-size: 12px; }
+  .editor-sidebar nav { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; }
+  .editor-sidebar nav button { justify-content: center; gap: 3px; min-width: 0; min-height: 44px; padding: 6px 2px; font-size: 10px; }
   .editor-sidebar nav button svg { width: 16px; flex-shrink: 0; }
   .editor-header { padding: 16px 18px; }
   .editor-header h2 { font-size: 20px; }

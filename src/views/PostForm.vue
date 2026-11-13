@@ -5,6 +5,7 @@ import Icon from "../components/Icon.vue";
 import MapPanel from "../components/MapPanel.vue";
 import GenderDropdown from "../components/GenderDropdown.vue";
 import AppDropdown from "../components/AppDropdown.vue";
+import MoneyInput from "../components/MoneyInput.vue";
 import universities from "../../data/university.json";
 import { canThoUrbanWards } from "../data/can-tho-wards";
 import { amenities, nearby, lifestyles, money, boardingHouses } from "../data";
@@ -56,14 +57,13 @@ const systemHouses = computed(() => {
 
 const matchingHouses = computed(() => {
   const q = (draft.house || "").trim().toLowerCase();
-  if (!q) return systemHouses.value.slice(0, 8);
+  if (!q) return systemHouses.value;
   return systemHouses.value
     .filter(
       (h) =>
         h.name.toLowerCase().includes(q) ||
         (h.address && h.address.toLowerCase().includes(q))
-    )
-    .slice(0, 8);
+    );
 });
 
 const selectedHouse = computed(() => {
@@ -162,7 +162,7 @@ const defaults = () => ({
   school: "Đại học Cần Thơ",
   moveIn: "",
   people: 1,
-  area: "",
+  area: 1,
   price: "",
   perPerson: "",
   electric: "",
@@ -170,6 +170,7 @@ const defaults = () => ({
   internet: "",
   other: "",
   deposit: "",
+  curfew: "",
   count: 1,
   houseId: "",
   desc: "",
@@ -185,6 +186,12 @@ const defaults = () => ({
   longitude: null,
 });
 const draft = reactive(defaults());
+const moneyFields = new Set(['price', 'perPerson', 'electric', 'water', 'internet', 'deposit']);
+function updatePositiveNumber(key, event) {
+  const value = event.target.value;
+  draft[key] = value === '' ? '' : Math.max(1, Number(value));
+  if (value !== '' && Number(value) < 1) event.target.value = '1';
+}
 watch(() => draft.houseId, id => {
   if (!rental.value) return;
   const house = systemHouses.value.find(house => house.id === id);
@@ -263,6 +270,9 @@ function load() {
     Object.assign(draft, defaults(), state.drafts[kind.value] || {});
     initialItem.value = null;
   }
+  for (const key of ['area', 'people', 'count']) {
+    if (!Number.isFinite(Number(draft[key])) || Number(draft[key]) < 1) draft[key] = 1;
+  }
 }
 load();
 watch(() => [route.params.kind, route.query.edit], load);
@@ -287,13 +297,16 @@ const isDirty = computed(() => {
     draft.title.trim() !== "" ||
     draft.desc.trim() !== "" ||
     draft.price !== "" ||
-    draft.area !== "" ||
+    Number(draft.area) !== 1 ||
+    Number(draft.people) !== 1 ||
+    Number(draft.count) !== 1 ||
     draft.perPerson !== "" ||
     draft.electric !== "" ||
     draft.water !== "" ||
     draft.internet !== "" ||
     draft.other !== "" ||
     draft.deposit !== "" ||
+    draft.curfew !== "" ||
     draft.street.trim() !== "" ||
     draft.ward !== "" ||
     draft.house.trim() !== "" ||
@@ -387,6 +400,7 @@ const fields = computed(() =>
         ],
         ["houseId", "Chọn nhà trọ", "house", true],
         ["count", "Số lượng phòng", "number", true],
+        ["curfew", "Giờ giấc", "time", false],
         ["deposit", "Tiền cọc (đ)", "number", false],
         ["price", "Giá thuê (đ/tháng)", "number", true],
         ["area", "Diện tích (m²)", "number", true],
@@ -712,7 +726,7 @@ function locate() {
       <template v-if="step === 1"
         ><h2>Thông tin chung</h2>
         <div class="form-grid">
-          <component :is="['gender', 'house', 'school', 'status'].includes(type) ? 'div' : 'label'"
+          <component :is="['gender', 'house', 'school', 'status'].includes(type) || moneyFields.has(key) ? 'div' : 'label'"
             v-for="[key, label, type, required, placeholder] in fields"
             :key="key"
             class="field"
@@ -739,7 +753,20 @@ function locate() {
               >
                 {{ h.name }}
               </option>
-            </select><input
+            </select><MoneyInput
+              v-else-if="moneyFields.has(key)"
+              v-model="draft[key]"
+              :label="label + (required ? ' *' : '')"
+              :invalid="!!errors[key]"
+            /><input
+              v-else-if="type === 'number'"
+              :value="draft[key]"
+              :aria-label="label + (required ? ' *' : '')"
+              type="number" min="1" step="1" placeholder="Nhập giá trị"
+              :aria-invalid="!!errors[key]"
+              @input="updatePositiveNumber(key, $event)"
+              @blur="draft[key] = draft[key] === '' ? 1 : Math.max(1, Number(draft[key]))"
+            /><input
               v-else
               v-model="draft[key]"
               :aria-label="label + (required ? ' *' : '')"
@@ -747,15 +774,13 @@ function locate() {
               :min="
                 type === 'date'
                   ? new Date().toLocaleDateString('en-CA')
-                  : type === 'number'
-                    ? 0
-                    : undefined
+                  : undefined
               "
               :placeholder="
                 placeholder || (type === 'number' ? 'Nhập giá trị' : 'Nhập thông tin')
               "
               :aria-invalid="!!errors[key]"
-            /><small class="error" v-if="errors[key]">{{ errors[key] }}</small></component
+            /><small v-if="key === 'curfew'" class="muted">Để trống nếu giờ giấc tự do.</small><small class="error" v-if="errors[key]">{{ errors[key] }}</small></component
           ><label class="field span-two"
             ><span>Mô tả chi tiết</span
             ><textarea
@@ -1243,6 +1268,8 @@ function locate() {
 </template>
 
 <style scoped>
+.post-panel .form-grid > .field { position: relative; }
+.post-panel .form-grid > .field > small.error { position: absolute; top: calc(100% + 3px); left: 0; }
 .post-panel .post-amenity-group { margin-bottom: 24px; }
 .post-amenity-group legend { margin-bottom: 14px; }
 .post-amenity-group .amenity-checks { border: 1px solid var(--muted); padding: 12px 16px; }

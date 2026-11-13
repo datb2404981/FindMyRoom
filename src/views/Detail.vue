@@ -329,7 +329,7 @@ function formatDate(dateStr) {
           </div>
           <div v-else>
             <Icon name="calendar" />
-            <span>Giờ giấc<strong>Tự do</strong></span>
+            <span>Giờ giấc<strong>{{ room.curfew || 'Tự do' }}</strong></span>
           </div>
 
           <div v-if="!isRoommate" class="remaining-rooms">

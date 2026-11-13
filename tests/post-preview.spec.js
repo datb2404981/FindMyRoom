@@ -37,7 +37,8 @@ test('landlord rental post uses 4 steps and step-4 Xem trước button opens pre
 
   await page.getByLabel('Tiêu đề bài đăng *', { exact: true }).fill('Phòng mới có gác gần ĐH Cần Thơ')
   await page.getByLabel('Chọn nhà trọ *', { exact: true }).selectOption(house.id)
-  for (const input of await page.getByRole('spinbutton').all()) await input.fill('1500000')
+  for (const input of await page.locator('input[role="spinbutton"], input[type="number"]:not(.money-stepper)').all()) await input.fill('1500')
+  await page.getByLabel('Giờ giấc', { exact: true }).fill('22:30')
   await page.getByLabel('Số lượng phòng *', { exact: true }).fill('2')
   await page.getByLabel('Diện tích (m²) *', { exact: true }).fill('24')
   await page.getByLabel('Số người tối đa *', { exact: true }).fill('2')
@@ -78,7 +79,9 @@ test('landlord rental post uses 4 steps and step-4 Xem trước button opens pre
   // Re-open preview and publish from modal
   await previewBtn.click()
   await expect(dialog).toBeVisible()
+  const saved = page.waitForResponse(response => response.url().includes('/api/rentals/') && response.request().method() === 'PUT')
   await dialog.getByRole('button', { name: 'Đăng bài', exact: true }).click()
+  expect((await (await saved).json()).post.curfew).toBe('22:30')
   await expect(page.getByRole('heading', { name: 'Bài đăng đã được lưu', exact: true })).toBeVisible()
 })
 

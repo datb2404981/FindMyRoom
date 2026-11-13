@@ -34,6 +34,7 @@ test('landlord rental and its house are visible to a student after reload', asyn
   await expect(page.getByRole('heading', { name: 'Bài đăng đã được lưu', exact: true })).toBeVisible()
   const post = (await (await page.request.get('/api/rentals')).json()).posts.find(post => post.title === title)
   expect(post.houseId).toBe(house.id)
+  expect(post.price).toBe(100000)
   const studentContext = await browser.newContext()
   try {
     const student = await studentContext.newPage()
@@ -54,6 +55,16 @@ test('landlord rental and its house are visible to a student after reload', asyn
 
 test('student selects houses created by a landlord in a separate browser session', async ({ page, browser }) => {
   await register(page, 'landlord')
+  const otherOwner = await browser.newContext()
+  const otherOwnerPage = await otherOwner.newPage()
+  await register(otherOwnerPage, 'landlord')
+  for (let i = 0; i < 9; i++) {
+    const response = await otherOwnerPage.request.put(`/api/boarding-houses/list-test-${Date.now()}-${i}`, { data: {
+      name: `Nhà trọ kiểm tra ${i}`, address: 'Ninh Kiều, Cần Thơ', status: 'Đang hoạt động',
+    } })
+    expect(response.ok()).toBeTruthy()
+  }
+  await otherOwner.close()
   await page.goto('/#/quan-ly/nha-tro')
   await page.getByRole('button', { name: 'Thêm nhà trọ', exact: true }).first().click()
   const dialog = page.getByRole('dialog')
@@ -75,9 +86,11 @@ test('student selects houses created by a landlord in a separate browser session
     await student.goto('/#/dang-bai/roommate')
     await student.getByLabel('Tiêu đề bài đăng *', { exact: true }).fill('Ghép trọ cùng nhà trọ đã tạo')
     await student.getByLabel('Ngày có thể chuyển vào *', { exact: true }).fill('2027-12-10')
-    for (const input of await student.getByRole('spinbutton').all()) await input.fill('100')
+    for (const input of await student.locator('input[role="spinbutton"], input[type="number"]:not(.money-stepper)').all()) await input.fill('100')
     await student.getByRole('button', { name: 'Tiếp theo', exact: true }).click()
     const input = student.locator('#post-house-input')
+    await input.focus()
+    await expect(student.getByRole('option').filter({ hasText: name })).toBeVisible()
     await input.fill(name)
     await student.getByRole('option').filter({ hasText: name }).click()
     await expect(student.locator('.selected-house-card')).toContainText(name)

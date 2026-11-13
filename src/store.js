@@ -26,16 +26,20 @@ const defaults = () => ({
   },
   likes: [],
   passed: [],
-  houses: boardingHouses.slice(0, 1),
+  houses: [],
   posts: rooms.slice(0, 3).map((room) => ({ ...room, kind: "rental" })),
   drafts: { roommate: {}, rental: {} },
 });
 const legacySamplePostIds = new Set(["minh-an", "an-binh", "hung-phu", "binh-thuy"]);
 const roomsById = new Map(rooms.map((room) => [room.id, room]));
+const sampleHouseIds = new Set(boardingHouses.map(house => house.id));
 async function savedData(storageKey) {
   try {
     const saved = await readBrowserData(storageKey);
     delete saved.favorites;
+    if (Array.isArray(saved.houses)) saved.houses = saved.houses.filter(house =>
+      house.ownerId || (!sampleHouseIds.has(house.id) && !(house.id === 'minh-an' && house.code === 'BH00000001')),
+    );
     if (Array.isArray(saved.posts)) saved.posts = saved.posts
       .filter(post => !(legacySamplePostIds.has(post.id) && (!post.ownerId || /^ACC\d+$/.test(post.ownerId))))
       .map(post => {

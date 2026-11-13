@@ -403,7 +403,7 @@ async function remove() {
 
     <!-- Houses List (HH-20) -->
     <template v-if="houses">
-      <div class="table-header">
+      <div v-if="state.houses.length" class="table-header">
         <span>Thông tin nhà trọ</span>
         <span>Địa chỉ</span>
         <span>Số phòng</span>
@@ -456,9 +456,10 @@ async function remove() {
       </div>
 
       <div v-if="!state.houses.length" class="empty-state">
+        <span class="empty-icon"><Icon name="building" :size="38" /></span>
         <h2>Chưa có nhà trọ</h2>
         <p>Thêm nhà trọ đầu tiên để bắt đầu đăng tin cho thuê.</p>
-        <button class="button primary add-house" @click="open()">Thêm nhà trọ</button>
+        <button class="button primary" @click="open()">Tạo nhà trọ</button>
       </div>
     </template>
 
