@@ -123,6 +123,12 @@
     "amenity_id": "967f61e7-67fb-40db-a5b2-2f19837d655a",
     "amenity_name": "Quán cafe",
     "category": "Tiện ích ngoại khu",
+    "description": "Gần quán cà phê."
+  },
+  {
+    "amenity_id": "e03bd9e1-0184-4b9b-b3a5-0731976627e5",
+    "amenity_name": "Cây xăng",
+    "category": "Tiện ích ngoại khu",
     "description": ""
   },
   {

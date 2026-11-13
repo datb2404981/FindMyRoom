@@ -12,12 +12,17 @@ import { publicRentals } from '../listings'
 const route = useRoute()
 const house = computed(() => [...houseDirectory.houses, ...boardingHouses].find(item => item.id === route.params.id))
 const posts = computed(() => house.value ? publicRentals().filter(post => post.houseId === house.value.id || (!post.houseId && post.house === house.value.name)) : [])
+const backTo = computed(() => {
+  const path = route.query.returnTo
+  if (typeof path === 'string' && (path === '/' || path.startsWith('/?'))) return path
+  return state.user?.role === 'landlord' ? '/quan-ly/nha-tro' : '/'
+})
 onMounted(() => { loadHouses().catch(() => {}); loadRentals().catch(() => {}) })
 </script>
 
 <template>
   <div class="container page house-detail-page">
-    <RouterLink :to="state.user?.role === 'landlord' ? '/quan-ly/nha-tro' : '/'" class="back-link"><Icon name="back" :size="18" />{{ state.user?.role === 'landlord' ? 'Quay lại quản lý nhà trọ' : 'Quay lại tìm trọ' }}</RouterLink>
+    <RouterLink :to="backTo" class="back-link"><Icon name="back" :size="18" />{{ state.user?.role === 'landlord' ? 'Quay lại quản lý nhà trọ' : 'Quay lại tìm trọ' }}</RouterLink>
     <template v-if="house">
       <span class="eyebrow">Thông tin nhà trọ</span>
       <h1>{{ house.name }}</h1>

@@ -11,7 +11,7 @@ async function student(page) {
 }
 
 for (const status of ['Còn phòng', 'Hết phòng', 'Ẩn']) {
-  test(`roommate post keeps chosen status ${status} after publishing and reload`, async ({ page }) => {
+  test(`roommate post defaults to Còn phòng and editing keeps ${status}`, async ({ page }) => {
     await student(page)
     await page.evaluate(() => {
       const key = Object.keys(localStorage).find(key => key.startsWith('findmyroom-demo-v1:'))
@@ -22,10 +22,6 @@ for (const status of ['Còn phòng', 'Hết phòng', 'Ẩn']) {
       localStorage.setItem(key, JSON.stringify(data))
     })
     await page.reload()
-    await page.getByRole('button', { name: 'Trạng thái', exact: true }).click()
-    const options = page.getByRole('listbox', { name: 'Trạng thái', exact: true })
-    await expect(options.getByRole('option')).toHaveText(['Còn phòng', 'Hết phòng', 'Ẩn'])
-    await options.getByRole('option', { name: status, exact: true }).click()
     await page.getByRole('button', { name: 'Tiếp theo', exact: true }).click()
     await page.getByRole('button', { name: 'Tiếp theo', exact: true }).click()
     const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+kvKkAAAAASUVORK5CYII=', 'base64')
@@ -34,6 +30,23 @@ for (const status of ['Còn phòng', 'Hết phòng', 'Ẩn']) {
     await page.getByRole('button', { name: 'Đăng bài', exact: true }).click()
     await expect(page.getByRole('heading', { name: 'Bài đăng đã được lưu', exact: true })).toBeVisible()
     await page.getByRole('link', { name: 'Quản lý bài đăng', exact: true }).last().click()
+    
+    // Mặc định bài ghép trọ mới tạo là "Còn phòng"
+    await expect(page.locator('.manage-post .badge').first()).toHaveText('Còn phòng')
+
+    // Nếu test trạng thái "Hết phòng" hoặc "Ẩn", chỉnh sửa qua modal
+    if (status !== 'Còn phòng') {
+      await page.locator('.manage-post').first().getByRole('button', { name: 'Chỉnh sửa', exact: true }).click()
+      const dialog = page.getByRole('dialog')
+      await expect(dialog).toBeVisible()
+      const statusBtn = dialog.getByRole('button', { name: 'Trạng thái', exact: true })
+      await statusBtn.click()
+      const options = dialog.getByRole('listbox', { name: 'Trạng thái', exact: true })
+      await options.getByRole('option', { name: status, exact: true }).click()
+      await dialog.getByRole('button', { name: 'Lưu thay đổi', exact: true }).click()
+      await expect(dialog).toHaveCount(0)
+    }
+
     await expect(page.locator('.manage-post .badge').first()).toHaveText(status)
     await page.reload()
     await expect(page.locator('.manage-post .badge').first()).toHaveText(status)

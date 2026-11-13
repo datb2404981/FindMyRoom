@@ -3,7 +3,6 @@ import { computed, reactive, ref, watch, onMounted, onUnmounted, nextTick } from
 import { useRoute, useRouter, onBeforeRouteLeave } from "vue-router";
 import Icon from "../components/Icon.vue";
 import MapPanel from "../components/MapPanel.vue";
-import RoomCard from "../components/RoomCard.vue";
 import GenderDropdown from "../components/GenderDropdown.vue";
 import AppDropdown from "../components/AppDropdown.vue";
 import universities from "../../data/university.json";
@@ -24,6 +23,7 @@ const route = useRoute(),
   kind = computed(() => (rental.value ? "rental" : "roommate")),
   step = ref(1),
   preview = ref(false),
+  previewPhotoIndex = ref(0),
   success = ref(false),
   errors = reactive({}),
   uploadError = ref(""),
@@ -38,11 +38,12 @@ const publishing = ref(false), publishError = ref('');
 let locationRequest = 0,
   pendingResolver = null,
   pendingAction = null;
-const steps = computed(() =>
-  rental.value
-    ? ["Thông tin chung", "Vị trí & Địa lý", "Hình ảnh", "Tiện ích", "Xem trước"]
-    : ["Thông tin chung", "Vị trí & Địa lý", "Hình ảnh", "Tiện ích"],
-);
+const steps = computed(() => [
+  "Thông tin chung",
+  "Vị trí & Địa lý",
+  "Hình ảnh",
+  "Tiện ích",
+]);
 
 const houseInputFocused = ref(false);
 const highlightedHouseIndex = ref(-1);
@@ -218,6 +219,7 @@ function resetDraft() {
   images.value = [];
   success.value = false;
   preview.value = false;
+  previewPhotoIndex.value = 0;
   Object.keys(errors).forEach((k) => delete errors[k]);
   Object.assign(draft, defaults());
   state.drafts[kind.value] = {};
@@ -237,6 +239,7 @@ function load() {
   images.value = [];
   success.value = false;
   preview.value = false;
+  previewPhotoIndex.value = 0;
   Object.keys(errors).forEach((k) => delete errors[k]);
   if (route.query.edit) {
     const item = state.posts.find((p) => p.id === route.query.edit);
@@ -383,7 +386,6 @@ const fields = computed(() =>
           "Ví dụ: Phòng có gác gần Đại học Cần Thơ",
         ],
         ["houseId", "Chọn nhà trọ", "house", true],
-        ["status", "Trạng thái", "status", true],
         ["count", "Số lượng phòng", "number", true],
         ["deposit", "Tiền cọc (đ)", "number", false],
         ["price", "Giá thuê (đ/tháng)", "number", true],
@@ -402,7 +404,6 @@ const fields = computed(() =>
           true,
           "Ví dụ: Tìm bạn nữ ở ghép gần trường",
         ],
-        ["status", "Trạng thái", "status", true],
         ["gender", "Đối tượng (nam/nữ)", "gender", true],
         ["school", "Trường đại học nhắm tới", "school", false],
         ["moveIn", "Ngày có thể chuyển vào", "date", true],
@@ -428,6 +429,23 @@ const card = computed(() => ({
   status: "Xem trước",
   ...{ house: draft.house, houseId: draft.houseId },
 }));
+const previewPhotos = computed(() =>
+  images.value.length
+    ? images.value.map((im) => im.url)
+    : ["/illustrations/room-1.svg"],
+);
+const activePreviewPhoto = computed(
+  () => previewPhotos.value[previewPhotoIndex.value] || previewPhotos.value[0],
+);
+const previewTags = computed(() => [
+  ...new Set([...draft.amenities, ...draft.nearby, ...draft.lifestyles].filter(Boolean)),
+]);
+const previewStatus = computed(() => rentalStatus(draft));
+function openPreview() {
+  previewPhotoIndex.value = 0;
+  publishError.value = "";
+  preview.value = true;
+}
 function validate() {
   Object.keys(errors).forEach((k) => delete errors[k]);
   if (step.value === 1) {
@@ -542,17 +560,25 @@ function removeImage(i) {
   }
   images.value.splice(i, 1);
 }
+
+function setCoverImage(i) {
+  if (i > 0 && i < images.value.length) {
+    images.value.unshift(...images.value.splice(i, 1));
+  }
+}
 async function publish() {
   if (publishing.value) return;
   publishError.value = '';
   if (!validate()) return;
   if (images.value.length < 4) {
+    preview.value = false;
     step.value = 3;
     errors.images = "Vui lòng tải lại ít nhất 4 ảnh cho bài đăng.";
     return;
   }
   const house = systemHouses.value.find((h) => h.id === draft.houseId) || state.houses.find((h) => h.id === draft.houseId);
   if (rental.value && !systemHouses.value.some(h => h.id === draft.houseId)) {
+    preview.value = false;
     step.value = 1;
     errors.houseId = 'Vui lòng chọn nhà trọ đã tạo trong tài khoản của bạn.';
     return;
@@ -923,11 +949,17 @@ function locate() {
         </p>
         <div class="upload-grid">
           <div v-for="(im, i) in images" :key="im.id">
-            <img :src="im.url" :alt="'Ảnh phòng ' + (i + 1)" /><span
-              v-if="i === 0"
-              class="badge"
-              >Ảnh bìa</span
-            ><button
+            <img :src="im.url" :alt="'Ảnh phòng ' + (i + 1)" />
+            <span v-if="i === 0" class="badge">Ảnh bìa</span>
+            <button
+              v-else
+              type="button"
+              class="photo-cover-btn"
+              @click="setCoverImage(i)"
+            >
+              Đặt làm ảnh bìa
+            </button>
+            <button
               type="button"
               class="icon-button"
               @click="removeImage(i)"
@@ -963,26 +995,6 @@ function locate() {
             rows="3"
             placeholder="Những điều bạn mong muốn ở người ở cùng…"
           ></textarea></label></template
-      ><template v-if="step === 5"
-        ><h2>Xem trước bài đăng</h2>
-        <div class="preview-grid">
-          <RoomCard :room="card" />
-          <div>
-            <h3>Chi tiết</h3>
-            <p>{{ draft.desc }}</p>
-            <p><strong>Địa chỉ:</strong> {{ card.address }}</p>
-            <p>
-              <strong>Diện tích:</strong> {{ draft.area }} m² · {{ draft.people }} người
-            </p>
-            <p><strong>Giá thuê:</strong> {{ money(draft.price) }} / tháng</p>
-            <div class="tags">
-              <span v-for="a in draft.amenities" :key="a">{{ a }}</span>
-            </div>
-            <p class="help">
-              Kiểm tra thông tin trước khi đăng. Bạn có thể quay lại để chỉnh sửa.
-            </p>
-          </div>
-        </div></template
       >
       <div class="form-actions">
         <button
@@ -994,10 +1006,10 @@ function locate() {
         </button>
         <div class="inline">
           <button
-            v-if="!rental && step === 4"
+            v-if="step === steps.length"
             type="button"
-            class="button secondary"
-            @click="preview = true"
+            class="button secondary preview-trigger-btn"
+            @click="openPreview"
           >
             <Icon name="eye" :size="17" />Xem trước</button
           ><button
@@ -1041,37 +1053,189 @@ function locate() {
       </div>
       <div
         v-if="preview"
-        class="modal-backdrop"
+        class="modal-backdrop preview-backdrop"
         @click.self="preview = false"
         @keydown.esc="preview = false"
       >
         <section
-          class="modal large"
+          class="modal large preview-modal"
           v-dialog-focus
           role="dialog"
           aria-modal="true"
           aria-labelledby="preview-title"
         >
-          <div class="section-heading">
-            <h2 id="preview-title">Xem trước bài ghép trọ</h2>
-            <button class="icon-button" @click="preview = false" aria-label="Đóng">
-              <Icon name="close" />
+          <header class="preview-modal-header">
+            <div class="preview-header-meta">
+              <div class="preview-badges">
+                <span class="preview-kind-pill">
+                  <Icon :name="rental ? 'home' : 'users'" :size="13" />
+                  {{ rental ? "Cho thuê phòng trọ" : "Tìm bạn ghép trọ" }}
+                </span>
+                <span
+                  class="preview-status-pill"
+                  :class="{ 'is-available': previewStatus === 'Còn phòng' }"
+                >
+                  {{ previewStatus }}
+                </span>
+              </div>
+              <h2 id="preview-title">
+                {{ rental ? "Xem trước bài đăng" : "Xem trước bài ghép trọ" }}
+              </h2>
+            </div>
+            <button
+              type="button"
+              class="icon-button preview-close-btn"
+              @click="preview = false"
+              aria-label="Đóng"
+            >
+              <Icon name="close" :size="18" />
             </button>
+          </header>
+
+          <div class="preview-modal-body">
+            <div class="preview-gallery">
+              <div class="preview-hero">
+                <img
+                  class="preview-hero-image"
+                  :src="activePreviewPhoto"
+                  :alt="draft.title || 'Ảnh xem trước bài đăng'"
+                />
+                <span v-if="previewPhotoIndex === 0 && images.length" class="badge preview-cover-badge">
+                  Ảnh bìa
+                </span>
+                <span v-if="images.length" class="preview-photo-count">
+                  <Icon name="images" :size="13" />
+                  {{ previewPhotoIndex + 1 }} / {{ previewPhotos.length }} ảnh
+                </span>
+              </div>
+              <div v-if="previewPhotos.length > 1" class="preview-thumbs" role="group" aria-label="Chọn ảnh xem trước">
+                <button
+                  v-for="(src, idx) in previewPhotos"
+                  :key="idx"
+                  type="button"
+                  class="preview-thumb-btn"
+                  :class="{ active: idx === previewPhotoIndex }"
+                  :aria-label="`Xem ảnh ${idx + 1}`"
+                  :aria-pressed="idx === previewPhotoIndex"
+                  @click="previewPhotoIndex = idx"
+                >
+                  <img :src="src" :alt="`Ảnh thu nhỏ ${idx + 1}`" />
+                </button>
+              </div>
+            </div>
+
+            <div class="preview-summary-card">
+              <div class="preview-summary-top">
+                <div class="preview-title-block">
+                  <h3>{{ draft.title || "Tiêu đề bài đăng" }}</h3>
+                  <div class="preview-location-row">
+                    <span v-if="draft.house" class="preview-house-pill">
+                      <Icon name="building" :size="13" />
+                      {{ draft.house }}
+                    </span>
+                    <p class="preview-address">
+                      <Icon name="pin" :size="14" />
+                      <span>{{ card.address || "Cần Thơ" }}</span>
+                    </p>
+                  </div>
+                </div>
+                <div class="preview-price-box">
+                  <p class="price preview-price">
+                    {{ money(rental ? draft.price : draft.perPerson || draft.price) }}
+                    <span>{{ rental ? "/ tháng" : "/ người" }}</span>
+                  </p>
+                  <span v-if="rental && draft.deposit" class="preview-price-sub">
+                    Tiền cọc: {{ money(draft.deposit) }}
+                  </span>
+                  <span v-else-if="!rental && draft.perPerson && draft.price" class="preview-price-sub">
+                    Tổng phòng: {{ money(draft.price) }} / tháng
+                  </span>
+                </div>
+              </div>
+
+              <div class="preview-specs">
+                <div class="preview-spec-item">
+                  <span class="spec-label">Diện tích</span>
+                  <strong class="spec-value">{{ draft.area ? `${draft.area} m²` : "Chưa nhập" }}</strong>
+                </div>
+                <div class="preview-spec-item">
+                  <span class="spec-label">{{ rental ? "Tối đa" : "Cần tìm" }}</span>
+                  <strong class="spec-value">
+                    {{ draft.people || 1 }} người{{ !rental && draft.gender && draft.gender !== "Tất cả" ? ` (${draft.gender})` : "" }}
+                  </strong>
+                </div>
+                <div v-if="rental" class="preview-spec-item">
+                  <span class="spec-label">Số phòng</span>
+                  <strong class="spec-value">{{ draft.count || 1 }} phòng</strong>
+                </div>
+                <div v-else class="preview-spec-item">
+                  <span class="spec-label">Chuyển vào</span>
+                  <strong class="spec-value">{{ draft.moveIn || "Linh hoạt" }}</strong>
+                </div>
+                <div class="preview-spec-item">
+                  <span class="spec-label">Điện / Nước</span>
+                  <strong class="spec-value">
+                    {{ draft.electric ? `${money(draft.electric)}/kWh` : "—" }} ·
+                    {{ draft.water ? `${money(draft.water)}/m³` : "—" }}
+                  </strong>
+                </div>
+              </div>
+
+              <div v-if="!rental && draft.school" class="preview-meta-line">
+                <Icon name="graduate" :size="15" />
+                <span><strong>Trường nhắm tới:</strong> {{ draft.school }}</span>
+              </div>
+              <div v-if="draft.internet || draft.other" class="preview-meta-line">
+                <Icon name="wallet" :size="15" />
+                <span>
+                  <template v-if="draft.internet"><strong>Wifi:</strong> {{ money(draft.internet) }}/tháng</template>
+                  <template v-if="draft.internet && draft.other"> · </template>
+                  <template v-if="draft.other"><strong>Chi phí khác:</strong> {{ draft.other }}</template>
+                </span>
+              </div>
+            </div>
+
+            <div v-if="draft.desc || (!rental && draft.habits)" class="preview-text-block">
+              <template v-if="draft.desc">
+                <h4>Mô tả chi tiết</h4>
+                <p>{{ draft.desc }}</p>
+              </template>
+              <template v-if="!rental && draft.habits">
+                <h4>Thói quen sống &amp; lưu ý</h4>
+                <p>{{ draft.habits }}</p>
+              </template>
+            </div>
+
+            <div v-if="previewTags.length" class="preview-tags-block">
+              <h4>Tiện ích &amp; phong cách sống</h4>
+              <div class="tags preview-tags">
+                <span v-for="a in previewTags" :key="a">{{ a }}</span>
+              </div>
+            </div>
+
+            <p class="preview-helper-note">
+              <Icon name="info" :size="15" />
+              <span>Kiểm tra thông tin trước khi đăng. Bạn có thể bấm Chỉnh sửa để quay lại biểu mẫu.</span>
+            </p>
           </div>
-          <img class="preview-image" :src="card.image" :alt="draft.title" />
-          <h3>{{ draft.title || "Tiêu đề bài đăng" }}</h3>
-          <p class="price">{{ money(draft.perPerson || draft.price) }} / người</p>
-          <p>{{ card.address }}</p>
-          <p>{{ draft.desc }}</p>
-          <div class="tags">
-            <span v-for="a in [...draft.amenities, ...draft.lifestyles]" :key="a">{{
-              a
-            }}</span>
-          </div>
-          <div class="form-actions">
-            <button class="button secondary" @click="preview = false">Chỉnh sửa</button
-            ><button class="button primary post-submit" :disabled="publishing" @click="publish">{{ publishing ? 'Đang lưu…' : 'Đăng bài' }}</button>
-          </div>
+
+          <footer class="preview-modal-footer">
+            <p v-if="publishError" role="alert" class="error preview-error">{{ publishError }}</p>
+            <div class="form-actions preview-footer-actions">
+              <button type="button" class="button secondary" @click="preview = false">
+                <Icon name="edit" :size="16" />Chỉnh sửa
+              </button>
+              <button
+                type="button"
+                class="button primary post-submit"
+                :disabled="publishing"
+                @click="publish"
+              >
+                {{ publishing ? "Đang lưu…" : "Đăng bài" }}
+                <Icon name="arrow" :size="17" />
+              </button>
+            </div>
+          </footer>
         </section>
       </div></Teleport
     >
@@ -1379,5 +1543,404 @@ function locate() {
 .house-meta-hint strong {
   color: inherit;
   font-weight: 700;
+}
+
+/* Preview trigger & unified modal */
+.preview-trigger-btn {
+  min-height: 44px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.preview-backdrop {
+  padding: 20px;
+}
+.preview-modal {
+  width: min(760px, 100%);
+  max-height: min(88dvh, 860px);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--cream, #faf7f0);
+}
+.preview-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 26px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--cream, #faf7f0);
+}
+.preview-header-meta {
+  min-width: 0;
+  flex: 1;
+}
+.preview-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.preview-kind-pill,
+.preview-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.preview-kind-pill {
+  background: var(--cream-deep, #f8eed3);
+  color: var(--ink, #131414);
+  border: 1px solid rgba(19, 20, 20, 0.12);
+}
+.preview-status-pill {
+  background: #eceeed;
+  color: #364146;
+}
+.preview-status-pill.is-available {
+  background: #276b50;
+  color: #ffffff;
+}
+.preview-modal-header h2 {
+  margin: 0;
+  font-size: 23px;
+  line-height: 1.25;
+  color: var(--ink, #131414);
+}
+.preview-close-btn {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.preview-close-btn:hover {
+  background: var(--cream-deep, #f8eed3);
+}
+.preview-modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 22px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.preview-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.preview-hero {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #ffffff;
+}
+.preview-hero-image {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 300px;
+  object-fit: cover;
+  display: block;
+}
+.preview-cover-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+}
+.preview-photo-count {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(19, 20, 20, 0.78);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 500;
+}
+.preview-thumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+.preview-thumb-btn {
+  flex: 0 0 auto;
+  width: 60px;
+  height: 48px;
+  padding: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  background: #ffffff;
+  opacity: 0.72;
+  cursor: pointer;
+  transition: opacity 0.18s ease, border-color 0.18s ease;
+}
+.preview-thumb-btn:hover {
+  opacity: 1;
+}
+.preview-thumb-btn.active {
+  opacity: 1;
+  border-color: var(--ink, #131414);
+}
+.preview-thumb-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.preview-summary-card {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.preview-summary-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.preview-title-block {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+.preview-title-block h3 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.35;
+  color: var(--ink, #131414);
+  overflow-wrap: anywhere;
+}
+.preview-location-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 8px;
+}
+.preview-house-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: #edf5f4;
+  color: #29524e;
+  font-size: 12px;
+  font-weight: 600;
+}
+.preview-address {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: #4d575c;
+  line-height: 1.45;
+}
+.preview-address svg {
+  flex-shrink: 0;
+  color: #3f7177;
+}
+.preview-price-box {
+  text-align: right;
+  flex-shrink: 0;
+}
+.preview-price {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ink, #131414);
+  font-variant-numeric: tabular-nums;
+}
+.preview-price span {
+  font-size: 13px;
+  font-weight: 500;
+  color: #4d575c;
+}
+.preview-price-sub {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #4d575c;
+}
+.preview-specs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.preview-spec-item {
+  background: var(--cream, #faf7f0);
+  border: 1px solid rgba(19, 20, 20, 0.08);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.spec-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: #4d575c;
+}
+.spec-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink, #131414);
+  overflow-wrap: anywhere;
+}
+.preview-meta-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #364146;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+.preview-meta-line svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #3f7177;
+}
+.preview-text-block,
+.preview-tags-block {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 20px;
+}
+.preview-text-block h4,
+.preview-tags-block h4 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink, #131414);
+}
+.preview-text-block h4 + p + h4 {
+  margin-top: 16px;
+}
+.preview-text-block p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: #24292c;
+  white-space: pre-line;
+  max-width: 68ch;
+}
+.preview-tags {
+  margin: 0;
+}
+.preview-helper-note {
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #4d575c;
+  padding: 2px 2px 0;
+}
+.preview-helper-note svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #3f7177;
+}
+.preview-modal-footer {
+  padding: 14px 26px 18px;
+  border-top: 1px solid var(--line);
+  background: var(--cream, #faf7f0);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.preview-error {
+  margin: 0;
+}
+.preview-footer-actions {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+  justify-content: flex-end;
+}
+.preview-footer-actions .button {
+  min-height: 44px;
+  cursor: pointer;
+}
+@media (max-width: 700px) {
+  .preview-backdrop {
+    padding: 12px;
+  }
+  .preview-modal {
+    max-height: calc(100dvh - 24px);
+    border-radius: 16px;
+  }
+  .preview-modal-header {
+    padding: 16px 18px 14px;
+  }
+  .preview-modal-header h2 {
+    font-size: 20px;
+  }
+  .preview-modal-body {
+    padding: 16px 18px;
+    gap: 14px;
+  }
+  .preview-hero-image {
+    aspect-ratio: 4 / 3;
+    max-height: 230px;
+  }
+  .preview-summary-card,
+  .preview-text-block,
+  .preview-tags-block {
+    padding: 14px 16px;
+  }
+  .preview-price-box {
+    text-align: left;
+  }
+  .preview-specs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .preview-modal-footer {
+    padding: 12px 18px 16px;
+  }
+  .preview-footer-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+  .preview-footer-actions .button {
+    flex: 1;
+    justify-content: center;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .preview-trigger-btn,
+  .preview-close-btn,
+  .preview-thumb-btn {
+    transition: none;
+  }
 }
 </style>

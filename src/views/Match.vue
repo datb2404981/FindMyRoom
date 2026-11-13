@@ -11,24 +11,26 @@ const defaults=()=>({locationMode:'place',school:'',district:'',gender:'',budget
 const router=useRouter(),route=useRoute()
 const started=ref(!!route.query.start),preferences=ref(defaults()),notice=ref(''),stage=ref(null)
 const history=ref([])
+const restoredId=ref(null)
+
+watch(()=>route.query.start,(val)=>{
+ started.value=!!val
+})
 
 watch(started,(val)=>{
- if(val){
-  document.body.classList.add('match-active')
- }else{
-  document.body.classList.remove('match-active')
- }
+ document.documentElement.classList.toggle('match-active',!!val)
+ document.body.classList.toggle('match-active',!!val)
 },{immediate:true})
 
 onUnmounted(()=>{
+ document.documentElement.classList.remove('match-active')
  document.body.classList.remove('match-active')
  window.removeEventListener('scroll', onWindowScroll)
 })
 
-const candidates=computed(()=>{
+function matchesFilters(p){
  const f=preferences.value,school=schools.find(s=>s.id===f.school)
- return people.filter(p=>
-  !state.passed.includes(p.id)&&
+ return (
   (!f.district||p.district===f.district)&&
   (!f.school||p.school===school?.name)&&
   (!f.gender||p.gender===f.gender)&&
@@ -38,10 +40,45 @@ const candidates=computed(()=>{
   (!f.nearby?.length||f.nearby.every(n=>p.nearby?.includes(n)))&&
   (!f.habits?.length||f.habits.every(h=>p.tags?.includes(h)||p.amenities?.includes(h)||p.lifestyles?.includes(h)))
  )
+}
+
+const matchingPeople=computed(()=>people.filter(matchesFilters))
+const matchingIds=computed(()=>new Set(matchingPeople.value.map(p=>p.id)))
+
+// Keep history ordered across mounts and ignore passed IDs that cannot be restored under current filters.
+const restorablePassed=computed(()=>{
+ const seen=new Set()
+ const ordered=[]
+ for(const id of [...state.passed,...history.value]){
+  if(seen.has(id))continue
+  if(state.passed.includes(id)&&matchingIds.value.has(id)){
+   seen.add(id)
+   ordered.push(id)
+  }
+ }
+ return ordered
+})
+
+watch(matchingIds,(ids)=>{
+ if(restoredId.value&&!ids.has(restoredId.value)){
+  restoredId.value=null
+ }
+})
+
+const candidates=computed(()=>{
+ const filtered=matchingPeople.value.filter(p=>!state.passed.includes(p.id))
+ if(restoredId.value){
+  const idx=filtered.findIndex(p=>p.id===restoredId.value)
+  if(idx>0){
+   const [item]=filtered.splice(idx,1)
+   filtered.unshift(item)
+  }
+ }
+ return filtered
 })
 
 const current=computed(()=>candidates.value[0])
-const canGoBack=computed(()=>history.value.length>0||state.passed.length>0)
+const canGoBack=computed(()=>restorablePassed.value.length>0)
 
 function preserveScroll(action){
  const scrollY=window.scrollY||document.documentElement.scrollTop||0
@@ -53,21 +90,28 @@ function preserveScroll(action){
 
 function skip(){
  if(!current.value)return
+ const id=current.value.id
  preserveScroll(()=>{
-  history.value.push(current.value.id)
-  if(!state.passed.includes(current.value.id)){
-   state.passed.push(current.value.id)
+  restoredId.value=null
+  const hIdx=history.value.lastIndexOf(id)
+  if(hIdx>=0)history.value.splice(hIdx,1)
+  history.value.push(id)
+  if(!state.passed.includes(id)){
+   state.passed.push(id)
   }
   notice.value=''
  })
 }
 
 function goBack(){
- const lastId=history.value.length?history.value.pop():state.passed.pop()
+ const lastId=restorablePassed.value.at(-1)
  if(!lastId)return
  preserveScroll(()=>{
   const idx=state.passed.lastIndexOf(lastId)
   if(idx>=0)state.passed.splice(idx,1)
+  const hIdx=history.value.lastIndexOf(lastId)
+  if(hIdx>=0)history.value.splice(hIdx,1)
+  restoredId.value=lastId
   notice.value=''
  })
 }
@@ -168,6 +212,10 @@ function onPointerMove(e){
 
  const deltaX=e.clientX-startX
 
+ if(e.cancelable){
+  e.preventDefault()
+ }
+
  // Nếu ở hồ sơ đầu tiên (chưa có người trước đó), không cho kéo từ trái sang phải
  if(!canGoBack.value&&deltaX>0){
   dragX.value=0
@@ -175,10 +223,6 @@ function onPointerMove(e){
  }
 
  dragX.value=deltaX
-
- if(e.cancelable){
-  e.preventDefault()
- }
 
  const currentY=window.scrollY||document.documentElement.scrollTop||0
  if(Math.abs(currentY-lockedScrollY)>0.5){
@@ -248,6 +292,7 @@ function viewDetail(){
 
 function resetFilters(){
  preferences.value=defaults()
+ restoredId.value=null
  notice.value=''
 }
 
@@ -256,6 +301,10 @@ function resetToStart(){
  history.value=[]
  state.passed=[]
  resetFilters()
+ if(route.query.start){
+  const {start:_start,...rest}=route.query
+  router.replace({path:route.path,query:rest})
+ }
  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
  window.scrollTo({ top: 0, behavior: prefersReduced ? 'instant' : 'smooth' })
 }
@@ -267,6 +316,9 @@ function restart(){
 async function begin(){
  started.value=true
  notice.value=''
+ if(!route.query.start){
+  router.replace({path:route.path,query:{...route.query,start:'1'}})
+ }
  await nextTick()
  requestAnimationFrame(() => {
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -299,13 +351,14 @@ async function begin(){
       />
 
       <section ref="stage" class="match-stage" aria-label="Kết quả ghép trọ" tabindex="-1">
-        <div class="match-stage-top">
-          <div v-if="!started" class="match-stage-title">
+        <div v-if="!started" class="match-stage-top">
+          <div class="match-stage-title">
             <span class="eyebrow">Cùng một mái nhà, cùng nhịp sống</span>
             <h1>Không chỉ tìm phòng<br>Tìm người đồng hành</h1>
           </div>
+        </div>
+        <div v-else class="match-stage-top match-stage-top-started">
           <button
-            v-if="started"
             type="button"
             class="button secondary reset-start-btn"
             @click="resetToStart"
@@ -318,11 +371,12 @@ async function begin(){
         </div>
 
         <div v-if="!started" class="match-welcome">
-          <img src="/images/roommates.png?v=3" alt="Hai người bạn ở cùng">
+          <img src="/images/roommates.png?v=4" alt="Hai người bạn ở cùng">
         </div>
 
         <template v-else-if="current">
           <article
+            :key="current.id"
             class="person-card"
             :style="cardStyle"
             @pointerdown="onPointerDown"
@@ -355,9 +409,9 @@ async function begin(){
                 <h2>{{ current.title || ('Tìm bạn ở ghép tại ' + current.district) }}</h2>
                 <span class="muted">{{ current.gender }}</span>
               </div>
-              <p class="person-author"><Icon name="user" :size="15" />Đăng bởi: <strong>{{ current.name }}</strong> ({{ current.age }} tuổi)</p>
-              <p class="location"><Icon name="building" :size="16" />{{ current.school }} · {{ current.major }}</p>
-              <p class="location muted"><Icon name="pin" :size="16" />{{ current.district }}, Cần Thơ</p>
+              <p class="person-author"><Icon name="user" :size="15" /><span>Đăng bởi: <strong>{{ current.name }}</strong> ({{ current.age }} tuổi)</span></p>
+              <p class="location"><Icon name="building" :size="16" /><span>{{ current.school }} · {{ current.major }}</span></p>
+              <p class="location muted"><Icon name="pin" :size="16" /><span>{{ current.district }}, Cần Thơ</span></p>
               <div class="tags"><span v-for="t in current.tags" :key="t">{{ t }}</span></div>
               <p class="person-budget">{{ money(current.price) }}<span> / người / tháng</span></p>
               <p class="person-bio">{{ current.bio }}</p>
@@ -374,7 +428,6 @@ async function begin(){
               :title="canGoBack ? 'Quay lại hồ sơ vừa bỏ qua' : 'Chưa có hồ sơ nào bị bỏ qua'"
             >
               <Icon name="back" :size="24" />
-              <span>Quay lại</span>
             </button>
 
             <button
@@ -385,7 +438,6 @@ async function begin(){
               title="Xem trang chi tiết bài đăng ghép trọ"
             >
               <Icon name="info" :size="24" />
-              <span>Xem chi tiết</span>
             </button>
 
             <button
@@ -396,7 +448,6 @@ async function begin(){
               title="Bỏ qua hồ sơ này"
             >
               <Icon name="close" :size="24" />
-              <span>Bỏ qua</span>
             </button>
           </div>
         </template>
@@ -422,6 +473,11 @@ async function begin(){
 </template>
 
 <style scoped>
+:global(html.match-active),
+:global(body.match-active) {
+  overflow-x: clip;
+  overscroll-behavior-x: none;
+}
 .match-layout {
   grid-template-columns: 380px minmax(0, 1fr);
   gap: 52px;
@@ -453,8 +509,11 @@ async function begin(){
   margin-bottom: 0;
   text-align: center;
 }
+.match-stage-top-started {
+  display: none;
+}
 .reset-start-btn {
-  display: inline-flex;
+  display: none;
   align-items: center;
   gap: 8px;
   min-height: 42px;
@@ -504,6 +563,9 @@ async function begin(){
   color: #365f62;
 }
 .person-card {
+  height: 610px;
+  display: grid;
+  grid-template-rows: 220px minmax(0, 1fr);
   touch-action: none !important;
   cursor: grab;
   position: relative;
@@ -516,10 +578,68 @@ async function begin(){
 .person-card:active {
   cursor: grabbing;
 }
+.person-portrait {
+  height: 100%;
+  min-height: 0;
+}
 .person-portrait img {
   pointer-events: none;
   -webkit-user-drag: none;
   user-drag: none;
+}
+.person-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.person-info .section-heading {
+  min-width: 0;
+  align-items: flex-start;
+  gap: 10px;
+}
+.person-info .section-heading h2 {
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.person-info .section-heading .muted {
+  flex-shrink: 0;
+}
+.person-author,
+.person-info .location {
+  min-width: 0;
+  overflow: hidden;
+}
+.person-author svg,
+.person-info .location svg {
+  flex-shrink: 0;
+}
+.person-author span,
+.person-info .location span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.person-info .tags {
+  max-height: 64px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.person-info .tags span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.person-budget {
+  margin-top: auto !important;
+  flex-shrink: 0;
 }
 .swipe-hint {
   position: absolute;
@@ -561,6 +681,12 @@ async function begin(){
   border-radius: 18px;
 }
 .person-bio {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  flex-shrink: 0;
   font-size: 13.5px;
   line-height: 1.6;
   color: #3f5054;
@@ -574,59 +700,53 @@ async function begin(){
   margin: 28px auto 0;
 }
 .match-action {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: inline-flex;
   align-items: center;
-  font-size: 13px;
-  font-weight: 600;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
   color: #334447;
   cursor: pointer;
-  background: none;
-  border: none;
+  border: 0;
+  border-radius: 50%;
   padding: 0;
-  transition: opacity .2s, transform .2s;
+  box-shadow: none;
+  transition: opacity .2s, background-color .2s;
 }
-.match-action svg {
+.match-action :deep(svg) {
   width: 24px;
   height: 24px;
-  padding: 13px;
-  border: 1px solid var(--line);
-  box-sizing: content-box;
-  border-radius: 50%;
-  background: #f0ece1;
-  transition: transform .2s, box-shadow .2s, background-color .2s;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  transform: none;
+  transition: none;
 }
-.match-action:hover:not(:disabled) svg {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(19, 20, 20, 0.1);
-}
-.match-action:active:not(:disabled) svg {
-  transform: translateY(0);
-}
+.match-action:hover :deep(svg) { transform: none; }
+.match-action:focus-visible { outline: 3px solid #365f62; outline-offset: 3px; }
 .match-action:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
-.match-action.back svg {
-  background: #eef2f3;
+.match-action.back {
+  background: #fff0cb;
   color: #3b5054;
 }
-.match-action.back:hover:not(:disabled) svg {
-  background: #e0e7e9;
+.match-action.back:hover:not(:disabled) {
+  background: #ffe6aa;
 }
-.match-action.detail svg {
+.match-action.detail {
   background: #dceff1;
   color: #215157;
 }
-.match-action.detail:hover:not(:disabled) svg {
+.match-action.detail:hover:not(:disabled) {
   background: #c7e3e7;
 }
-.match-action.pass svg {
+.match-action.pass {
   background: #f8d6cc;
   color: #913625;
 }
-.match-action.pass:hover:not(:disabled) svg {
+.match-action.pass:hover:not(:disabled) {
   background: #f2c0b3;
 }
 .empty-actions {
@@ -646,16 +766,46 @@ async function begin(){
   }
 }
 @media (max-width: 800px) {
+  .person-card {
+    height: 580px;
+    grid-template-rows: 210px minmax(0, 1fr);
+  }
   :global(body.match-active .site-footer) {
     display: none !important;
   }
   :global(body.match-active .page) {
     padding-bottom: 96px;
   }
+  .person-info {
+    overflow: hidden;
+    padding: 18px;
+  }
+  .person-info .section-heading h2 {
+    font-size: 20px;
+    line-height: 1.3;
+  }
+  .person-info .tags {
+    margin: 12px 0;
+  }
+  .match-actions {
+    width: min(390px, 100%);
+    gap: 24px;
+    margin: 16px auto 0;
+  }
+  .match-action {
+    width: 54px;
+    height: 54px;
+  }
+  .match-action :deep(svg) {
+    width: 23px;
+    height: 23px;
+  }
   .mobile-filter-hidden {
     display: none !important;
   }
-  .match-stage-top {
+  .match-stage-top,
+  .match-stage-top-started {
+    display: flex;
     flex-direction: column;
     align-items: center;
     gap: 14px;
@@ -663,6 +813,7 @@ async function begin(){
     text-align: center;
   }
   .reset-start-btn {
+    display: inline-flex;
     align-self: center;
     min-height: 44px;
     padding: 10px 18px;
@@ -687,16 +838,9 @@ async function begin(){
   .match-stage h1 {
     font-size: 28px;
   }
-  .match-actions {
-    gap: 24px;
-  }
   .match-action {
     font-size: 12px;
   }
-  .match-action svg {
-    width: 20px;
-    height: 20px;
-    padding: 11px;
-  }
+
 }
 </style>

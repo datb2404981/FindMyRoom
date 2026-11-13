@@ -28,7 +28,6 @@ npm run preview
 - `/#/quan-ly/bai-dang`: quản lý bài đăng.
 - `/#/dang-bai/roommate`: 4 bước thông tin, vị trí, hình ảnh, tiện ích; xem trước và đăng.
 - `/#/dang-bai/rental`: 5 bước cho thuê, gồm xem trước; kiểm tra dữ liệu trước khi qua bước, giữ bản nháp khi quay lại.
-- `/#/wireframes`: danh mục 140 màn hình; lọc nhóm/thiết bị/tên; xem ảnh gốc hoặc cây AST với tọa độ gốc và màu DESIGN.md. Đây là công cụ đối chiếu, không phải 140 trang nghiệp vụ độc lập.
 
 ## Bộ lọc tìm phòng
 
@@ -48,7 +47,7 @@ IBM Plex Sans được đóng gói cục bộ ở 4 trọng lượng. Chưa có 
 
 `review/coverage.json` ánh xạ toàn bộ 140 mã nguồn vào nhóm tính năng hoặc sơ đồ. Toàn bộ ảnh và AST gốc có sẵn để kiểm tra. **Không coi số lượng tham chiếu là bằng chứng độ khớp giao diện 100%.** Bản frontend được dựng bằng bố cục responsive, không phải phép sao chép từng pixel của 140 biến thể; các khác biệt gồm typography dự phòng, nội dung mẫu thay cho skeleton, kích thước và thứ tự xuống cột trên mobile, sơ đồ bản đồ, xác thực bên ngoài và một số trạng thái chỉnh sửa gộp vào cùng form. Chưa kiểm tra pixel tự động toàn bộ 140 ảnh.
 
-Tài liệu tổng quan yêu cầu 5 bước đăng cho thuê trong khi một số wireframe desktop chỉ vẽ 4 nhãn bước. Bản ứng dụng dùng 5 bước theo luồng đặc tả, giữ nguyên phiên bản gốc trong công cụ đối chiếu. Tương tự, ràng buộc ảnh dùng 3–10 ảnh / 10 MB theo quy tắc chung thay cho nhãn 1 ảnh / 50 MB ở một vài màn hình cũ.
+Tài liệu tổng quan yêu cầu 5 bước đăng cho thuê trong khi một số wireframe desktop chỉ vẽ 4 nhãn bước. Bản ứng dụng dùng 5 bước theo luồng đặc tả, tham khảo phiên bản gốc. Tương tự, ràng buộc ảnh dùng 3–10 ảnh / 10 MB theo quy tắc chung thay cho nhãn 1 ảnh / 50 MB ở một vài màn hình cũ.
 
 ## Tài khoản và dữ liệu kiểm thử
 

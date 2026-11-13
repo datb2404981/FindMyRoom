@@ -30,7 +30,6 @@ test('landlord rental and its house are visible to a student after reload', asyn
   await page.getByLabel('Tải hình ảnh chỗ ở').setInputFiles([1, 2, 3, 4].map(i => ({ name: `room${i}.png`, mimeType: 'image/png', buffer: png })))
   await page.getByRole('button', { name: 'Tiếp theo', exact: true }).click()
   await page.getByLabel('Camera 24/7', { exact: true }).check()
-  await page.getByRole('button', { name: 'Tiếp theo', exact: true }).click()
   await page.getByRole('button', { name: 'Đăng bài', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Bài đăng đã được lưu', exact: true })).toBeVisible()
   const post = (await (await page.request.get('/api/rentals')).json()).posts.find(post => post.title === title)

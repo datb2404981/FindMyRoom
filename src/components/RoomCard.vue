@@ -4,9 +4,18 @@ import {useRoute} from 'vue-router'
 import Icon from './Icon.vue'
 import {money} from '../data'
 const props=defineProps({room:Object});const route=useRoute()
-const detailsTo=computed(()=>({path:'/phong/'+props.room.id,query:route.path==='/'||route.path.startsWith('/nha-tro/')?{returnTo:route.fullPath}:{}}))
+const isHouse=computed(()=>props.room?.kind==='house')
+const isRoommate=computed(()=>props.room?.kind==='roommate')
+const detailsTo=computed(()=>{
+  const query=route.path==='/'||route.path.startsWith('/nha-tro/')?{returnTo:route.fullPath}:{}
+  return isHouse.value
+    ?{path:'/nha-tro/'+(props.room.houseId||props.room.id),query}
+    :{path:'/phong/'+props.room.id,query}
+})
+const displayStatus=computed(()=>props.room?.status||(isHouse.value?'Đang hoạt động':'Còn phòng'))
+const displayPrice=computed(()=>isRoommate.value?(props.room?.perPerson||props.room?.price):props.room?.price)
 </script>
-<template><article class="room-card"><RouterLink :to="detailsTo" class="room-card-link" :aria-label="'Xem chi tiết ' + room.title"><div class="room-photo"><img :src="room.image" :alt="room.title" loading="lazy"><span class="badge" :class="{ 'available-badge': !room.status || room.status === 'Còn phòng' }">{{room.status||'Còn phòng'}}</span></div><div class="room-content"><div class="room-card-heading"><h3 :title="room.title">{{room.title}}</h3></div><p class="muted location"><Icon name="pin" :size="15"/>{{room.district}}, Cần Thơ</p><div class="room-meta"><span><Icon name="area" :size="15"/>{{room.area}} m²</span><span><Icon name="users" :size="15"/>{{room.people}} người</span></div><p class="price">{{money(room.price)}}<span>/ tháng</span></p></div></RouterLink></article></template>
+<template><article class="room-card"><RouterLink :to="detailsTo" class="room-card-link" :aria-label="'Xem chi tiết ' + room.title"><div class="room-photo"><img :src="room.image" :alt="room.title" loading="lazy"><span class="badge" :class="{ 'available-badge': !room.status || room.status === 'Còn phòng' || room.status === 'Đang hoạt động' }">{{displayStatus}}</span></div><div class="room-content"><div class="room-card-heading"><h3 :title="room.title">{{room.title}}</h3></div><p class="muted location"><Icon name="pin" :size="15"/>{{room.district ? room.district + ', Cần Thơ' : (room.address || 'Cần Thơ')}}</p><div class="room-meta"><template v-if="isHouse"><span><Icon name="building" :size="15"/>{{room.availableCount > 0 ? room.availableCount + ' phòng còn trống' : (room.roomCount || 0) + ' phòng'}}</span></template><template v-else><span v-if="room.area"><Icon name="area" :size="15"/>{{room.area}} m²</span><span><Icon name="users" :size="15"/>{{isRoommate ? 'Cần ' + (room.people || 1) + ' bạn' : room.people + ' người'}}</span></template></div><p class="price"><template v-if="isHouse && displayPrice == null">Đang cập nhật<span>/ chi tiết</span></template><template v-else>{{isHouse ? 'Từ ' : ''}}{{money(displayPrice)}}<span>{{isRoommate ? '/ người / tháng' : '/ tháng'}}</span></template></p></div></RouterLink></article></template>
 
 <style scoped>
 .available-badge{background:#276b50;color:#fff}

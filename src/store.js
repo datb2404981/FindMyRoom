@@ -16,7 +16,7 @@ const defaults = () => ({
     studentId: "",
     birth: "",
     gender: "Nam",
-    school: "Đại học Cần Thơ",
+    school: "",
     major: "",
     phone: "",
     zalo: "",
@@ -30,13 +30,20 @@ const defaults = () => ({
   posts: rooms.slice(0, 3).map((room) => ({ ...room, kind: "rental" })),
   drafts: { roommate: {}, rental: {} },
 });
+const legacySamplePostIds = new Set(["minh-an", "an-binh", "hung-phu", "binh-thuy"]);
+const roomsById = new Map(rooms.map((room) => [room.id, room]));
 async function savedData(storageKey) {
   try {
     const saved = await readBrowserData(storageKey);
     delete saved.favorites;
-    if (Array.isArray(saved.posts)) saved.posts = saved.posts.map(post =>
-      ['rental', 'roommate'].includes(post.kind || 'rental') && post.status !== 'Bản nháp' ? { ...post, status: rentalStatus(post) } : post,
-    );
+    if (Array.isArray(saved.posts)) saved.posts = saved.posts
+      .filter(post => !(legacySamplePostIds.has(post.id) && (!post.ownerId || /^ACC\d+$/.test(post.ownerId))))
+      .map(post => {
+        if (roomsById.has(post.id) && (!post.ownerId || /^ACC\d+$/.test(post.ownerId))) {
+          return { ...roomsById.get(post.id), kind: 'rental' };
+        }
+        return ['rental', 'roommate'].includes(post.kind || 'rental') && post.status !== 'Bản nháp' ? { ...post, status: rentalStatus(post) } : post;
+      });
     return saved;
   } catch {
     return {};
@@ -88,6 +95,7 @@ async function applyUser(user) {
             email: user.email,
             phone: user.phone,
             zalo: saved.profile?.zalo || user.phone,
+            school: user.school !== undefined ? user.school : (saved.profile?.school ?? base.profile.school),
           }
         : {}),
     },
@@ -186,11 +194,13 @@ export async function logout() {
 export async function updateAccount(profile) {
   const payload = { name: profile.name, email: profile.email, phone: profile.phone };
   if (profile.role) payload.role = profile.role;
+  if (profile.school !== undefined) payload.school = profile.school;
   const user = await authRequest("profile", payload, "PATCH");
   const nextProfile = { ...state.profile, ...profile,
     name: user.name,
     email: user.email,
     phone: user.phone,
+    school: user.school !== undefined ? user.school : (profile.school ?? state.profile.school),
   };
   const { user: currentUser, ...data } = state;
   await writeBrowserData(storageKey(user), { ...data, profile: nextProfile });

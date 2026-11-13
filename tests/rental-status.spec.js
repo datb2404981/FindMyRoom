@@ -10,7 +10,7 @@ async function login(page) {
 }
 
 for (const status of ['Còn phòng', 'Hết phòng', 'Ẩn']) {
-  test(`publishing keeps ${status} through management, house details and reload`, async ({ page }) => {
+  test(`publishing defaults to Còn phòng and editing keeps ${status}`, async ({ page }) => {
     await login(page)
     await page.evaluate(() => {
       const key = Object.keys(localStorage).find(key => key.startsWith('findmyroom-demo-v1:'))
@@ -24,20 +24,31 @@ for (const status of ['Còn phòng', 'Hết phòng', 'Ẩn']) {
     })
     await page.reload()
     await page.goto('/#/dang-bai/rental')
-    const control = page.getByRole('button', { name: 'Trạng thái', exact: true })
-    await control.click()
-    const options = page.getByRole('listbox', { name: 'Trạng thái', exact: true })
-    await expect(options.getByRole('option')).toHaveText(['Còn phòng', 'Hết phòng', 'Ẩn'])
-    await options.getByRole('option', { name: status, exact: true }).click()
     await page.getByRole('button', { name: 'Tiếp theo', exact: true }).click()
     await page.getByRole('button', { name: 'Tiếp theo', exact: true }).click()
     const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+kvKkAAAAASUVORK5CYII=', 'base64')
     await page.getByLabel('Tải hình ảnh chỗ ở').setInputFiles([1, 2, 3, 4].map(i => ({ name: `photo${i}.png`, mimeType: 'image/png', buffer: png })))
     await page.getByRole('button', { name: 'Tiếp theo', exact: true }).click()
-    await page.getByRole('button', { name: 'Tiếp theo', exact: true }).click()
     await page.getByRole('button', { name: 'Đăng bài', exact: true }).click()
     await expect(page.getByRole('heading', { name: 'Bài đăng đã được lưu', exact: true })).toBeVisible()
     await page.getByRole('link', { name: 'Quản lý bài đăng', exact: true }).last().click()
+    
+    // Bài đăng mới tạo luôn có trạng thái mặc định là "Còn phòng"
+    await expect(page.locator('.manage-post').first().locator('.badge')).toHaveText('Còn phòng')
+
+    // Nếu test đang kiểm tra "Hết phòng" hoặc "Ẩn", đổi trạng thái qua modal Chỉnh sửa
+    if (status !== 'Còn phòng') {
+      await page.locator('.manage-post').first().getByRole('button', { name: 'Chỉnh sửa', exact: true }).click()
+      const dialog = page.getByRole('dialog')
+      await expect(dialog).toBeVisible()
+      const statusBtn = dialog.getByRole('button', { name: 'Trạng thái', exact: true })
+      await statusBtn.click()
+      const options = dialog.getByRole('listbox', { name: 'Trạng thái', exact: true })
+      await options.getByRole('option', { name: status, exact: true }).click()
+      await dialog.getByRole('button', { name: 'Lưu thay đổi', exact: true }).click()
+      await expect(dialog).toHaveCount(0)
+    }
+
     await expect(page.locator('.manage-post').first().locator('.badge')).toHaveText(status)
     await page.reload()
     await expect(page.locator('.manage-post').first().locator('.badge')).toHaveText(status)

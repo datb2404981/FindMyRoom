@@ -15,7 +15,7 @@ const route = useRoute();
 const room = computed(() => {
   const id = route.params.id;
   const all = [...rentalDirectory.posts, ...roommateDirectory.posts, ...state.posts.filter(post => post.status === 'Bản nháp'), ...roommateListings, ...rooms];
-  return all.find((r) => r.id === id || r.personId === id || r.id === `ghep-${id}`);
+  return all.find((r) => r.id === id || r.roomPostId === id || r.personId === id || r.id === `ghep-${id}`);
 });
 const isRoommate = computed(() => room.value?.kind === "roommate");
 const relatedHouse = computed(() => {

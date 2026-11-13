@@ -80,38 +80,6 @@
     "reviewed_at": "2026-11-03T14:30:45+07:00"
   },
   {
-    "review_id": "c5dd7c00-8e0e-4ff0-8f49-fe82eb11f36b",
-    "boarding_house_id": "BH00000002",
-    "student_code": "40153d8a-1e4b-48e0-b742-a0e6c37ded07",
-    "rating": 5,
-    "content": "123",
-    "reviewed_at": "2026-11-08T14:31:29.837Z"
-  },
-  {
-    "review_id": "f22482b1-63d6-49a1-b0f1-afbd94fe3717",
-    "boarding_house_id": "BH00000002",
-    "student_code": "40153d8a-1e4b-48e0-b742-a0e6c37ded07",
-    "rating": 4,
-    "content": "123",
-    "reviewed_at": "2026-11-08T14:31:39.166Z"
-  },
-  {
-    "review_id": "efe1f2ad-4ecb-44b4-af49-1d5768edd28d",
-    "boarding_house_id": "BH00000002",
-    "student_code": "40153d8a-1e4b-48e0-b742-a0e6c37ded07",
-    "rating": 4,
-    "content": "123",
-    "reviewed_at": "2026-11-08T14:32:05.988Z"
-  },
-  {
-    "review_id": "bcac0d38-d9a6-48fe-bbb3-a02f3f0bc147",
-    "boarding_house_id": "BH00000002",
-    "student_code": "40153d8a-1e4b-48e0-b742-a0e6c37ded07",
-    "rating": 4,
-    "content": "123",
-    "reviewed_at": "2026-11-08T14:32:19.330Z"
-  },
-  {
     "review_id": "2b69e82f-3c6a-4690-b8e4-314eabf3bdf1",
     "boarding_house_id": "BH00000001",
     "student_code": "40153d8a-1e4b-48e0-b742-a0e6c37ded07",
