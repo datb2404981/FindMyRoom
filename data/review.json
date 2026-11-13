@@ -102,5 +102,13 @@
     "rating": 4,
     "content": "Phòng đẹp",
     "reviewed_at": "2026-11-11T07:50:45.717Z"
+  },
+  {
+    "review_id": "bb838dd6-d074-411b-8049-8d5d5c46902f",
+    "boarding_house_id": "house-1793885408098",
+    "student_code": "40153d8a-1e4b-48e0-b742-a0e6c37ded07",
+    "rating": 4,
+    "content": "123",
+    "reviewed_at": "2026-11-13T03:47:18.329Z"
   }
 ]

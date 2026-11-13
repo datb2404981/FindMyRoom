@@ -488,5 +488,33 @@
     "is_active": true,
     "provider": "local",
     "created_at": "2026-11-11T07:38:59.410Z"
+  },
+  {
+    "account_id": "512e7e59-5fb4-4aa7-85ed-8284a5847f1a",
+    "full_name": "Tai khaon test",
+    "email": "taikhoanmoi@example.com",
+    "password": "scrypt:d82b2ce0ab6b6e6749434e6cc4410ddd:afd14a1f93f1ee50ea406bfd5b58cc883736de1c7e1f568a80430179a8d47b292acbac6809f8e1caebbecced683fe9f80287a0b4de20ff886e23c9edd126cf56",
+    "phone": "0912315343",
+    "avatar_url": null,
+    "role": "landlord",
+    "zalo_phone": "0912315343",
+    "zalo_url": null,
+    "is_active": true,
+    "provider": "local",
+    "created_at": "2026-11-13T17:09:55.198Z"
+  },
+  {
+    "account_id": "bccea742-6ac4-4b93-8981-b6e6135de673",
+    "full_name": "test cái nữa",
+    "email": "chutro123@example.com",
+    "password": "scrypt:de78f2fa5a158cbfb7a3cf70b69bce9d:9e7d3e37e635ac3fb57b8056c9713b49fbda711d6884a21f7e656928d95859014e62fb15bb68b7c319b769728f388061d40004828c4a574d12702830a4b8ded5",
+    "phone": "0912315343",
+    "avatar_url": null,
+    "role": "landlord",
+    "zalo_phone": "0912315343",
+    "zalo_url": null,
+    "is_active": true,
+    "provider": "local",
+    "created_at": "2026-11-13T17:14:55.198Z"
   }
 ]

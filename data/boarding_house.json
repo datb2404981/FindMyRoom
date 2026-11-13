@@ -106,5 +106,23 @@
     "house_latitude": null,
     "house_longitude": null,
     "rules": "231"
+  },
+  {
+    "boarding_house_id": "house-1793885408098",
+    "account_id": "demo-landlord",
+    "house_name": "123",
+    "house_address": "123, 123, Cần Thơ",
+    "house_latitude": null,
+    "house_longitude": null,
+    "rules": "Giờ giấc tự do, giữ gìn vệ sinh chung."
+  },
+  {
+    "boarding_house_id": "house-1794590209150",
+    "account_id": "bccea742-6ac4-4b93-8981-b6e6135de673",
+    "house_name": "123",
+    "house_address": "123, Thới Long, Cần Thơ",
+    "house_latitude": null,
+    "house_longitude": null,
+    "rules": "123"
   }
 ]
