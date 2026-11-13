@@ -90,51 +90,6 @@
     "rules": "Giữ vệ sinh chung, hạn chế tiếng ồn sau 22 giờ."
   },
   {
-    "boarding_house_id": "house-1793885408098",
-    "account_id": "demo-landlord",
-    "house_name": "123",
-    "house_address": "123, 123, Cần Thơ",
-    "house_latitude": null,
-    "house_longitude": null,
-    "rules": "Giờ giấc tự do, giữ gìn vệ sinh chung."
-  },
-  {
-    "boarding_house_id": "house-1793885411162",
-    "account_id": "demo-landlord",
-    "house_name": "123",
-    "house_address": "123",
-    "house_latitude": null,
-    "house_longitude": null,
-    "rules": "123"
-  },
-  {
-    "boarding_house_id": "house-1793885419018",
-    "account_id": "demo-landlord",
-    "house_name": "123",
-    "house_address": "123",
-    "house_latitude": null,
-    "house_longitude": null,
-    "rules": "13"
-  },
-  {
-    "boarding_house_id": "house-1793885422090",
-    "account_id": "demo-landlord",
-    "house_name": "123",
-    "house_address": "213",
-    "house_latitude": null,
-    "house_longitude": null,
-    "rules": "123"
-  },
-  {
-    "boarding_house_id": "house-1793885427322",
-    "account_id": "demo-landlord",
-    "house_name": "123",
-    "house_address": "123",
-    "house_latitude": null,
-    "house_longitude": null,
-    "rules": "123"
-  },
-  {
     "boarding_house_id": "minh-an",
     "account_id": "demo-landlord",
     "house_name": "Nhà trọ Minh An",
