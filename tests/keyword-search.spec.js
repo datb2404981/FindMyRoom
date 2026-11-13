@@ -40,32 +40,19 @@ test("keyword search matches real JSON data across titles, addresses, owners, am
 
   // Non-contiguous multi-word query ("Phòng trọ Cần Thơ") matches rentals & houses
   await submitSearch(page, "Phòng trọ Cần Thơ");
-  await expect(page.locator(".home-listings-heading")).toContainText("5 phòng cho thuê");
-  await expect(page.locator(".group-rentals .room-card")).toHaveCount(1);
+  await expect(page.locator(".group-rentals .room-card")).toHaveCount(5);
 
-  // Broad query ("Cần Thơ") matches all 3 groups: Phòng cho thuê, Phòng ghép trọ, Nhà trọ (1 card each per page)
+  // Broad query ("Cần Thơ") matches all 3 groups: Phòng cho thuê, Phòng ghép trọ, Nhà trọ
   await submitSearch(page, "Cần Thơ");
-  await expect(page.locator(".home-listings-heading")).toContainText(
-    "5 phòng cho thuê, 4 phòng ghép trọ, 10 nhà trọ",
-  );
-  await expect(page.locator(".group-rentals .room-card")).toHaveCount(1);
-  await expect(page.locator(".group-roommates .room-card")).toHaveCount(1);
-  await expect(page.locator(".group-houses .room-card")).toHaveCount(1);
-  for (const width of [1280, 768, 375]) {
-    await page.setViewportSize({ width, height: 900 });
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    const box = await page.locator(".group-rentals .room-card").first().boundingBox();
-    expect(box.width).toBeLessThanOrEqual(321);
-  }
-  await page.setViewportSize({ width: 1280, height: 720 });
+  await expect(page.locator(".group-rentals .room-card")).toHaveCount(5);
+  await expect(page.locator(".group-roommates .room-card")).toHaveCount(4);
+  await expect(page.locator(".group-houses .room-card")).toHaveCount(8);
 
-  // Pagination navigates to remaining cards across groups
-  await page.getByRole("navigation", { name: "Phân trang kết quả" }).getByRole("button", { name: "Trang 5", exact: true }).click();
-  await expect(page).toHaveURL(/page=5/);
-  await expect(page.locator(".group-rentals .room-card")).toHaveCount(1);
-  await expect(page.locator(".group-roommates .room-card")).toHaveCount(0);
-  await expect(page.locator(".group-roommates")).toContainText("Các kết quả của nhóm này đã hiển thị ở trang trước.");
-  await expect(page.locator(".group-houses .room-card")).toHaveCount(1);
+  // Pagination while searching keeps search mode and navigates to remaining houses on page 2
+  await page.getByRole("navigation", { name: "Phân trang kết quả" }).getByRole("button", { name: "Trang 2", exact: true }).click();
+  await expect(page).toHaveURL(/search=1.*page=2|page=2.*search=1/);
+  await expect(page.locator(".group-houses .room-card")).toHaveCount(2);
+  await expect(page.locator(".group-rentals")).toContainText("Các kết quả của nhóm này đã hiển thị ở trang trước.");
 
   // Punctuation-insensitive address query ("104 đường Nguyễn Văn Linh" vs "104, đường Nguyễn Văn Linh...")
   await submitSearch(page, "104 đường Nguyễn Văn Linh");
@@ -104,13 +91,10 @@ test("keyword search matches real JSON data across titles, addresses, owners, am
   );
 
   await submitSearch(page, "nuôi thú cưng");
-  await expect(page.locator(".home-listings-heading")).toContainText("2 phòng cho thuê");
-  await expect(page.locator(".group-rentals .room-card")).toHaveCount(1);
+  await expect(page.locator(".group-rentals .room-card")).toHaveCount(2);
   await expect(page.locator(".group-rentals")).toContainText(
     "Phòng trọ Hoa Sen gần trung tâm Cần Thơ",
   );
-  await page.getByRole("navigation", { name: "Phân trang kết quả" }).getByRole("button", { name: "Trang 2", exact: true }).click();
-  await expect(page.locator(".group-rentals .room-card")).toHaveCount(1);
   await expect(page.locator(".group-rentals")).toContainText(
     "Phòng trọ Thanh Bình gần trung tâm Cần Thơ",
   );
@@ -122,13 +106,11 @@ test("keyword search matches real JSON data across titles, addresses, owners, am
   );
 
   await submitSearch(page, "gửi xe");
-  await expect(page.locator(".home-listings-heading")).toContainText("4 phòng cho thuê");
-  await expect(page.locator(".group-rentals .room-card")).toHaveCount(1);
+  await expect(page.locator(".group-rentals .room-card")).toHaveCount(4);
 
   // Roommate-only match hides rentals and houses
   await submitSearch(page, "Đọc sách");
-  await expect(page.locator(".home-listings-heading")).toContainText("3 phòng ghép trọ");
-  await expect(page.locator(".group-roommates .room-card")).toHaveCount(1);
+  await expect(page.locator(".group-roommates .room-card")).toHaveCount(3);
   await expect(page.locator(".group-rentals")).toHaveCount(0);
   await expect(page.locator(".group-houses")).toHaveCount(0);
 
@@ -210,4 +192,59 @@ test("stale localStorage cache does not resurrect Minh An or shadow real JSON fi
     "Phòng trọ An Phú gần trung tâm Cần Thơ",
   );
   await expect(page.locator(".group-houses .room-card")).toHaveCount(1);
+});
+
+test("home pagination stays on home view and only shows roommates and houses when searching", async ({
+  page,
+}) => {
+  await page.goto("/#/");
+  await page.evaluate(() => {
+    const key = "findmyroom-demo-v1";
+    const data = JSON.parse(localStorage.getItem(key) || "{}");
+    const template = (data.posts && data.posts[0]) || {
+      ownerId: "ACC000011",
+      kind: "rental",
+      house: "Nhà trọ An Phú",
+      address: "100, đường 3/2, quận Ninh Kiều, Cần Thơ",
+      district: "Ninh Kiều",
+      price: 1500000,
+      area: 20,
+      people: 2,
+      amenities: [],
+    };
+    data.posts = data.posts || [];
+    for (let i = 0; i < 6; i++) {
+      data.posts.push({
+        ...template,
+        id: `home-page-rental-${i}`,
+        title: `Phòng trang chủ ${i + 1}`,
+        kind: "rental",
+        status: "Còn phòng",
+      });
+    }
+    localStorage.setItem(key, JSON.stringify(data));
+  });
+  await page.reload();
+
+  await expect(page.locator(".locations")).toBeVisible();
+  await expect(page.locator(".featured")).toBeVisible();
+  await expect(page.locator(".group-rentals .room-card")).toHaveCount(8);
+  await expect(page.locator(".group-roommates")).toHaveCount(0);
+  await expect(page.locator(".group-houses")).toHaveCount(0);
+
+  await page.getByRole("navigation", { name: "Phân trang kết quả" }).getByRole("button", { name: "Trang 2", exact: true }).click();
+  await expect(page).toHaveURL(/#\/\?page=2$/);
+  await expect(page.locator(".locations")).toBeVisible();
+  await expect(page.locator(".featured")).toBeVisible();
+  await expect(page.locator(".home-listings-heading")).toContainText("Danh sách phòng trọ");
+  await expect(page.locator(".group-rentals .room-card")).toHaveCount(3);
+  await expect(page.locator(".group-roommates")).toHaveCount(0);
+  await expect(page.locator(".group-houses")).toHaveCount(0);
+
+  await submitSearch(page, "");
+  await expect(page).toHaveURL(/#\/\?search=1/);
+  await expect(page.locator(".locations")).toHaveCount(0);
+  await expect(page.locator(".group-rentals .room-card")).toHaveCount(8);
+  await expect(page.locator(".group-roommates .room-card")).toHaveCount(4);
+  await expect(page.locator(".group-houses .room-card")).toHaveCount(8);
 });

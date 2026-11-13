@@ -31,9 +31,10 @@ const keyword = ref(""),
 const filterControl = ref(null);
 const featuredTrack = ref(null),
   locationTrack = ref(null);
-const pageSize = 1;
+const pageSize = 8;
+const mobilePageSize = 1;
 const isMobile = ref(false),
-  mobileLimit = ref(pageSize),
+  mobileLimit = ref(mobilePageSize),
   loadMoreTrigger = ref(null);
 let mobileMedia, loadObserver;
 function updateMobile() {
@@ -46,7 +47,7 @@ onMounted(() => {
   if ("IntersectionObserver" in window) {
     loadObserver = new IntersectionObserver(
       (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) mobileLimit.value += pageSize;
+        if (entries.some((entry) => entry.isIntersecting)) mobileLimit.value += mobilePageSize;
       },
       { rootMargin: "200px" },
     );
@@ -84,7 +85,6 @@ const searchKeys = [
   "prices",
   "amenity",
   "price",
-  "page",
 ];
 const isSearching = computed(() =>
   searchKeys.some((key) => Object.hasOwn(route.query, key)),
@@ -92,7 +92,7 @@ const isSearching = computed(() =>
 const queryError = computed(() => searchQueryError(route.query));
 const hasCriteria = computed(() =>
   searchKeys.some(
-    (key) => !["search", "page"].includes(key) && Object.hasOwn(route.query, key),
+    (key) => key !== "search" && Object.hasOwn(route.query, key),
   ),
 );
 const appliedFilters = computed(() => filtersFromQuery(route.query));
@@ -174,9 +174,6 @@ const resultCount = computed(() =>
 const maxGroupCount = computed(() =>
   Math.max(0, ...groups.value.map((group) => group.items.length)),
 );
-const resultSummary = computed(() =>
-  groups.value.map((group) => `${group.items.length} ${group.summaryLabel}`).join(", "),
-);
 const pageCount = computed(() =>
   Math.max(1, ...groups.value.map((group) => Math.ceil(group.items.length / pageSize))),
 );
@@ -218,7 +215,7 @@ function setPriceOrder(order) {
 watch(
   () => route.query,
   (query) => {
-    mobileLimit.value = pageSize;
+    mobileLimit.value = mobilePageSize;
     keyword.value = typeof query.q === "string" ? query.q : "";
     filters.value = filtersFromQuery(query);
     filterControl.value?.close();
@@ -239,7 +236,7 @@ function reset() {
 }
 function goToPage(page) {
   if (page < 1 || page > pageCount.value || page === currentPage.value) return;
-  const query = { ...route.query, search: "1" };
+  const query = { ...route.query };
   if (page === 1) delete query.page;
   else query.page = String(page);
   router.push({ path: "/", query });
@@ -365,13 +362,6 @@ function goToPage(page) {
       <div class="home-listings-heading">
         <div>
           <h2>{{ isSearching ? "Kết quả tìm kiếm" : "Danh sách phòng trọ" }}</h2>
-          <p v-if="isSearching && !queryError && resultCount" class="muted" role="status">
-            {{
-              resultSummary +
-              (route.query.q ? " cho “" + route.query.q + "”" : "") +
-              "."
-            }}
-          </p>
         </div>
         <div v-if="isSearching" class="home-listings-actions">
           <button
@@ -465,7 +455,7 @@ function goToPage(page) {
           ref="loadMoreTrigger"
           type="button"
           class="button secondary mobile-load-more"
-          @click="mobileLimit += pageSize"
+          @click="mobileLimit += mobilePageSize"
         >
           Xem thêm phòng trọ
         </button>
@@ -804,8 +794,7 @@ function goToPage(page) {
 }
 .home-listing-grid {
   display: grid;
-  grid-template-columns: minmax(0, 320px);
-  justify-content: center;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 20px;
 }
 .group-empty {
@@ -894,6 +883,11 @@ function goToPage(page) {
   }
   .home-listing-grid {
     gap: 14px;
+  }
+}
+@media (min-width: 601px) and (max-width: 900px) {
+  .home-listing-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 @media (max-width: 600px) {
