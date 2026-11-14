@@ -136,5 +136,11 @@
     "amenity_name": "Người thân qua đêm",
     "category": "Khác",
     "description": ""
+  },
+  {
+    "amenity_id": "85f4c808-33ba-4f0e-9507-54c03c84f9e1",
+    "amenity_name": "Quán ăn",
+    "category": "Tiện ích ngoại khu",
+    "description": ""
   }
 ]

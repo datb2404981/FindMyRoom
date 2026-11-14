@@ -81,10 +81,10 @@ function selectHouse(h) {
     if (!draft.street.trim()) {
       draft.street = h.street || h.address;
     }
-    const wards = ["Xuân Khánh", "An Bình", "Hưng Lợi", "An Khánh", "Hưng Phú", "Bình Thủy"];
-    const matchedWard = h.ward || wards.find((w) => h.address.includes(w));
+    const wards = ["Xuân Khánh", "An Bình", "Hưng Lợi", "An Khánh", "Hưng Phú", "Bình Thủy", "Ninh Kiều"];
+    const matchedWard = normalizeWard(h.ward) || wards.find((w) => h.address.includes(w));
     if (matchedWard && !draft.ward) {
-      draft.ward = matchedWard;
+      draft.ward = normalizeWard(matchedWard);
     }
   }
   if (h.latitude != null && h.longitude != null) {
@@ -192,24 +192,39 @@ function updatePositiveNumber(key, event) {
   draft[key] = value === '' ? '' : Math.max(1, Number(value));
   if (value !== '' && Number(value) < 1) event.target.value = '1';
 }
+function normalizeWard(w) {
+  if (!w) return '';
+  if (/ninh\s*ki[eề]u/i.test(w)) return 'Ninh Kiều';
+  const clean = w.replace(/^(quận|huyện|thị xã|thành phố|phường|xã)\s+/i, '').trim();
+  const matched = canThoUrbanWards.find(uw => uw.toLowerCase() === clean.toLowerCase() || uw.toLowerCase() === w.toLowerCase());
+  return matched || w;
+}
+
 watch(() => draft.houseId, id => {
   if (!rental.value) return;
   const house = systemHouses.value.find(house => house.id === id);
   if (!house) return;
   draft.house = house.name;
   draft.street = house.street || house.address || '';
-  draft.ward = house.ward || '';
+  draft.ward = normalizeWard(house.ward || '');
   draft.city = house.city || 'Cần Thơ';
   draft.latitude = house.latitude ?? null;
   draft.longitude = house.longitude ?? null;
 });
+
+watch(() => draft.ward, (val) => {
+  if (val && /ninh\s*ki[eề]u/i.test(val) && val !== 'Ninh Kiều') {
+    draft.ward = 'Ninh Kiều';
+  }
+}, { immediate: true });
+
 const wardOptions = computed(() => [
   { value: '', label: 'Chọn phường / xã' },
   ...canThoUrbanWards.map(ward => ({ value: ward, label: `Phường ${ward}` })),
-  // Keep the old value selectable while editing a draft created before the 2025 merger.
-  ...draft.ward && !canThoUrbanWards.includes(draft.ward)
+  // Keep the old value selectable while editing a draft created before the 2025 merger, but exclude Ninh Kiều (cũ)
+  ...(draft.ward && !canThoUrbanWards.includes(draft.ward) && !/ninh\s*ki[eề]u/i.test(draft.ward)
     ? [{ value: draft.ward, label: `${draft.ward} (địa chỉ cũ)` }]
-    : [],
+    : []),
 ]);
 
 function resetDraft() {
@@ -400,14 +415,14 @@ const fields = computed(() =>
         ],
         ["houseId", "Chọn nhà trọ", "house", true],
         ["count", "Số lượng phòng", "number", true],
-        ["curfew", "Giờ giấc", "time", false],
-        ["deposit", "Tiền cọc (đ)", "number", false],
-        ["price", "Giá thuê (đ/tháng)", "number", true],
         ["area", "Diện tích (m²)", "number", true],
+        ["price", "Giá thuê (đ/tháng)", "number", true],
+        ["deposit", "Tiền cọc (đ)", "number", false],
         ["electric", "Giá điện (đ/kWh)", "number", true],
         ["water", "Giá nước (đ/m³)", "number", true],
         ["internet", "Tiền wifi (đ/tháng)", "number", false],
         ["other", "Chi phí khác", "text", false],
+        ["curfew", "Giờ giấc", "time", false],
         ["people", "Số người tối đa", "number", true],
       ]
     : [
@@ -730,7 +745,13 @@ function locate() {
             v-for="[key, label, type, required, placeholder] in fields"
             :key="key"
             class="field"
-            :class="{ 'span-two': key === 'title' }"
+            :class="[
+              key === 'title'
+                ? 'col-span-full'
+                : rental
+                  ? (['houseId', 'count', 'area'].includes(key) ? 'col-span-2' : 'col-span-3')
+                  : 'col-span-3'
+            ]"
             ><span>{{ label }} <b v-if="required" class="required">*</b></span
             ><GenderDropdown v-if="type === 'gender'" v-model="draft[key]" :label="label" /><AppDropdown
               v-else-if="type === 'school'"
@@ -781,7 +802,7 @@ function locate() {
               "
               :aria-invalid="!!errors[key]"
             /><small v-if="key === 'curfew'" class="muted">Để trống nếu giờ giấc tự do.</small><small class="error" v-if="errors[key]">{{ errors[key] }}</small></component
-          ><label class="field span-two"
+          ><label class="field span-two col-span-full"
             ><span>Mô tả chi tiết</span
             ><textarea
               rows="5"
@@ -1268,8 +1289,37 @@ function locate() {
 </template>
 
 <style scoped>
-.post-panel .form-grid > .field { position: relative; }
+.post-panel .form-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0 24px;
+}
+.post-panel .form-grid > .field {
+  position: relative;
+  grid-column: span 3;
+}
+.post-panel .form-grid > .field.col-span-2 {
+  grid-column: span 2;
+}
+.post-panel .form-grid > .field.col-span-3 {
+  grid-column: span 3;
+}
+.post-panel .form-grid > .field.col-span-full {
+  grid-column: 1 / -1;
+}
 .post-panel .form-grid > .field > small.error { position: absolute; top: calc(100% + 3px); left: 0; }
+@media (max-width: 800px) {
+  .post-panel .form-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .post-panel .form-grid > .field,
+  .post-panel .form-grid > .field.col-span-full,
+  .post-panel .form-grid > .field.col-span-2,
+  .post-panel .form-grid > .field.col-span-3 {
+    grid-column: span 1;
+  }
+}
 .post-panel .post-amenity-group { margin-bottom: 24px; }
 .post-amenity-group legend { margin-bottom: 14px; }
 .post-amenity-group .amenity-checks { border: 1px solid var(--muted); padding: 12px 16px; }

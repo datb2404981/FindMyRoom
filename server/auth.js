@@ -86,7 +86,10 @@ export function createAuthMiddleware({
   const roommatesData = roommateStore({ file: roommatesFile, imagesFile: roommateImagesFile, linksFile: roommateAmenitiesFile, catalogFile, studentsFile, universitiesFile: fileURLToPath(new URL('../data/university.json', import.meta.url)) })
   const readHouses = async () => (await housesData.read()).map(house => {
     const parts = (house.address || '').split(',').map(part => part.trim())
-    return { ...house, desc: house.rules || '', city: parts.at(-1) || '', ward: parts.length > 2 ? parts.at(-2) : '', street: parts.slice(0, -2).join(', ') || house.address, rooms: 0, status: '\u0110ang ho\u1ea1t \u0111\u1ed9ng' }
+    const rawWard = parts.length > 2 ? parts.at(-2) : ''
+    const cleanWard = rawWard.replace(/^(quận|phường)\s+/i, '').trim()
+    const ward = /ninh\s*ki[eề]u/i.test(rawWard) ? 'Ninh Kiều' : rawWard
+    return { ...house, desc: house.rules || '', city: parts.at(-1) || '', ward, street: parts.slice(0, -2).join(', ') || house.address, rooms: 0, status: '\u0110ang ho\u1ea1t \u0111\u1ed9ng' }
   })
   const updateHouses = housesData.update
   const rentalOwner = (post, houses) => houses.find(house => house.id === post.houseId)?.ownerId

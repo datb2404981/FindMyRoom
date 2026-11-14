@@ -110,5 +110,13 @@
     "rating": 4,
     "content": "123",
     "reviewed_at": "2026-11-13T03:47:18.329Z"
+  },
+  {
+    "review_id": "45f39150-302a-4dc2-b9dc-ed598e141ce0",
+    "boarding_house_id": "house-1794382356590",
+    "student_code": "d1a3b6eb-f9d3-4e64-b47d-0c8f84f5a231",
+    "rating": 1,
+    "content": "xấu quắc",
+    "reviewed_at": "2026-11-14T03:57:12.944Z"
   }
 ]

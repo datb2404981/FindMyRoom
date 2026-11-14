@@ -104,7 +104,7 @@ const nearbyOptions = ['Đại học Cần Thơ', 'Đại học Y Dược Cần 
 const wardOptions = computed(() => [
   { value: '', label: 'Chọn phường / xã' },
   ...canThoUrbanWards.map(ward => ({ value: ward, label: `Phường ${ward}` })),
-  ...(form.ward && !canThoUrbanWards.includes(form.ward)
+  ...(form.ward && !canThoUrbanWards.includes(form.ward) && !/ninh\s*ki[eề]u/i.test(form.ward)
     ? [{ value: form.ward, label: `${form.ward} (địa chỉ cũ)` }]
     : []),
 ])
@@ -122,7 +122,8 @@ function open(h) {
   const address = h?.address || ''
   const parts = address.split(',').map(s => s.trim())
   const street = h?.street || parts[0] || ''
-  const ward = h?.ward || (parts.length > 2 ? parts[1] : (parts.length === 2 ? parts[0] : ''))
+  const rawWard = h?.ward || (parts.length > 2 ? parts[1] : (parts.length === 2 ? parts[0] : ''))
+  const ward = /ninh\s*ki[eề]u/i.test(rawWard) ? 'Ninh Kiều' : rawWard
 
   const initialImages = Array.isArray(h?.images) && h.images.length
     ? [...h.images]

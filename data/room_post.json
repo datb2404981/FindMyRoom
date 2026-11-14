@@ -187,23 +187,6 @@
     "posted_at": "2026-11-11T07:35:40.062Z"
   },
   {
-    "room_post_id": "post-1794541599560",
-    "boarding_house_id": "house-1793885408098",
-    "room_post_title": "123123",
-    "room_post_area": 231,
-    "room_post_price": 1231,
-    "deposit": 123123,
-    "room_post_water_price": 31,
-    "room_post_electronic_price": 23123,
-    "room_post_internet_price": 123,
-    "room_post_other_service_fee": "1231",
-    "max_occupants": 1,
-    "room_post_description": "",
-    "curfew": "",
-    "status": "Còn phòng",
-    "posted_at": "2026-11-13T03:46:39.575Z"
-  },
-  {
     "room_post_id": "post-1794590268142",
     "boarding_house_id": "house-1794590209150",
     "room_post_title": "123",
@@ -219,5 +202,39 @@
     "curfew": "",
     "status": "Còn phòng",
     "posted_at": "2026-11-13T17:17:48.163Z"
+  },
+  {
+    "room_post_id": "post-1794629054797",
+    "boarding_house_id": "minh-an",
+    "room_post_title": "Phòng có gác DHCT",
+    "room_post_area": 25,
+    "room_post_price": 1800000,
+    "deposit": 0,
+    "room_post_water_price": 12000,
+    "room_post_electronic_price": 5000,
+    "room_post_internet_price": 0,
+    "room_post_other_service_fee": "",
+    "max_occupants": 1,
+    "room_post_description": "",
+    "curfew": "",
+    "status": "Còn phòng",
+    "posted_at": "2026-11-14T04:04:14.818Z"
+  },
+  {
+    "room_post_id": "post-1794630909917",
+    "boarding_house_id": "minh-an",
+    "room_post_title": "dsfaasf",
+    "room_post_area": 25,
+    "room_post_price": 1800000,
+    "deposit": 0,
+    "room_post_water_price": 30000,
+    "room_post_electronic_price": 4000,
+    "room_post_internet_price": 0,
+    "room_post_other_service_fee": "",
+    "max_occupants": 2,
+    "room_post_description": "",
+    "curfew": "23:50",
+    "status": "Còn phòng",
+    "posted_at": "2026-11-14T04:35:09.934Z"
   }
 ]
