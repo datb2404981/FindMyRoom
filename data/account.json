@@ -530,5 +530,19 @@
     "is_active": true,
     "provider": "local",
     "created_at": "2026-11-15T09:28:10.067Z"
+  },
+  {
+    "account_id": "3da7886b-d727-45ba-a8c1-824994aaab57",
+    "full_name": "taif khoan moi",
+    "email": "minhkho12313a@gmail.com",
+    "password": "scrypt:30adc3b45c8ee891ba5669e00062fa99:dc31be5ce3cd0e7fdddb376c0fc0a06231672eea7072f78fa1b1d8f4388af1f898c7373a6776bddd4c7b77d28dbc7368a6d2c7b215a0490f0b817549cb2d83ea",
+    "phone": "0912312312",
+    "avatar_url": null,
+    "role": "student",
+    "zalo_phone": "0912312312",
+    "zalo_url": null,
+    "is_active": true,
+    "provider": "local",
+    "created_at": "2026-11-15T14:35:43.310Z"
   }
 ]

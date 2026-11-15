@@ -312,6 +312,7 @@ export const people = rawStudents.map((s, i) => {
 
   return {
     id,
+    roommatePostId: roommatePost.roommate_post_id || '',
     studentCode: s.student_code,
     status: rentalStatus(roommatePost),
     title,

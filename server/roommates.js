@@ -15,6 +15,13 @@ function ageFromBirth(birth) {
   if (todayMonthDay < monthDay) age--
   return age > 0 ? age : null
 }
+function wardFromAddress(address = '') {
+  const parts = String(address).split(',').map(part => part.trim()).filter(Boolean)
+  const rawWard = parts.length > 2 ? parts.at(-2) : ''
+  const cleanWard = rawWard.replace(/^(quận|phường|huyện|thị xã)\s+/i, '').trim()
+  return /ninh\s*ki[eề]u/i.test(cleanWard) ? 'Ninh Kiều' : cleanWard
+}
+
 export function roommateStore({ file, imagesFile, linksFile, catalogFile, studentsFile, universitiesFile }) {
   const data = jsonCollection(file, imagesFile, roommateFields, 'roommate_post_image_id', { linksFile, catalogFile })
   async function read(houses, users) {
@@ -28,7 +35,7 @@ export function roommateStore({ file, imagesFile, linksFile, catalogFile, studen
         ownerGender: student?.gender || '', major: student?.major || '', age: ageFromBirth(student?.date_of_birth),
         ownerSchool: universities.find(school => school.university_id === student?.university_id)?.university_name || '',
         school: universities.find(school => school.university_id === post.universityId)?.university_name || '',
-        houseId: house?.id || '', house: house?.name || '', district: house?.ward || '',
+        houseId: house?.id || '', house: house?.name || '', district: house?.ward || wardFromAddress(post.address),
         perPerson: Number(post.price) / (Number(post.people) + 1), totalRent: post.price }
     }).filter(Boolean)
   }
@@ -97,7 +104,7 @@ export function roommateStore({ file, imagesFile, linksFile, catalogFile, studen
       ownerGender: student?.gender || '', major: student?.major || '', age: ageFromBirth(student?.date_of_birth),
       ownerSchool: universities.find(school => school.university_id === student?.university_id)?.university_name || '',
       school: universities.find(school => school.university_id === post.universityId)?.university_name || '',
-      houseId: house?.id || '', house: house?.name || '', district: house?.ward || '', image: post.images[0],
+      houseId: house?.id || '', house: house?.name || '', district: house?.ward || wardFromAddress(post.address), image: post.images[0],
       perPerson: Number(post.price) / (Number(post.people) + 1), totalRent: post.price }
   }
   return { read, save, remove }
