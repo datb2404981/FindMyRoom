@@ -1606,6 +1606,7 @@ select[aria-invalid="true"] {
 .manage-post > img {
   width: 175px;
   height: 125px;
+  flex-shrink: 0;
   object-fit: cover;
   border-radius: 8px;
 }
@@ -1628,6 +1629,7 @@ select[aria-invalid="true"] {
 }
 .manage-post-info {
   flex: 1;
+  min-width: 0;
 }
 .modal-backdrop {
   position: fixed;
@@ -2885,7 +2887,7 @@ select[aria-invalid="true"] {
   }
   .manage-post {
     display: grid;
-    grid-template-columns: 100px 1fr;
+    grid-template-columns: 100px minmax(0, 1fr);
     gap: 15px;
     padding: 14px;
   }

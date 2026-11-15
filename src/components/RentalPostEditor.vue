@@ -20,8 +20,8 @@ for (const key of ['people', 'area', 'count']) {
 }
 function updatePositiveNumber(key, event) {
   const value = event.target.value
-  form[key] = value === '' ? '' : Math.max(1, Number(value))
-  if (value !== '' && Number(value) < 1) event.target.value = '1'
+  form[key] = value === '' ? '' : Math.min(999999999, Math.max(1, Number(value)))
+  if (value !== '' && Number(value) !== form[key]) event.target.value = String(form[key])
 }
 const universityOptions = computed(() => [...new Set([...universities.map(item => item.university_name), form.school].filter(Boolean))])
 const roommateHouseOptions = computed(() => [{ value: '', label: 'Không chọn nhà trọ' }, ...houseDirectory.houses.filter(house => house.status === 'Đang hoạt động').map(house => ({ value: house.id, label: `${house.name} · ${house.address}` }))])
@@ -169,7 +169,7 @@ async function save() {
           </header>
           <form id="rental-edit-form" class="editor-content" novalidate @submit.prevent="save">
             <div v-show="tab === 'general'" data-tab="general" class="editor-grid">
-              <label class="field title-field"><span>Tiêu đề bài đăng *</span><input v-model="form.title" aria-label="Tiêu đề bài đăng *" maxlength="100" :aria-invalid="!!errors.title"><small v-if="errors.title" class="error">{{ errors.title }}</small></label>
+              <label class="field title-field"><span>Tiêu đề bài đăng *</span><input v-model="form.title" aria-label="Tiêu đề bài đăng *" maxlength="255" :aria-invalid="!!errors.title"><small v-if="errors.title" class="error">{{ errors.title }}</small></label>
               <div class="field status-field"><span>Trạng thái</span><AppDropdown v-model="form.status" label="Trạng thái" :options="statuses" /></div>
               <template v-if="roommate">
                 <div class="field"><span>Đối tượng (nam/nữ) *</span><AppDropdown v-model="form.gender" label="Đối tượng (nam/nữ) *" :options="['Tất cả', 'Nam', 'Nữ']" :invalid="!!errors.gender"/><small v-if="errors.gender" class="error">{{ errors.gender }}</small></div>
@@ -182,17 +182,17 @@ async function save() {
               <div v-for="[key, label, min, required] in numericFields" :key="key" class="field">
                 <span>{{ label }}{{ required ? ' *' : '' }}</span>
                 <MoneyInput v-if="moneyFields.has(key)" v-model="form[key]" :label="label + (required ? ' *' : '')" :invalid="!!errors[key]" />
-                <input v-else :value="form[key]" :aria-label="label + (required ? ' *' : '')" type="number" min="1" step="1" :aria-invalid="!!errors[key]" @input="updatePositiveNumber(key, $event)" @blur="form[key] = form[key] === '' ? 1 : Math.max(1, Number(form[key]))">
+                <input v-else :value="form[key]" :aria-label="label + (required ? ' *' : '')" type="number" min="1" max="999999999" step="1" :aria-invalid="!!errors[key]" @input="updatePositiveNumber(key, $event)" @blur="form[key] = form[key] === '' ? 1 : Math.max(1, Number(form[key]))">
                 <small v-if="errors[key]" class="error">{{ errors[key] }}</small>
               </div>
-              <label class="field full-width"><span>Chi phí khác</span><input v-model="form.other" placeholder="Ví dụ: Giữ xe 50.000đ; rác 20.000đ"></label>
-              <label class="field full-width"><span>Mô tả chi tiết phòng</span><textarea v-model="form.desc" rows="4"/></label>
-              <label v-if="roommate" class="field full-width"><span>Thói quen sống / lưu ý khác</span><textarea v-model="form.habits" rows="3"/></label>
+              <label class="field full-width"><span>Chi phí khác</span><input v-model="form.other" maxlength="255" placeholder="Ví dụ: Giữ xe 50.000đ; rác 20.000đ"></label>
+              <label class="field full-width"><span>Mô tả chi tiết phòng</span><textarea v-model="form.desc" maxlength="255" rows="4"/></label>
+              <label v-if="roommate" class="field full-width"><span>Thói quen sống / lưu ý khác</span><textarea v-model="form.habits" maxlength="255" rows="3"/></label>
             </div>
             <div v-show="tab === 'address'" data-tab="address" class="editor-grid">
               <template v-if="roommate">
                 <div class="field full-width"><span>Nhà trọ</span><AppDropdown :model-value="form.houseId || ''" @update:model-value="selectRoommateHouse" label="Nhà trọ" :options="roommateHouseOptions" :invalid="!!errors.houseId" :disabled="houseDirectory.loading"/><small v-if="houseDirectory.error || errors.houseId" class="error">{{ houseDirectory.error || errors.houseId }}</small><small v-else class="help">Chọn nhà trọ trong hệ thống để tự động điền địa chỉ hoặc nhập địa chỉ thủ công bên dưới.</small></div>
-                <label class="field full-width"><span>Địa chỉ *</span><input v-model="form.address" aria-label="Địa chỉ *" placeholder="Ví dụ: 123 đường 3/2, Ninh Kiều, Cần Thơ" :aria-invalid="!!errors.address"><small v-if="errors.address" class="error">{{ errors.address }}</small></label>
+                <label class="field full-width"><span>Địa chỉ *</span><input v-model="form.address" maxlength="255" aria-label="Địa chỉ *" placeholder="Ví dụ: 123 đường 3/2, Ninh Kiều, Cần Thơ" :aria-invalid="!!errors.address"><small v-if="errors.address" class="error">{{ errors.address }}</small></label>
               </template>
               <template v-else>
                 <div class="field full-width"><span>Chọn nhà trọ *</span><AppDropdown v-model="form.houseId" label="Chọn nhà trọ *" :invalid="!!errors.houseId" :options="[{ value: '', label: 'Chọn nhà trọ' }, ...houseOptions.map(h => ({ value: h.id, label: h.name }))]" /><small v-if="errors.houseId" class="error">{{ errors.houseId }}</small></div>

@@ -278,13 +278,13 @@ export function createAuthMiddleware({
         if (!['Còn phòng', 'Hết phòng', 'Ẩn'].includes(body.status)) throw fail(400, 'Trạng thái bài đăng không hợp lệ.')
         const post = { id, ownerId: user.id, houseId: house.id, status: body.status, postedAt: body.postedAt || new Date().toISOString() }
         for (const field of ['title', 'desc', 'curfew', 'other', 'city', 'ward', 'street']) {
-          if (body[field] != null && (typeof body[field] !== 'string' || body[field].length > 10000)) throw fail(400, 'Thông tin bài đăng không hợp lệ.')
+          if (body[field] != null && (typeof body[field] !== 'string' || body[field].length > (['title', 'desc', 'other', 'street'].includes(field) ? 255 : 10000))) throw fail(400, 'Thông tin bài đăng không hợp lệ.')
           post[field] = body[field] || ''
         }
         if (!post.title.trim()) throw fail(400, 'Vui lòng nhập tiêu đề bài đăng.')
         for (const field of ['price', 'area', 'people', 'count', 'electric', 'water', 'internet', 'deposit']) {
           post[field] = Number(body[field] || 0)
-          if (!Number.isFinite(post[field]) || post[field] < 0 || (['price', 'area', 'people'].includes(field) && post[field] === 0) || (['people', 'count'].includes(field) && !Number.isInteger(post[field]))) throw fail(400, 'Giá, diện tích và số lượng không hợp lệ.')
+          if (!Number.isFinite(post[field]) || post[field] < 0 || post[field] > (['area', 'people', 'count'].includes(field) ? 999999999 : 999999999000) || (['price', 'area', 'people'].includes(field) && post[field] === 0) || (['people', 'count'].includes(field) && !Number.isInteger(post[field]))) throw fail(400, 'Giá, diện tích và số lượng không hợp lệ.')
         }
         for (const [field, limit] of [['latitude', 90], ['longitude', 180]]) {
           post[field] = body[field] == null ? null : Number(body[field])

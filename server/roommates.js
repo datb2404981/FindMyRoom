@@ -51,7 +51,7 @@ export function roommateStore({ file, imagesFile, linksFile, catalogFile, studen
     if (!['Còn phòng', 'Hết phòng', 'Ẩn'].includes(body.status)) throw fail(400, 'Trạng thái không hợp lệ.')
     const post = { id, status: body.status }
     for (const key of ['title', 'desc', 'other', 'address', 'moveIn', 'habits']) {
-      if (body[key] != null && (typeof body[key] !== 'string' || body[key].length > 10000)) throw fail(400, 'Thông tin bài đăng không hợp lệ.')
+      if (body[key] != null && (typeof body[key] !== 'string' || body[key].length > (['title', 'desc', 'other', 'habits'].includes(key) ? 255 : 10000))) throw fail(400, 'Thông tin bài đăng không hợp lệ.')
       post[key] = body[key] || ''
     }
     if (!post.title.trim() || !/^\d{4}-\d{2}-\d{2}$/.test(post.moveIn) || !Number.isFinite(Date.parse(post.moveIn))) throw fail(400, 'Vui lòng nhập tiêu đề và ngày chuyển vào hợp lệ.')
@@ -59,10 +59,10 @@ export function roommateStore({ file, imagesFile, linksFile, catalogFile, studen
     if (!['Tất cả', 'Nam', 'Nữ'].includes(post.gender)) throw fail(400, 'Đối tượng không hợp lệ.')
     for (const key of ['price', 'electric', 'water', 'internet', 'people']) {
       post[key] = Number(body[key] || 0)
-      if (!Number.isFinite(post[key]) || post[key] < 0 || (['price', 'people'].includes(key) && !post[key]) || (key === 'people' && !Number.isInteger(post[key]))) throw fail(400, 'Giá và số người không hợp lệ.')
+      if (!Number.isFinite(post[key]) || post[key] < 0 || post[key] > (key === 'people' ? 999999999 : 999999999000) || (['price', 'people'].includes(key) && !post[key]) || (key === 'people' && !Number.isInteger(post[key]))) throw fail(400, 'Giá và số người không hợp lệ.')
     }
     post.area = body.area == null || body.area === '' ? null : Number(body.area)
-    if (post.area != null && (!Number.isFinite(post.area) || post.area <= 0)) throw fail(400, 'Diện tích không hợp lệ.')
+    if (post.area != null && (!Number.isFinite(post.area) || post.area <= 0 || post.area > 999999999)) throw fail(400, 'Diện tích không hợp lệ.')
     for (const [key, limit] of [['latitude', 90], ['longitude', 180]]) {
       post[key] = body[key] == null ? null : Number(body[key])
       if (post[key] != null && (!Number.isFinite(post[key]) || Math.abs(post[key]) > limit)) throw fail(400, 'Tọa độ không hợp lệ.')

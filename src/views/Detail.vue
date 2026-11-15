@@ -702,7 +702,7 @@ function formatDate(dateStr) {
 @media(prefers-reduced-motion:reduce){.detail-photo .icon-button{transition:none}}
 .detail-grid > section,.detail-grid > aside{min-width:0}
 .detail-title > div{min-width:0}
-.detail-title h1,.detail-title .location,.house-preview + h3,.review-heading strong{overflow-wrap:anywhere}
+.detail-title h1,.detail-title .location,.detail-price,.house-preview + h3,.review-heading strong{overflow-wrap:anywhere}
 .review-stars{display:flex;gap:3px;color:#d8d3c5;margin-top:8px}
 .review-stars .filled{color:#ffb703;fill:#ffb703;filter:drop-shadow(0 1px 2px rgba(255,183,3,0.35))}
 .rating-choice{border:0;padding:0;margin:0;display:flex;gap:2px;color:#d8d3c5}
