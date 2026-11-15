@@ -90,15 +90,6 @@
     "rules": "Giữ vệ sinh chung, hạn chế tiếng ồn sau 22 giờ."
   },
   {
-    "boarding_house_id": "minh-an",
-    "account_id": "demo-landlord",
-    "house_name": "Nhà trọ Minh An",
-    "house_address": "100, đường 3/2, quận Ninh Kiều, Cần Thơ",
-    "house_latitude": 10.025,
-    "house_longitude": 105.765,
-    "rules": "Giữ vệ sinh chung, hạn chế tiếng ồn sau 22 giờ."
-  },
-  {
     "boarding_house_id": "house-1794382356590",
     "account_id": "4e9e40c3-d7dd-4d33-a3c1-25a48d7de515",
     "house_name": "Minh Khoa",
@@ -117,12 +108,12 @@
     "rules": "123"
   },
   {
-    "boarding_house_id": "house-1793693007144",
+    "boarding_house_id": "house-1794734685433",
     "account_id": "demo-landlord",
-    "house_name": "Nhà trọ Hoàng Thịnh",
-    "house_address": "Tân An, TP Cần Thơ",
+    "house_name": "Minh KHOA",
+    "house_address": "123, Ninh Kiều, Cần Thơ",
     "house_latitude": null,
     "house_longitude": null,
-    "rules": ""
+    "rules": "123"
   }
 ]
