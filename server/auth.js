@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
 import { reviewStore, houseAliases } from './reviews.js'
 import { roommateStore } from './roommates.js'
+import { readStudentProfile, updateStudentProfile } from './student-profile.js'
 import { jsonCollection, houseFields, rentalFields } from './json-collection.js'
 
 const scrypt = promisify(scryptCallback)
@@ -76,14 +77,15 @@ export function createAuthMiddleware({
   roommatesFile = join(dirname(rentalsFile), 'roommate_post.json'),
   roommateImagesFile = join(dirname(rentalsFile), 'roommate_post_image.json'),
   roommateAmenitiesFile = join(dirname(rentalsFile), 'roommate_post_amenity.json'),
-  studentsFile = join(dirname(rentalsFile), 'student_profile.json'),
+  studentsFile = join(dirname(rentalsFile !== defaultRentalFile ? rentalsFile : accountsFile), 'student_profile.json'),
+  universitiesFile = fileURLToPath(new URL('../data/university.json', import.meta.url)),
 } = {}) {
   const sessions = new Map()
   let writes = Promise.resolve()
   const reviewsData = reviewStore({ file: reviewsFile, imagesFile: reviewImagesFile, studentsFile })
   const housesData = jsonCollection(housesFile, houseImagesFile, houseFields, 'house_image_id')
   const rentalsData = jsonCollection(rentalsFile, rentalImagesFile, rentalFields, 'room_post_image_id', { linksFile: rentalAmenitiesFile, catalogFile })
-  const roommatesData = roommateStore({ file: roommatesFile, imagesFile: roommateImagesFile, linksFile: roommateAmenitiesFile, catalogFile, studentsFile, universitiesFile: fileURLToPath(new URL('../data/university.json', import.meta.url)) })
+  const roommatesData = roommateStore({ file: roommatesFile, imagesFile: roommateImagesFile, linksFile: roommateAmenitiesFile, catalogFile, studentsFile, universitiesFile })
   const readHouses = async () => (await housesData.read()).map(house => {
     const parts = (house.address || '').split(',').map(part => part.trim())
     const rawWard = parts.length > 2 ? parts.at(-2) : ''
@@ -342,7 +344,8 @@ export function createAuthMiddleware({
       }
       if (path === '/api/auth/session' && req.method === 'GET') {
         const user = await currentUser(req)
-        return reply(200, { user: user ? publicUser(user) : null })
+        const studentProfile = user?.role === 'student' ? await readStudentProfile(studentsFile, user.id, universitiesFile) : null
+        return reply(200, { user: user ? publicUser(user) : null, studentProfile })
       }
       if (path === '/api/auth/logout' && req.method === 'POST') {
         sessions.delete(sessionId(req))
@@ -359,7 +362,7 @@ export function createAuthMiddleware({
           users.push(user)
           return user
         })
-        return reply(201, startSession(req, res, user))
+        return reply(201, { ...startSession(req, res, user), studentProfile: null })
       }
       if (path === '/api/auth/login' && req.method === 'POST') {
         const body = await readBody(req)
@@ -367,7 +370,8 @@ export function createAuthMiddleware({
         const { users } = await readUsers()
         const user = users.find(user => user.email.toLowerCase() === body.email.trim().toLowerCase())
         if (!user || !user.isActive || !await matchesPassword(body.password, user.passwordHash)) throw fail(401, 'Email hoặc mật khẩu không đúng.')
-        return reply(200, startSession(req, res, user))
+        const studentProfile = user.role === 'student' ? await readStudentProfile(studentsFile, user.id, universitiesFile) : null
+        return reply(200, { ...startSession(req, res, user), studentProfile })
       }
       if (path === '/api/auth/profile' && req.method === 'PATCH') {
         const user = await currentUser(req)
@@ -375,13 +379,42 @@ export function createAuthMiddleware({
         const body = await readBody(req)
         const fields = accountFields(body)
         const role = body.role && ['student', 'landlord'].includes(body.role) ? body.role : undefined
+        const studentPatch = {}
+        if ((role || user.role) === 'student') {
+          if (body.gender !== undefined) {
+            const gender = typeof body.gender === 'string' ? body.gender.trim() : ''
+            if (gender && !['Nam', 'Nữ', 'Khác'].includes(gender)) throw fail(400, 'Giới tính không hợp lệ.', 'gender')
+            studentPatch.gender = gender
+          }
+          if (body.major !== undefined) {
+            if (body.major !== null && typeof body.major !== 'string') throw fail(400, 'Ngành học không hợp lệ.', 'major')
+            const major = typeof body.major === 'string' ? body.major.trim() : ''
+            if (major.length > 120) throw fail(400, 'Ngành học tối đa 120 ký tự.', 'major')
+            studentPatch.major = major
+          }
+          if (body.birth !== undefined) {
+            const birth = typeof body.birth === 'string' ? body.birth.trim() : ''
+            if (birth && (!/^\d{4}-\d{2}-\d{2}$/.test(birth) || !Number.isFinite(Date.parse(birth)))) {
+              throw fail(400, 'Ngày sinh không hợp lệ.', 'birth')
+            }
+            studentPatch.birth = birth
+          }
+          if (body.school !== undefined) {
+            studentPatch.school = typeof body.school === 'string' ? body.school.trim() : ''
+          }
+        }
         const updated = await updateUsers(users => {
           if (users.some(other => other.id !== user.id && other.email.toLowerCase() === fields.email)) throw fail(409, 'Email này đã được đăng ký.', 'email')
           const stored = users.find(other => other.id === user.id)
           if (!stored) throw fail(401, 'Tài khoản không còn tồn tại.')
           return Object.assign(stored, fields, role ? { role } : {})
         })
-        return reply(200, { user: publicUser(updated) })
+        const studentProfile = updated.role === 'student'
+          ? (Object.keys(studentPatch).length
+            ? await updateStudentProfile(studentsFile, updated, studentPatch, universitiesFile)
+            : await readStudentProfile(studentsFile, updated.id, universitiesFile))
+          : null
+        return reply(200, { user: publicUser(updated), studentProfile })
       }
       reply(404, { message: 'Không tìm thấy API.' })
     } catch (error) {

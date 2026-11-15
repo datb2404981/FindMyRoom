@@ -483,7 +483,7 @@ async function remove() {
                 {{ r.title }}
               </RouterLink>
             </h3>
-            <p class="muted">{{ r.address || 'Cần Thơ' }} · {{ r.area }} m²</p>
+            <p class="muted">{{ r.address || 'Cần Thơ' }}<template v-if="r.area"> · {{ r.area }} m²</template></p>
             <p class="price">{{ money(r.price) }}<span> / tháng</span></p>
           </div>
           <div class="manage-post-actions">

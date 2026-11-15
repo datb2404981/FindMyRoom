@@ -4,7 +4,21 @@ import { rentalStatus } from './rental-status'
 import { readBrowserData, writeBrowserData } from './browser-storage'
 import { loadHouses, saveHouse } from './houses'
 import { loadRentals, saveRental } from './rentals'
-import { loadRoommates, saveRoommate } from './roommates'
+import { loadRoommates, roommateDirectory, saveRoommate } from './roommates'
+
+function ageFromBirth(birth) {
+  if (!birth) return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(birth));
+  if (!match) return null;
+  const year = Number(match[1]);
+  if (!Number.isFinite(year) || year < 1900) return null;
+  const today = new Date();
+  let age = today.getFullYear() - year;
+  const monthDay = `${match[2]}-${match[3]}`;
+  const todayMonthDay = `${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  if (todayMonthDay < monthDay) age--;
+  return age > 0 ? age : null;
+}
 
 const key = "findmyroom-demo-v1";
 const defaults = () => ({
@@ -83,10 +97,18 @@ async function persist() {
 }
 watch(state, persist, { deep: true, flush: "sync" });
 
-async function applyUser(user) {
+async function applyUser(user, studentProfile = null) {
   await persist();
   const base = defaults();
   const saved = await savedData(storageKey(user));
+  const serverProfile = studentProfile
+    ? {
+        ...(studentProfile.gender ? { gender: studentProfile.gender } : {}),
+        ...(studentProfile.major ? { major: studentProfile.major } : {}),
+        ...(studentProfile.birth ? { birth: studentProfile.birth } : {}),
+        ...(studentProfile.school ? { school: studentProfile.school } : {}),
+      }
+    : {};
   hydrating = true;
   Object.assign(state, base, saved, {
     user,
@@ -100,6 +122,7 @@ async function applyUser(user) {
             phone: user.phone,
             zalo: saved.profile?.zalo || user.phone,
             school: user.school !== undefined ? user.school : (saved.profile?.school ?? base.profile.school),
+            ...serverProfile,
           }
         : {}),
     },
@@ -175,21 +198,24 @@ async function authRequest(path, body, method = "POST") {
     throw Object.assign(new Error(data.message || "Không thực hiện được yêu cầu."), {
       field: data.field,
     });
-  return data.user;
+  return data;
 }
 
 export async function restoreSession() {
   try {
-    await applyUser(await authRequest("session", undefined, "GET"));
+    const { user, studentProfile } = await authRequest("session", undefined, "GET");
+    await applyUser(user, studentProfile);
   } catch {
     await applyUser(null);
   }
 }
 export async function login(credentials) {
-  await applyUser(await authRequest("login", credentials));
+  const { user, studentProfile } = await authRequest("login", credentials);
+  await applyUser(user, studentProfile);
 }
 export async function register(account) {
-  await applyUser(await authRequest("register", account));
+  const { user, studentProfile } = await authRequest("register", account);
+  await applyUser(user, studentProfile);
 }
 export async function logout() {
   await authRequest("logout");
@@ -198,17 +224,44 @@ export async function logout() {
 export async function updateAccount(profile) {
   const payload = { name: profile.name, email: profile.email, phone: profile.phone };
   if (profile.role) payload.role = profile.role;
-  if (profile.school !== undefined) payload.school = profile.school;
-  const user = await authRequest("profile", payload, "PATCH");
+  for (const field of ['school', 'gender', 'major', 'birth']) {
+    if (profile[field] !== undefined) payload[field] = profile[field];
+  }
+  const { user, studentProfile } = await authRequest("profile", payload, "PATCH");
   const nextProfile = { ...state.profile, ...profile,
     name: user.name,
     email: user.email,
     phone: user.phone,
     school: user.school !== undefined ? user.school : (profile.school ?? state.profile.school),
+    ...(studentProfile
+      ? {
+          gender: studentProfile.gender || profile.gender || state.profile.gender,
+          major: studentProfile.major ?? profile.major ?? state.profile.major,
+          birth: studentProfile.birth ?? profile.birth ?? state.profile.birth,
+          school: studentProfile.school ?? profile.school ?? state.profile.school,
+        }
+      : {}),
   };
+  const ownerPatch = {
+    owner: user.name,
+    phone: user.phone,
+    email: user.email,
+    ...(user.role === 'student'
+      ? {
+          ownerGender: nextProfile.gender || '',
+          major: nextProfile.major || '',
+          age: ageFromBirth(nextProfile.birth),
+          ownerSchool: nextProfile.school || '',
+        }
+      : {}),
+  };
+  const syncPost = post => (post.ownerId === user.id ? { ...post, ...ownerPatch } : post);
+  const posts = state.posts.map(syncPost);
+  roommateDirectory.posts = roommateDirectory.posts.map(syncPost);
   const { user: currentUser, ...data } = state;
-  await writeBrowserData(storageKey(user), { ...data, profile: nextProfile });
+  await writeBrowserData(storageKey(user), { ...data, posts, profile: nextProfile });
   Object.assign(state.profile, nextProfile);
+  state.posts = posts;
   state.user = user;
   try {
     localStorage.setItem("findmyroom:user", JSON.stringify(user));

@@ -74,7 +74,7 @@ export const rentalFields = {
 export { read as readRows, write as writeRows }
 export const roommateFields = {
   id: 'roommate_post_id', universityId: 'university_id', studentCode: 'student_code', title: 'title', desc: 'description',
-  distance: 'distance_to_school', gender: 'preferred_gender', price: 'current_room_price', electric: 'electric_price',
+  distance: 'distance_to_school', gender: 'preferred_gender', price: 'current_room_price', area: 'area', electric: 'electric_price',
   water: 'water_price', internet: 'internet_price', other: 'other_service_fee', address: 'current_address',
   longitude: 'longitude', latitude: 'latitude', status: 'status', postedAt: 'posted_at', people: 'vacancies',
   moveIn: 'move_in_date', habits: 'hobbies', expiresAt: 'expires_at',

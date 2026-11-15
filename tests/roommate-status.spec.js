@@ -50,8 +50,12 @@ for (const status of ['Còn phòng', 'Hết phòng', 'Ẩn']) {
     await expect(page.locator('.manage-post .badge').first()).toHaveText(status)
     await page.reload()
     await expect(page.locator('.manage-post .badge').first()).toHaveText(status)
+    await expect(page.locator('.manage-post').first()).toContainText('25 m²')
     await page.locator('.manage-post-detail').first().click()
     await expect(page.locator('.detail-badges .badge').first()).toHaveText(status)
+    await expect(page.locator('.spec-grid')).toContainText('25 m²')
+    await page.reload()
+    await expect(page.locator('.spec-grid')).toContainText('25 m²')
     await expect(page.getByText('Chờ duyệt', { exact: true })).toHaveCount(0)
   })
 }

@@ -208,6 +208,50 @@ const backTo = computed(() => {
       : "/?search=1";
 });
 
+function ageFromBirth(birth) {
+  if (!birth) return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(birth));
+  if (!match) return null;
+  const year = Number(match[1]);
+  if (!Number.isFinite(year) || year < 1900) return null;
+  const today = new Date();
+  let age = today.getFullYear() - year;
+  const monthDay = `${match[2]}-${match[3]}`;
+  const todayMonthDay = `${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  if (todayMonthDay < monthDay) age--;
+  return age > 0 ? age : null;
+}
+
+const isPostOwner = computed(() => {
+  const post = room.value;
+  return Boolean(post && state.user?.id && post.ownerId === state.user.id);
+});
+
+const ownerProfile = computed(() => {
+  const post = room.value;
+  if (!post) return null;
+  const own = isPostOwner.value ? state.profile : null;
+  const name =
+    (isPostOwner.value ? own?.name || state.user?.name : "") ||
+    post.owner ||
+    "Bạn sinh viên";
+  const gender =
+    (isPostOwner.value ? own?.gender || post.ownerGender : post.ownerGender) ||
+    (post.personId ? post.gender : "") ||
+    "Sinh viên";
+  const age =
+    (isPostOwner.value ? ageFromBirth(own?.birth) ?? post.age : post.age) || null;
+  const school =
+    (isPostOwner.value
+      ? own?.school || post.ownerSchool || post.school
+      : post.ownerSchool || post.school) || "Đại học Cần Thơ";
+  const major = isPostOwner.value
+    ? own?.major ?? post.major ?? ""
+    : post.major || "";
+  const avatar = isPostOwner.value ? own?.avatar || "" : "";
+  return { name, gender, age, school, major, avatar };
+});
+
 function formatDate(dateStr) {
   if (!dateStr) return "Vào ngay / Thỏa thuận";
   try {
@@ -300,7 +344,7 @@ function formatDate(dateStr) {
           <div>
             <Icon name="area" />
             <span
-              >Diện tích<strong>{{ room.area }} m²</strong></span
+              >Diện tích<strong>{{ room.area ? `${room.area} m²` : "Chưa cập nhật" }}</strong></span
             >
           </div>
 
@@ -500,9 +544,6 @@ function formatDate(dateStr) {
             <Icon name="pin" :size="15" />
             {{ relatedHouse?.address || room.address }}
           </p>
-          <p v-if="relatedHouse?.rooms" class="muted house-rooms">
-            <Icon name="home" :size="15" /> Quy mô {{ relatedHouse.rooms }} phòng
-          </p>
           <p v-if="relatedHouse?.desc" class="house-desc">
             {{ relatedHouse.desc }}
           </p>
@@ -550,29 +591,30 @@ function formatDate(dateStr) {
         </section>
         <!-- Thẻ tóm tắt người đăng ghép trọ (có tích hợp nút liên hệ) -->
         <section
-          v-if="isRoommate"
+          v-if="isRoommate && ownerProfile"
           class="detail-section author-profile-card contact-card"
         >
           <h2>Hồ sơ người đăng</h2>
           <div class="profile-compact">
             <div class="avatar-large" :style="{ background: room.color || '#8fc8cf' }">
-              {{
-                (room.owner || "SV")
+              <img v-if="ownerProfile.avatar" :src="ownerProfile.avatar" :alt="ownerProfile.name">
+              <template v-else>{{
+                ownerProfile.name
                   .trim()
                   .split(/\s+/)
                   .map((s) => s[0])
                   .slice(-2)
                   .join("")
-              }}
+              }}</template>
             </div>
             <div>
-              <h3>{{ room.owner || "Bạn sinh viên" }}</h3>
+              <h3>{{ ownerProfile.name }}</h3>
               <p class="muted">
-                {{ room.age ? room.age + " tuổi · " : ""
-                }}{{ room.gender || "Sinh viên" }}
+                {{ ownerProfile.age ? ownerProfile.age + " tuổi · " : ""
+                }}{{ ownerProfile.gender }}
               </p>
-              <p class="muted">{{ room.school || "Đại học Cần Thơ" }}</p>
-              <p v-if="room.major" class="muted">Ngành: {{ room.major }}</p>
+              <p class="muted">{{ ownerProfile.school }}</p>
+              <p v-if="ownerProfile.major" class="muted">Ngành: {{ ownerProfile.major }}</p>
             </div>
           </div>
 
@@ -825,6 +867,7 @@ function formatDate(dateStr) {
   width: 56px;
   height: 56px;
   border-radius: 50%;
+  overflow: hidden;
   display: grid;
   place-items: center;
   font-weight: 700;
@@ -832,6 +875,12 @@ function formatDate(dateStr) {
   color: #131414;
   border: 1px solid var(--ink);
   flex-shrink: 0;
+}
+.avatar-large img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 .profile-compact h3 {
   font-size: 16px;

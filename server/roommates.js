@@ -2,6 +2,19 @@ import { ensureStudent } from './student-profile.js'
 import { jsonCollection, roommateFields, readRows } from './json-collection.js'
 
 const fail = (status, message) => Object.assign(new Error(message), { status })
+function ageFromBirth(birth) {
+  if (!birth) return null
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(birth))
+  if (!match) return null
+  const year = Number(match[1])
+  if (!Number.isFinite(year) || year < 1900) return null
+  const today = new Date()
+  let age = today.getFullYear() - year
+  const monthDay = `${match[2]}-${match[3]}`
+  const todayMonthDay = `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  if (todayMonthDay < monthDay) age--
+  return age > 0 ? age : null
+}
 export function roommateStore({ file, imagesFile, linksFile, catalogFile, studentsFile, universitiesFile }) {
   const data = jsonCollection(file, imagesFile, roommateFields, 'roommate_post_image_id', { linksFile, catalogFile })
   async function read(houses, users) {
@@ -12,6 +25,8 @@ export function roommateStore({ file, imagesFile, linksFile, catalogFile, studen
       if (!owner) return null
       const house = houses.find(house => house.address === post.address)
       return { ...post, kind: 'roommate', ownerId: owner.id, owner: owner.name, phone: owner.phone, email: owner.email,
+        ownerGender: student?.gender || '', major: student?.major || '', age: ageFromBirth(student?.date_of_birth),
+        ownerSchool: universities.find(school => school.university_id === student?.university_id)?.university_name || '',
         school: universities.find(school => school.university_id === post.universityId)?.university_name || '',
         houseId: house?.id || '', house: house?.name || '', district: house?.ward || '',
         perPerson: Number(post.price) / (Number(post.people) + 1), totalRent: post.price }
@@ -46,6 +61,8 @@ export function roommateStore({ file, imagesFile, linksFile, catalogFile, studen
       post[key] = Number(body[key] || 0)
       if (!Number.isFinite(post[key]) || post[key] < 0 || (['price', 'people'].includes(key) && !post[key]) || (key === 'people' && !Number.isInteger(post[key]))) throw fail(400, 'Giá và số người không hợp lệ.')
     }
+    post.area = body.area == null || body.area === '' ? null : Number(body.area)
+    if (post.area != null && (!Number.isFinite(post.area) || post.area <= 0)) throw fail(400, 'Diện tích không hợp lệ.')
     for (const [key, limit] of [['latitude', 90], ['longitude', 180]]) {
       post[key] = body[key] == null ? null : Number(body[key])
       if (post[key] != null && (!Number.isFinite(post[key]) || Math.abs(post[key]) > limit)) throw fail(400, 'Tọa độ không hợp lệ.')
@@ -76,7 +93,12 @@ export function roommateStore({ file, imagesFile, linksFile, catalogFile, studen
       post.expiresAt = index < 0 ? null : posts[index].expiresAt
       if (index < 0) posts.push(post); else posts[index] = post
     })
-    return { ...post, kind: 'roommate', ownerId: user.id, houseId: house?.id || '', house: house?.name || '', image: post.images[0] }
+    return { ...post, kind: 'roommate', ownerId: user.id, owner: user.name, phone: user.phone, email: user.email,
+      ownerGender: student?.gender || '', major: student?.major || '', age: ageFromBirth(student?.date_of_birth),
+      ownerSchool: universities.find(school => school.university_id === student?.university_id)?.university_name || '',
+      school: universities.find(school => school.university_id === post.universityId)?.university_name || '',
+      houseId: house?.id || '', house: house?.name || '', district: house?.ward || '', image: post.images[0],
+      perPerson: Number(post.price) / (Number(post.people) + 1), totalRent: post.price }
   }
   return { read, save, remove }
 }

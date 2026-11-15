@@ -1711,6 +1711,31 @@ function locate() {
   flex-direction: column;
   gap: 18px;
 }
+.preview-modal-body > *,
+.preview-summary-card > *,
+.preview-location-row > *,
+.preview-meta-line > span {
+  min-width: 0;
+  max-width: 100%;
+}
+.preview-title-block,
+.preview-house-pill,
+.preview-address,
+.preview-price-box,
+.preview-meta-line,
+.preview-text-block,
+.preview-tags-block {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+.preview-price-box {
+  min-width: 0;
+  max-width: 100%;
+}
+.preview-address span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 .preview-gallery {
   display: flex;
   flex-direction: column;
