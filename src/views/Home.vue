@@ -14,7 +14,7 @@ import {
   matchesFilters,
   searchQueryError,
 } from "../search-filters";
-import { publicRentals, publicRoommates, publicHouses, matchesKeyword } from "../listings";
+import { publicRentals, publicRoommates, publicHouses, matchesKeyword, keywordScore } from "../listings";
 import { rentalStatus } from "../rental-status";
 import { loadRentals } from '../rentals';
 import { loadRoommates } from '../roommates';
@@ -130,10 +130,14 @@ function scrollTrack(track, direction) {
 }
 function matching(listings) {
   if (!isSearching.value) return listings;
-  return listings.filter(
+  const matched = listings.filter(
     (listing) =>
       matchesFilters(listing, appliedFilters.value) &&
       matchesKeyword(listing, appliedKeyword.value),
+  );
+  if (!appliedKeyword.value) return matched;
+  return [...matched].sort(
+    (a, b) => keywordScore(b, appliedKeyword.value) - keywordScore(a, appliedKeyword.value),
   );
 }
 const groups = computed(() => {

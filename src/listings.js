@@ -198,3 +198,17 @@ export function matchesKeyword(listing, keyword) {
     (token.length >= 4 && words.some(word => word.startsWith(token)))
   )
 }
+
+export function keywordScore(listing, keyword) {
+  const q = searchableText({ title: keyword })
+  if (!q) return 0
+  const head = searchableText({ title: listing.title, house: listing.house })
+  let score = 0
+  if (head === q) score += 8
+  else if (head.startsWith(q)) score += 6
+  else if (head.includes(q)) score += 4
+  else if (searchableText(listing).includes(q)) score += 2
+  const headWords = new Set(head.split(' '))
+  for (const token of q.split(' ')) if (headWords.has(token)) score += 1
+  return score
+}
