@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-test('newly created roommate post appears in Ghép trọ when clicking Bắt đầu ghép trọ', async ({ page }) => {
+test('student stays logged in on Ghép trọ and newly created roommate post appears immediately on Bắt đầu ghép trọ', async ({ page }) => {
   const uniqueTitle = `Tìm bạn ghép trọ Ô Môn ${Date.now()}`
   const response = await page.request.post('/api/auth/register', {
     data: {
@@ -47,17 +47,14 @@ test('newly created roommate post appears in Ghép trọ when clicking Bắt đ�
   await page.getByRole('button', { name: 'Đăng bài', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Bài đăng đã được lưu', exact: true })).toBeVisible()
 
-  await page.goto('/#/ghep-tro')
+  await page.locator('header').getByRole('link', { name: 'Ghép trọ', exact: true }).click()
+  await expect(page).toHaveURL(/#\/ghep-tro/)
+  await expect(page.locator('header').getByRole('button', { name: /Sinh Viên Ghép Trọ/ })).toBeVisible()
+
   const filters = page.getByRole('complementary', { name: 'Bộ lọc ghép trọ', exact: true })
   await filters.getByRole('button', { name: 'Theo khu vực', exact: true }).click()
   await filters.getByRole('group', { name: 'Danh sách khu vực', exact: true }).getByRole('button', { name: 'Ô Môn', exact: true }).click()
   await filters.getByRole('button', { name: 'Bắt đầu ghép trọ', exact: true }).click()
-
-  for (let i = 0; i < 5; i++) {
-    const text = await page.locator('.person-card').textContent()
-    if (text?.includes(uniqueTitle)) break
-    await page.getByRole('button', { name: 'Bỏ qua hồ sơ này để chuyển sang người kế tiếp', exact: true }).click()
-  }
 
   await expect(page.locator('.person-card')).toContainText(uniqueTitle)
   await expect(page.locator('.person-card')).toContainText('Ô Môn, Cần Thơ')

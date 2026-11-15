@@ -1,5 +1,7 @@
 import { randomBytes, randomUUID, scrypt as scryptCallback, timingSafeEqual } from 'node:crypto'
+import { readFileSync, writeFileSync } from 'node:fs'
 import { readFile, writeFile, rename, mkdir } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
@@ -79,8 +81,8 @@ export function createAuthMiddleware({
   roommateAmenitiesFile = join(dirname(rentalsFile), 'roommate_post_amenity.json'),
   studentsFile = join(dirname(rentalsFile !== defaultRentalFile ? rentalsFile : accountsFile), 'student_profile.json'),
   universitiesFile = fileURLToPath(new URL('../data/university.json', import.meta.url)),
+  sessions = new Map(),
 } = {}) {
-  const sessions = new Map()
   let writes = Promise.resolve()
   const reviewsData = reviewStore({ file: reviewsFile, imagesFile: reviewImagesFile, studentsFile })
   const housesData = jsonCollection(housesFile, houseImagesFile, houseFields, 'house_image_id')
@@ -425,8 +427,28 @@ export function createAuthMiddleware({
 
 async function readUsersForBuild() { return JSON.parse(await readFile(defaultAccountsFile, 'utf8')).filter(account => !/^ACC\d+$/.test(account.account_id)).map(account => ({ id: account.account_id })) }
 
+function devSessions() {
+  if (globalThis.__findmyroomDevSessions) return globalThis.__findmyroomDevSessions
+  const file = join(tmpdir(), 'findmyroom-dev-sessions.json')
+  const map = new Map()
+  try {
+    const now = Date.now()
+    for (const [key, value] of Object.entries(JSON.parse(readFileSync(file, 'utf8')))) {
+      if (value?.expiresAt > now) map.set(key, value)
+    }
+  } catch {}
+  const save = () => {
+    try { writeFileSync(file, JSON.stringify(Object.fromEntries(map)), { mode: 0o600 }) } catch {}
+  }
+  const origSet = map.set.bind(map), origDelete = map.delete.bind(map)
+  map.set = (k, v) => { const r = origSet(k, v); save(); return r }
+  map.delete = k => { const r = origDelete(k); if (r) save(); return r }
+  return (globalThis.__findmyroomDevSessions = map)
+}
+
 export function jsonAuthPlugin() {
-  const install = server => { server.middlewares.use(createAuthMiddleware({ accountsFile: process.env.AUTH_ACCOUNTS_FILE || defaultAccountsFile, reviewsFile: process.env.HOUSE_REVIEWS_FILE || defaultReviewsFile, reviewImagesFile: process.env.REVIEW_IMAGES_FILE || join(dirname(process.env.HOUSE_REVIEWS_FILE || defaultReviewsFile), 'review_image.json'), housesFile: process.env.MANAGED_HOUSES_FILE || defaultHousesFile, houseImagesFile: process.env.HOUSE_IMAGES_FILE || fileURLToPath(new URL('../data/boarding_house_image.json', import.meta.url)), rentalsFile: process.env.RENTALS_FILE || fileURLToPath(new URL('../data/room_post.json', import.meta.url)), rentalImagesFile: process.env.RENTAL_IMAGES_FILE || fileURLToPath(new URL('../data/room_post_image.json', import.meta.url)), rentalAmenitiesFile: process.env.RENTAL_AMENITIES_FILE || fileURLToPath(new URL('../data/room_post_amenity.json', import.meta.url)), catalogFile: process.env.AMENITY_FILE || fileURLToPath(new URL('../data/amenity.json', import.meta.url)) })) }
+  const sessions = devSessions()
+  const install = server => { server.middlewares.use(createAuthMiddleware({ sessions, accountsFile: process.env.AUTH_ACCOUNTS_FILE || defaultAccountsFile, reviewsFile: process.env.HOUSE_REVIEWS_FILE || defaultReviewsFile, reviewImagesFile: process.env.REVIEW_IMAGES_FILE || join(dirname(process.env.HOUSE_REVIEWS_FILE || defaultReviewsFile), 'review_image.json'), housesFile: process.env.MANAGED_HOUSES_FILE || defaultHousesFile, houseImagesFile: process.env.HOUSE_IMAGES_FILE || fileURLToPath(new URL('../data/boarding_house_image.json', import.meta.url)), rentalsFile: process.env.RENTALS_FILE || fileURLToPath(new URL('../data/room_post.json', import.meta.url)), rentalImagesFile: process.env.RENTAL_IMAGES_FILE || fileURLToPath(new URL('../data/room_post_image.json', import.meta.url)), rentalAmenitiesFile: process.env.RENTAL_AMENITIES_FILE || fileURLToPath(new URL('../data/room_post_amenity.json', import.meta.url)), catalogFile: process.env.AMENITY_FILE || fileURLToPath(new URL('../data/amenity.json', import.meta.url)) })) }
   return { name: 'findmyroom-json-auth', enforce: 'pre', configureServer: install, configurePreviewServer: install,
     resolveId(id) { if (id === 'virtual:public-accounts') return '\0public-accounts' },
     async load(id) {
@@ -453,7 +475,7 @@ export function jsonAuthPlugin() {
     // API writes must not reload the form while a save is in progress.
     handleHotUpdate(context) {
       const file = context.file.replaceAll('\\', '/')
-      if (/\/data\/(boarding_house|room_post|roommate_post|student_profile|review|amenity)(_(image|amenity))?\.json$/.test(file)) return []
+      if (/\/data\/(account|boarding_house|room_post|roommate_post|student_profile|review|amenity)(_(image|amenity))?\.json$/.test(file)) return []
     },
   }
 }

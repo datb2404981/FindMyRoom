@@ -84,8 +84,9 @@ function toCandidate(post){
 const allPeople=computed(()=>{
  const live=roommateDirectory.posts
   .filter(post=>post.status==='Còn phòng'&&!seededRoommatePostIds.has(post.id))
+  .sort((a,b)=>String(b.postedAt||'').localeCompare(String(a.postedAt||'')))
   .map(toCandidate)
- return [...people,...live]
+ return [...live,...people]
 })
 
 const matchingPeople=computed(()=>allPeople.value.filter(matchesFilters))

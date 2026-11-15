@@ -544,5 +544,33 @@
     "is_active": true,
     "provider": "local",
     "created_at": "2026-11-15T14:35:43.310Z"
+  },
+  {
+    "account_id": "348d5286-8698-455d-ab61-1d563e61db3e",
+    "full_name": "test 1 cai nua",
+    "email": "minhkhoa1234@gmail.com",
+    "password": "scrypt:0988fa86151cd970f961047ab057c926:f89db4dbb9de8d287856f0d3785bc477746c2a2455d20c4bbac7776d5490dda7a97df8668eea51d91fedac5b06cf12b153a55c275450df5879a942fe77c89a5d",
+    "phone": "0912345433",
+    "avatar_url": null,
+    "role": "student",
+    "zalo_phone": "0912345433",
+    "zalo_url": null,
+    "is_active": true,
+    "provider": "local",
+    "created_at": "2026-11-15T14:44:26.857Z"
+  },
+  {
+    "account_id": "88503dff-6c8a-4aba-b49e-90732bf81191",
+    "full_name": "minhkhoa",
+    "email": "minhkhoa1312@gmail.com",
+    "password": "scrypt:ccdacc9476a574658310ce5c9316aae5:58a3754f6f1982e7d37f35ad15b1cf3dbee238b6e5213aef72512018c5bca63a3d7377fb44c382fa67a2e2ad572b11a9b3960829c4b0954a03d64a97772b38a2",
+    "phone": "0953422342",
+    "avatar_url": null,
+    "role": "student",
+    "zalo_phone": "0953422342",
+    "zalo_url": null,
+    "is_active": true,
+    "provider": "local",
+    "created_at": "2026-11-15T14:48:14.730Z"
   }
 ]
