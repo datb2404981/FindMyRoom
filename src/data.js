@@ -255,12 +255,12 @@ export const people = rawStudents.map((s, i) => {
 
   let id = i === 0 ? 'thu' : (i === 1 ? 'hieu' : (i === 2 ? 'khoa' : s.student_code.toLowerCase()))
   let name = i === 0 ? 'Lam Thư' : (i === 1 ? 'Hoàng Hiếu' : (i === 2 ? 'Minh Khoa' : acc.full_name || 'Sinh viên'))
+  let district = i === 2 ? 'Cái Răng' : (roomDistricts[i] || 'Ninh Kiều')
   let title = roommatePost.title || specificTitles[i] || `Tìm bạn ở ghép tại ${district} (${name})`
   let image = roomImages[i % roomImages.length]
   let gender = s.gender || 'Nữ'
   let school = uni.university_name || 'Đại học Cần Thơ'
   let major = s.major || 'Công nghệ thông tin'
-  let district = i === 2 ? 'Cái Răng' : (roomDistricts[i] || 'Ninh Kiều')
   let price = pref.max_budget || roommatePost.current_room_price || 1200000
   let tags = ['Yên tĩnh', 'Không hút thuốc']
   let bio = roommatePost.description || 'Tìm bạn ở ghép cùng chia sẻ không gian sống văn minh, sạch sẽ.'

@@ -320,27 +320,155 @@
     "amenity_id": "AM00000022"
   },
   {
-    "room_post_id": "post-1794382540015",
+    "room_post_id": "RP00000011",
     "amenity_id": "AM00000008"
   },
   {
-    "room_post_id": "post-1794382540015",
+    "room_post_id": "RP00000011",
+    "amenity_id": "AM00000009"
+  },
+  {
+    "room_post_id": "RP00000011",
+    "amenity_id": "AM00000007"
+  },
+  {
+    "room_post_id": "RP00000011",
+    "amenity_id": "AM00000012"
+  },
+  {
+    "room_post_id": "RP00000011",
+    "amenity_id": "AM00000015"
+  },
+  {
+    "room_post_id": "RP00000011",
+    "amenity_id": "d1b34cfe-dfd5-4830-a060-51f0ba13e216"
+  },
+  {
+    "room_post_id": "RP00000011",
     "amenity_id": "AM00000017"
   },
   {
-    "room_post_id": "post-1794382540015",
-    "amenity_id": "6406a3a2-f4fd-45e5-958b-ce0033f976be"
+    "room_post_id": "RP00000012",
+    "amenity_id": "AM00000001"
   },
   {
-    "room_post_id": "post-1794590268142",
+    "room_post_id": "RP00000012",
     "amenity_id": "AM00000003"
   },
   {
-    "room_post_id": "post-1794734711146",
-    "amenity_id": "AM00000018"
+    "room_post_id": "RP00000012",
+    "amenity_id": "AM00000002"
   },
   {
-    "room_post_id": "post-1794734742906",
-    "amenity_id": "AM00000002"
+    "room_post_id": "RP00000012",
+    "amenity_id": "AM00000011"
+  },
+  {
+    "room_post_id": "RP00000012",
+    "amenity_id": "AM00000009"
+  },
+  {
+    "room_post_id": "RP00000012",
+    "amenity_id": "AM00000008"
+  },
+  {
+    "room_post_id": "RP00000012",
+    "amenity_id": "AM00000012"
+  },
+  {
+    "room_post_id": "RP00000012",
+    "amenity_id": "d1b34cfe-dfd5-4830-a060-51f0ba13e216"
+  },
+  {
+    "room_post_id": "RP00000012",
+    "amenity_id": "AM00000022"
+  },
+  {
+    "room_post_id": "RP00000013",
+    "amenity_id": "AM00000007"
+  },
+  {
+    "room_post_id": "RP00000013",
+    "amenity_id": "AM00000008"
+  },
+  {
+    "room_post_id": "RP00000013",
+    "amenity_id": "AM00000012"
+  },
+  {
+    "room_post_id": "RP00000013",
+    "amenity_id": "AM00000022"
+  },
+  {
+    "room_post_id": "RP00000013",
+    "amenity_id": "d1b34cfe-dfd5-4830-a060-51f0ba13e216"
+  },
+  {
+    "room_post_id": "RP00000013",
+    "amenity_id": "AM00000017"
+  },
+  {
+    "room_post_id": "RP00000014",
+    "amenity_id": "AM00000008"
+  },
+  {
+    "room_post_id": "RP00000014",
+    "amenity_id": "AM00000009"
+  },
+  {
+    "room_post_id": "RP00000014",
+    "amenity_id": "AM00000007"
+  },
+  {
+    "room_post_id": "RP00000014",
+    "amenity_id": "AM00000015"
+  },
+  {
+    "room_post_id": "RP00000014",
+    "amenity_id": "AM00000012"
+  },
+  {
+    "room_post_id": "RP00000014",
+    "amenity_id": "d1b34cfe-dfd5-4830-a060-51f0ba13e216"
+  },
+  {
+    "room_post_id": "RP00000014",
+    "amenity_id": "AM00000017"
+  },
+  {
+    "room_post_id": "RP00000015",
+    "amenity_id": "AM00000001"
+  },
+  {
+    "room_post_id": "RP00000015",
+    "amenity_id": "AM00000004"
+  },
+  {
+    "room_post_id": "RP00000015",
+    "amenity_id": "AM00000008"
+  },
+  {
+    "room_post_id": "RP00000015",
+    "amenity_id": "AM00000009"
+  },
+  {
+    "room_post_id": "RP00000015",
+    "amenity_id": "AM00000007"
+  },
+  {
+    "room_post_id": "RP00000015",
+    "amenity_id": "AM00000012"
+  },
+  {
+    "room_post_id": "RP00000015",
+    "amenity_id": "AM00000015"
+  },
+  {
+    "room_post_id": "RP00000015",
+    "amenity_id": "d1b34cfe-dfd5-4830-a060-51f0ba13e216"
+  },
+  {
+    "room_post_id": "RP00000015",
+    "amenity_id": "AM00000020"
   }
 ]
