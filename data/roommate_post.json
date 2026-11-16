@@ -384,7 +384,6 @@
     "expires_at": null
   },
   {
-<<<<<<< HEAD
     "roommate_post_id": "post-1794709132857",
     "university_id": "UNI000002",
     "student_code": "d1a3b6eb-f9d3-4e64-b47d-0c8f84f5a231",
@@ -427,7 +426,10 @@
     "posted_at": "2026-11-15T02:26:34.716Z",
     "vacancies": 2,
     "move_in_date": "2026-11-20",
-=======
+    "hobbies": "",
+    "expires_at": null
+  },
+  {
     "roommate_post_id": "post-1794733346041",
     "university_id": "UNI000001",
     "student_code": "40153d8a-1e4b-48e0-b742-a0e6c37ded07",
@@ -496,7 +498,6 @@
     "posted_at": "2026-11-15T14:19:18.295Z",
     "vacancies": 1,
     "move_in_date": "2026-11-27",
->>>>>>> ThuLam
     "hobbies": "",
     "expires_at": null
   }
