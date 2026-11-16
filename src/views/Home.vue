@@ -389,7 +389,7 @@ function goToPage(page) {
         </div>
         <div v-if="isSearching" class="home-listings-actions">
           <button
-            v-if="hasCriteria && resultCount && !queryError"
+            v-if="isSearching && resultCount && !queryError"
             type="button"
             class="clear-filters-button"
             aria-label="Xóa bộ lọc"
