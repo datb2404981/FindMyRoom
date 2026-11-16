@@ -336,11 +336,111 @@
     "amenity_id": "AM00000003"
   },
   {
-    "room_post_id": "post-1794734711146",
-    "amenity_id": "AM00000018"
+    "room_post_id": "post-1794799127319",
+    "amenity_id": "AM00000012"
   },
   {
-    "room_post_id": "post-1794734742906",
+    "room_post_id": "post-1794799127319",
+    "amenity_id": "AM00000007"
+  },
+  {
+    "room_post_id": "post-1794799127319",
+    "amenity_id": "AM00000001"
+  },
+  {
+    "room_post_id": "post-1794799127319",
+    "amenity_id": "AM00000016"
+  },
+  {
+    "room_post_id": "post-1794799127319",
+    "amenity_id": "4ea03abc-25e9-4752-a4ed-ed9d2436a53c"
+  },
+  {
+    "room_post_id": "post-1794799127319",
+    "amenity_id": "85f4c808-33ba-4f0e-9507-54c03c84f9e1"
+  },
+  {
+    "room_post_id": "post-1794799127319",
+    "amenity_id": "AM00000019"
+  },
+  {
+    "room_post_id": "post-1794799127319",
+    "amenity_id": "32bc6cf1-d96e-4bd6-8bcf-e4395d4e1539"
+  },
+  {
+    "room_post_id": "post-1794799127319",
+    "amenity_id": "6406a3a2-f4fd-45e5-958b-ce0033f976be"
+  },
+  {
+    "room_post_id": "post-1794799478578",
+    "amenity_id": "AM00000008"
+  },
+  {
+    "room_post_id": "post-1794799478578",
+    "amenity_id": "AM00000004"
+  },
+  {
+    "room_post_id": "post-1794799478578",
     "amenity_id": "AM00000002"
+  },
+  {
+    "room_post_id": "post-1794799478578",
+    "amenity_id": "AM00000013"
+  },
+  {
+    "room_post_id": "post-1794799478578",
+    "amenity_id": "AM00000007"
+  },
+  {
+    "room_post_id": "post-1794799478578",
+    "amenity_id": "AM00000001"
+  },
+  {
+    "room_post_id": "post-1794799478578",
+    "amenity_id": "AM00000011"
+  },
+  {
+    "room_post_id": "post-1794799478578",
+    "amenity_id": "AM00000015"
+  },
+  {
+    "room_post_id": "post-1794799478578",
+    "amenity_id": "AM00000012"
+  },
+  {
+    "room_post_id": "post-1794799478578",
+    "amenity_id": "AM00000016"
+  },
+  {
+    "room_post_id": "post-1794799478578",
+    "amenity_id": "967f61e7-67fb-40db-a5b2-2f19837d655a"
+  },
+  {
+    "room_post_id": "post-1794799478578",
+    "amenity_id": "85f4c808-33ba-4f0e-9507-54c03c84f9e1"
+  },
+  {
+    "room_post_id": "post-1794799478578",
+    "amenity_id": "AM00000019"
+  },
+  {
+    "room_post_id": "post-1794799478578",
+    "amenity_id": "4ea03abc-25e9-4752-a4ed-ed9d2436a53c"
+  },
+  {
+    "room_post_id": "post-1794799478578",
+    "amenity_id": "32bc6cf1-d96e-4bd6-8bcf-e4395d4e1539"
+  },
+  {
+    "room_post_id": "post-1794799478578",
+    "amenity_id": "AM00000020"
+  },
+  {
+    "room_post_id": "post-1794799478578",
+    "amenity_id": "6406a3a2-f4fd-45e5-958b-ce0033f976be"
+  },
+  {
+    "room_post_id": "post-1794799478578",
+    "amenity_id": "AM00000022"
   }
 ]

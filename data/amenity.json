@@ -142,5 +142,17 @@
     "amenity_name": "Quán ăn",
     "category": "Tiện ích ngoại khu",
     "description": ""
+  },
+  {
+    "amenity_id": "4ea03abc-25e9-4752-a4ed-ed9d2436a53c",
+    "amenity_name": "Giặt ủi",
+    "category": "Tiện ích ngoại khu",
+    "description": ""
+  },
+  {
+    "amenity_id": "32bc6cf1-d96e-4bd6-8bcf-e4395d4e1539",
+    "amenity_name": "Giờ giấc tự do",
+    "category": "Khác",
+    "description": ""
   }
 ]

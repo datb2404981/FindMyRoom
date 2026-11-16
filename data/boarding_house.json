@@ -108,12 +108,39 @@
     "rules": "123"
   },
   {
-    "boarding_house_id": "house-1794734685433",
-    "account_id": "demo-landlord",
-    "house_name": "Minh KHOA",
-    "house_address": "123, Ninh Kiều, Cần Thơ",
+    "boarding_house_id": "house-1794795752168",
+    "account_id": "bcaea3a1-ff26-4334-ba66-626105993080",
+    "house_name": "Nhà trọ An Khang",
+    "house_address": "Đường 3/2, Xuân Khánh, Ninh Kiều, Cần Thơ., Ninh Kiều, Cần Thơ",
     "house_latitude": null,
     "house_longitude": null,
-    "rules": "123"
+    "rules": "1. Giờ giấc do.\n2.Không ồn ào sau 23h.\n3.Giữ vệ sinh chung.\n4.Có trách nhiệm bảo quản tài sản và trang thiết bị trong phòng.\n5.Không tự ý cho người khác thuê lại phòng."
+  },
+  {
+    "boarding_house_id": "house-1794797802780",
+    "account_id": "eed16098-9556-4887-b19e-32d2e698e950",
+    "house_name": "Nhà trọ Minh Phát",
+    "house_address": "125/8 Đường 3/2, Xuân Khánh, Ninh Kiều, Cần Thơ., Ninh Kiều, Cần Thơ",
+    "house_latitude": null,
+    "house_longitude": null,
+    "rules": "1.Giờ giấc tự do.\n2.Không gây ồn ào, làm ảnh hưởng đến những người xung quanh sau 22 giờ.\n3.Không tự ý sửa chữa, thay đổi kết cấu phòng trọ khi chưa được chủ trọ đồng ý.\n4.Không chứa các chất dễ cháy nổ hoặc vật dụng trái quy định pháp luật.\n5.Không tự ý cho người khác thuê lại phòng."
+  },
+  {
+    "boarding_house_id": "house-1794798461012",
+    "account_id": "eed16098-9556-4887-b19e-32d2e698e950",
+    "house_name": "Nhà trọ Thanh Bình",
+    "house_address": "45/12 Nguyễn Văn Cừ, An Hòa, Ninh Kiều, Cần Thơ., Ninh Kiều, Cần Thơ",
+    "house_latitude": null,
+    "house_longitude": null,
+    "rules": "1. Giữ gìn vệ sinh chung, không xả rác bừa bãi.\n2. Không gây ồn ào, làm ảnh hưởng đến những người xung quanh sau 22 giờ.\n3. Không tự ý sửa chữa, thay đổi kết cấu phòng trọ khi chưa được chủ trọ đồng ý.\n4. Không chứa các chất dễ cháy nổ hoặc vật dụng trái quy định pháp luật.\n5. Có trách nhiệm bảo quản tài sản và trang thiết bị trong phòng.\n6. Thanh toán tiền phòng và các chi phí dịch vụ đúng thời hạn.\n7. Khách đến thăm phải đăng ký với chủ trọ nếu ở lại qua đêm.\n8. Không tự ý cho người khác thuê lại phòng.\n9. Tắt các thiết bị điện khi ra khỏi phòng.\n10. Tuân thủ các quy định về an ninh và phòng cháy chữa cháy."
+  },
+  {
+    "boarding_house_id": "house-1794799815092",
+    "account_id": "eed16098-9556-4887-b19e-32d2e698e950",
+    "house_name": "Nhà trọ An Khang",
+    "house_address": "32/7 Mậu Thân, Xuân Khánh, Ninh Kiều, Cần Thơ., Ninh Kiều, Cần Thơ",
+    "house_latitude": null,
+    "house_longitude": null,
+    "rules": "**NỘI QUY NHÀ TRỌ**\n\n1. Giữ gìn vệ sinh chung, không xả rác bừa bãi.\n2. Không gây ồn ào, làm ảnh hưởng đến những người xung quanh sau 22 giờ.\n3. Không tự ý sửa chữa, thay đổi kết cấu phòng trọ khi chưa được chủ trọ đồng ý.\n4. Không chứa các chất dễ cháy nổ hoặc vật dụng trái quy định pháp luật.\n5. Có trách nhiệm bảo quản tài sản và trang thiết bị trong phòng.\n6. Thanh toán tiền phòng và các chi phí dịch vụ đúng thời hạn.\n7. Khách đến thăm phải đăng ký với chủ trọ nếu ở lại qua đêm.\n8. Tuân thủ các quy định về an ninh và phòng cháy chữa cháy."
   }
 ]

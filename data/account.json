@@ -572,5 +572,33 @@
     "is_active": true,
     "provider": "local",
     "created_at": "2026-11-15T14:48:14.730Z"
+  },
+  {
+    "account_id": "bcaea3a1-ff26-4334-ba66-626105993080",
+    "full_name": "Phạm Hoàng Hiếu",
+    "email": "hieupham@gmail.com",
+    "password": "scrypt:b0a9aee3cd299a008cabec2ee504b6c4:6463bcd6909c7f2d44f1e499560bc525022e57bf64998a976f9d9f467ec5a344b93137ae97cafaba49d0a2c38e6102d82df28354f476d69d41fb2183e22e3b48",
+    "phone": "0756445611",
+    "avatar_url": null,
+    "role": "landlord",
+    "zalo_phone": "0756445611",
+    "zalo_url": null,
+    "is_active": true,
+    "provider": "local",
+    "created_at": "2026-11-16T02:01:51.699Z"
+  },
+  {
+    "account_id": "eed16098-9556-4887-b19e-32d2e698e950",
+    "full_name": "Tống Nam",
+    "email": "namtong@gmail.com",
+    "password": "scrypt:93cc09924020aae1d12c59823d721486:68734ce3645edb38678c2e523cd889b0aa0ef7c7e81a0898a142ba8e21cd957fa18168745b44576f2d8e1b3942cad691c4346a8bebba1f8ba893128729d3943e",
+    "phone": "0911222333",
+    "avatar_url": null,
+    "role": "landlord",
+    "zalo_phone": "0911222333",
+    "zalo_url": null,
+    "is_active": true,
+    "provider": "local",
+    "created_at": "2026-11-16T02:48:40.408Z"
   }
 ]
