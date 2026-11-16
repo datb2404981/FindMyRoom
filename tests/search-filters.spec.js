@@ -6,7 +6,7 @@ const search = page => filters(page).getByRole('button', { name: 'Tìm kiếm', 
 test('all nine district areas can be selected and retained after reload', async ({ page }) => {
   await page.goto('/#/')
   for (const name of ['Ninh Kiều','Cái Răng','Bình Thủy','Ô Môn','Thốt Nốt','Phong Điền','Cờ Đỏ','Thới Lai','Vĩnh Thạnh']) {
-    await filters(page).getByRole('button', { name: /^Địa điểm/ }).click()
+    await filters(page).getByRole('button', { name: /(Địa điểm|Tất cả địa điểm)/ }).click()
     const dialog = page.getByRole('dialog', { name: 'Chọn địa điểm' })
     await dialog.getByRole('tab', { name: 'Theo khu vực', exact: true }).click()
     await dialog.getByRole('button', { name, exact: true }).click()
@@ -27,11 +27,11 @@ test('all nine district areas can be selected and retained after reload', async 
 
 test('school and multiple amenities survive navigation, applying filters and reload', async ({ page }) => {
   await page.goto('/#/')
-  await filters(page).getByRole('button', { name: 'Địa điểm', exact: true }).click()
+  await filters(page).getByRole('button', { name: /^(Địa điểm|Tất cả địa điểm)$/ }).click()
   const location = page.getByRole('dialog', { name: 'Chọn địa điểm' })
   await expect(location.getByRole('button', { name: 'Cao đẳng Nghề Cần Thơ', exact: true })).toHaveCount(1)
   await location.getByRole('button', { name: 'Đại học Cần Thơ', exact: true }).click()
-  await filters(page).getByRole('button', { name: 'Tiện ích', exact: true }).click()
+  await filters(page).getByRole('button', { name: /^(Tiện ích|Tất cả tiện ích)$/ }).click()
   const amenities = page.getByRole('dialog', { name: 'Tiện ích', exact: true })
   await amenities.getByRole('checkbox', { name: 'Wifi tốc độ cao', exact: true }).check()
   await amenities.getByRole('checkbox', { name: 'Camera 24/7', exact: true }).check()
@@ -61,7 +61,7 @@ test('school and multiple amenities survive navigation, applying filters and rel
 
 test('area selection is distinct from school selection and can be changed in results', async ({ page }) => {
   await page.goto('/#/')
-  await filters(page).getByRole('button', { name: 'Địa điểm', exact: true }).click()
+  await filters(page).getByRole('button', { name: /^(Địa điểm|Tất cả địa điểm)$/ }).click()
   const location = page.getByRole('dialog', { name: 'Chọn địa điểm' })
   await location.getByRole('tab', { name: 'Theo khu vực', exact: true }).click()
   await expect(location.getByRole('button', { name: 'Đại học Cần Thơ', exact: true })).toHaveCount(0)
@@ -83,7 +83,7 @@ test('area selection is distinct from school selection and can be changed in res
 
 test('ten price bands allow only one choice while amenities require all checked values', async ({ page }) => {
   await page.goto('/#/')
-  await filters(page).getByRole('button', { name: 'Khoảng giá', exact: true }).click()
+  await filters(page).getByRole('button', { name: /^(Khoảng giá|Tất cả khoảng giá)$/ }).click()
   const price = page.getByRole('dialog', { name: 'Khoảng giá', exact: true })
   await expect(price.getByRole('radio')).toHaveCount(10)
   await price.getByRole('radio', { name: '1,5 – 2 triệu', exact: true }).check()
@@ -98,7 +98,7 @@ test('ten price bands allow only one choice while amenities require all checked 
   await expect(price.getByRole('radio', { name: '1,5 – 2 triệu', exact: true })).not.toBeChecked()
   await expect(price.getByRole('radio', { name: '2,5 – 3 triệu', exact: true })).toBeChecked()
   await page.keyboard.press('Escape')
-  await filters(page).getByRole('button', { name: 'Tiện ích', exact: true }).click()
+  await filters(page).getByRole('button', { name: /^(Tiện ích|Tất cả tiện ích)$/ }).click()
   const amenities = page.getByRole('dialog', { name: 'Tiện ích', exact: true })
   await amenities.getByRole('checkbox', { name: 'Wifi tốc độ cao', exact: true }).check()
   await amenities.getByRole('checkbox', { name: 'Máy lạnh', exact: true }).check()
@@ -118,7 +118,7 @@ test('ten price bands allow only one choice while amenities require all checked 
 
 test('dropdowns support keyboard dismissal, clear selection and stay inside responsive widths', async ({ page }) => {
   await page.goto('/#/')
-  const trigger = filters(page).getByRole('button', { name: /^Tiện ích/ })
+  const trigger = filters(page).getByRole('button', { name: /(Tiện ích|Tất cả tiện ích)/ })
   await trigger.focus()
   await page.keyboard.press('Enter')
   let dialog = page.getByRole('dialog', { name: 'Tiện ích', exact: true })
@@ -142,8 +142,8 @@ test('dropdowns support keyboard dismissal, clear selection and stay inside resp
   await expect(dialog).toHaveCount(0)
   for (const width of [375, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 })
-    for (const name of ['Địa điểm', 'Khoảng giá', 'Tiện ích']) {
-      await filters(page).getByRole('button', { name, exact: true }).click()
+    for (const name of [/^(Địa điểm|Tất cả địa điểm)$/, /^(Khoảng giá|Tất cả khoảng giá)$/, /^(Tiện ích|Tất cả tiện ích)$/]) {
+      await filters(page).getByRole('button', { name }).click()
       dialog = page.getByRole('dialog')
       await expect(dialog).toBeVisible()
       const box = await dialog.boundingBox()

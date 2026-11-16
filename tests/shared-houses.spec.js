@@ -104,6 +104,7 @@ test('student selects houses created by a landlord in a separate browser session
     await student.getByRole('link', { name: 'Quản lý bài đăng', exact: true }).last().click()
     await student.locator('.manage-post-detail').first().click()
     await expect(student.locator('.house-detail-card')).toContainText(name)
+    await expect(student.locator('.spec-grid')).toContainText('100 m²')
     const savedPost = await student.evaluate(() => {
       const key = Object.keys(localStorage).find(key => key.startsWith('findmyroom-demo-v1:'))
       return JSON.parse(localStorage.getItem(key)).posts.find(post => post.kind === 'roommate')
@@ -111,6 +112,7 @@ test('student selects houses created by a landlord in a separate browser session
     expect(savedPost.houseId).toBe(shared.id)
     const persisted = (await (await student.request.get('/api/roommates')).json()).posts.find(post => post.id === savedPost.id)
     expect(persisted).toBeTruthy()
+    expect(persisted.area).toBe(100)
     const otherContext = await browser.newContext()
     try {
       const other = await otherContext.newPage()
@@ -118,8 +120,10 @@ test('student selects houses created by a landlord in a separate browser session
       await other.goto(`/#/phong/${savedPost.id}`)
       await expect(other.getByRole('heading', { name: 'Ghép trọ cùng nhà trọ đã tạo', exact: true })).toBeVisible()
       await expect(other.locator('.house-detail-card')).toContainText(name)
+      await expect(other.locator('.spec-grid')).toContainText('100 m²')
       await other.reload()
       await expect(other.getByRole('heading', { name: 'Ghép trọ cùng nhà trọ đã tạo', exact: true })).toBeVisible()
+      await expect(other.locator('.spec-grid')).toContainText('100 m²')
     } finally { await otherContext.close() }
     // A landlord's later changes are read from the shared source, not the student's cache.
     await page.getByRole('button', { name: `Chỉnh sửa ${name}`, exact: true }).click()

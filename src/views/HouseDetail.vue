@@ -7,11 +7,11 @@ import { state } from '../store'
 import { boardingHouses } from '../data'
 import { houseDirectory, loadHouses } from '../houses'
 import { loadRentals } from '../rentals'
-import { publicRentals } from '../listings'
+import { rentalPostsForHouse } from '../listings'
 
 const route = useRoute()
 const house = computed(() => [...houseDirectory.houses, ...boardingHouses].find(item => item.id === route.params.id))
-const posts = computed(() => house.value ? publicRentals().filter(post => post.houseId === house.value.id || (!post.houseId && post.house === house.value.name)) : [])
+const posts = computed(() => house.value ? rentalPostsForHouse(house.value) : [])
 const backTo = computed(() => {
   const path = route.query.returnTo
   if (typeof path === 'string' && (path === '/' || path.startsWith('/?'))) return path
@@ -31,7 +31,7 @@ onMounted(() => { loadHouses().catch(() => {}); loadRentals().catch(() => {}) })
         <section class="house-detail-info" aria-label="Thông tin chi tiết nhà trọ">
           <h2>Chi tiết nhà trọ</h2>
           <p class="location"><Icon name="pin" :size="18" />{{ house.address }}</p>
-          <p class="location"><Icon name="home" :size="18" /><strong>{{ house.rooms }} phòng</strong></p>
+          <p class="location"><Icon name="home" :size="18" /><strong>{{ posts.length }} bài đăng</strong></p>
           <h3>Mô tả</h3>
           <p>{{ house.desc || 'Chưa có mô tả nhà trọ.' }}</p>
         </section>

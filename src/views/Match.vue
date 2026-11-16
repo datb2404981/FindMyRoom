@@ -1,9 +1,10 @@
 <script setup>
-import {ref,computed,nextTick,watch,onUnmounted} from 'vue'
+import {ref,computed,nextTick,watch,onMounted,onUnmounted} from 'vue'
 import {useRouter,useRoute} from 'vue-router'
 import Icon from '../components/Icon.vue'
 import MatchFilterPanel from '../components/MatchFilterPanel.vue'
 import {people,money} from '../data'
+import {roommateDirectory,loadRoommates} from '../roommates'
 import {schools} from '../search-filters'
 import {state} from '../store'
 
@@ -22,17 +23,23 @@ watch(started,(val)=>{
  document.body.classList.toggle('match-active',!!val)
 },{immediate:true})
 
+onMounted(()=>{
+ loadRoommates().catch(()=>{})
+})
+
 onUnmounted(()=>{
  document.documentElement.classList.remove('match-active')
  document.body.classList.remove('match-active')
  window.removeEventListener('scroll', onWindowScroll)
 })
 
+const normalizeSchool=name=>(name||'').replace(/^Trường\s+/i,'').trim().toLowerCase()
+
 function matchesFilters(p){
  const f=preferences.value,school=schools.find(s=>s.id===f.school)
  return (
   (!f.district||p.district===f.district)&&
-  (!f.school||p.school===school?.name)&&
+  (!f.school||normalizeSchool(p.school)===normalizeSchool(school?.name))&&
   (!f.gender||p.gender===f.gender)&&
   p.price>=f.budgetMin&&
   p.price<=f.budgetMax&&
@@ -42,7 +49,47 @@ function matchesFilters(p){
  )
 }
 
-const matchingPeople=computed(()=>people.filter(matchesFilters))
+const seededRoommatePostIds=new Set(people.map(p=>p.roommatePostId).filter(Boolean))
+
+function toCandidate(post){
+ const habitTags=(post.habits||'').split(',').map(s=>s.trim()).filter(Boolean)
+ const tags=[...new Set([...(post.lifestyles||[]),...habitTags])]
+ return {
+  id:post.id,
+  postId:post.id,
+  isLive:true,
+  studentCode:post.studentCode||'',
+  status:post.status||'Còn phòng',
+  title:post.title||'',
+  image:post.image||post.images?.[0]||'/illustrations/room-1.svg',
+  images:post.images?.length?post.images:[post.image||'/illustrations/room-1.svg'],
+  name:post.owner||'Sinh viên',
+  age:post.age||20,
+  school:post.school||post.ownerSchool||'Đại học Cần Thơ',
+  major:post.major||'Sinh viên',
+  gender:post.ownerGender||post.gender||'Tất cả',
+  price:Number(post.perPerson||post.price||0),
+  district:post.district||'Ninh Kiều',
+  address:post.address||'',
+  hobbies:post.habits||'',
+  tags,
+  bio:post.desc||'',
+  color:'#eef2f6',
+  amenities:post.amenities||[],
+  nearby:post.nearby||[],
+  lifestyles:post.lifestyles||[],
+ }
+}
+
+const allPeople=computed(()=>{
+ const live=roommateDirectory.posts
+  .filter(post=>post.status==='Còn phòng'&&!seededRoommatePostIds.has(post.id))
+  .sort((a,b)=>String(b.postedAt||'').localeCompare(String(a.postedAt||'')))
+  .map(toCandidate)
+ return [...live,...people]
+})
+
+const matchingPeople=computed(()=>allPeople.value.filter(matchesFilters))
 const matchingIds=computed(()=>new Set(matchingPeople.value.map(p=>p.id)))
 
 // Keep history ordered across mounts and ignore passed IDs that cannot be restored under current filters.
@@ -279,7 +326,7 @@ function onPointerCancel(e){
 
 function getPostId(person){
  if(!person)return ''
- return `ghep-${person.id}`
+ return person.postId||`ghep-${person.id}`
 }
 
 function viewDetail(){
@@ -402,7 +449,7 @@ async function begin(){
                 draggable="false"
                 @dragstart.prevent
               >
-              <span class="badge"><Icon name="shield" :size="13" />Hồ sơ mẫu</span>
+              <span class="badge"><Icon name="shield" :size="13" />{{ current.isLive ? 'Tìm bạn ở ghép' : 'Hồ sơ mẫu' }}</span>
             </div>
             <div class="person-info">
               <div class="section-heading">

@@ -8,7 +8,7 @@ const amount = computed(() => props.modelValue === '' || props.modelValue == nul
 const display = computed(() => amount.value === '' || !Number.isFinite(amount.value) ? '' : new Intl.NumberFormat('vi-VN').format(amount.value))
 
 function updateUnits(units, cursor) {
-  const digits = units.replace(/\D/g, '').slice(0, 12)
+  const digits = units.replace(/\D/g, '').slice(0, 9)
   emit('update:modelValue', digits ? Number(digits) * 1000 : '')
   nextTick(() => {
     if (!input.value || document.activeElement !== input.value) return
@@ -54,7 +54,7 @@ function paste(event) {
 
 function step(direction) {
   const next = Math.max(0, (Number(amount.value) || 0) + direction * 1000)
-  emit('update:modelValue', Math.min(next, 999999999999000))
+  emit('update:modelValue', Math.min(next, 999999999000))
 }
 </script>
 

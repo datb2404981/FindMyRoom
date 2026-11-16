@@ -133,7 +133,8 @@ test('student roommate post keeps 4 steps and opens upgraded preview modal', asy
   for (const input of await page.getByRole('spinbutton').all()) await input.fill('900000')
   await page.getByLabel('Số người cần tìm *', { exact: true }).fill('1')
   await page.getByLabel('Diện tích (m²) *', { exact: true }).fill('22')
-  await page.getByLabel('Mô tả chi tiết', { exact: true }).fill('Phòng sạch sẽ, yên tĩnh học tập.')
+  await page.getByLabel('Mô tả chi tiết', { exact: true }).fill('thongtindai'.repeat(100))
+  await page.getByLabel('Phí khác', { exact: true }).fill('1234567890'.repeat(30))
   await page.getByRole('button', { name: 'Tiếp theo', exact: true }).click()
 
   await page.getByRole('button', { name: 'Phường / Xã', exact: true }).click()
@@ -156,6 +157,13 @@ test('student roommate post keeps 4 steps and opens upgraded preview modal', asy
   await expect(dialog.getByRole('heading', { name: 'Xem trước bài ghép trọ', exact: true })).toBeVisible()
   await expect(dialog).toContainText('Tìm bạn nữ ở ghép gần ĐHCT')
   await expect(dialog).toContainText('Camera 24/7')
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 844 })
+    for (const selector of ['.preview-summary-card', '.preview-meta-line', '.preview-text-block']) {
+      const overflows = await dialog.locator(selector).evaluateAll(elements => elements.some(el => el.scrollWidth > el.clientWidth))
+      expect(overflows, `${selector} overflows at ${width}px`).toBeFalsy()
+    }
+  }
   await dialog.getByRole('button', { name: 'Đăng bài', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Bài đăng đã được lưu', exact: true })).toBeVisible()
 })

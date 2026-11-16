@@ -43,6 +43,7 @@ export const roommateListings = people.map((person, index) => {
     phone: person.phone || '0912 345 678',
     zaloPhone: person.zaloPhone,
     gender: person.gender || 'Nữ',
+    ownerGender: person.gender || 'Nữ',
     school: person.school || 'Đại học Cần Thơ',
     major: person.major || 'Công nghệ thông tin',
     age: person.age || 20,
@@ -79,6 +80,10 @@ export function publicRentals(posts = []) {
     if (post.kind === 'rental') listings.set(post.id, post)
   }
   return [...listings.values()].filter(post => post.status !== 'Bản nháp' && rentalStatus(post) !== 'Ẩn')
+}
+
+export function rentalPostsForHouse(house, posts = publicRentals()) {
+  return posts.filter(post => post.houseId === house.id || (!post.houseId && post.house === house.name))
 }
 
 export function publicRoommates(posts = []) {
@@ -128,7 +133,7 @@ export function publicHouses(rentals = []) {
       owner: house.owner || linkedRooms[0]?.owner || '',
       status: house.status || 'Đang hoạt động',
       availableCount: activeRooms.length,
-      roomCount: Number(house.rooms) || linkedRooms.length,
+      postCount: rentalPostsForHouse(house).length,
       image: house.image || linkedRooms[0]?.image || '/illustrations/room-1.svg',
     }
   })
@@ -192,4 +197,18 @@ export function matchesKeyword(listing, keyword) {
     words.some(word => word.includes('/') && word.split('/').includes(token)) ||
     (token.length >= 4 && words.some(word => word.startsWith(token)))
   )
+}
+
+export function keywordScore(listing, keyword) {
+  const q = searchableText({ title: keyword })
+  if (!q) return 0
+  const head = searchableText({ title: listing.title, house: listing.house })
+  let score = 0
+  if (head === q) score += 8
+  else if (head.startsWith(q)) score += 6
+  else if (head.includes(q)) score += 4
+  else if (searchableText(listing).includes(q)) score += 2
+  const headWords = new Set(head.split(' '))
+  for (const token of q.split(' ')) if (headWords.has(token)) score += 1
+  return score
 }

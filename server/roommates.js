@@ -2,6 +2,26 @@ import { ensureStudent } from './student-profile.js'
 import { jsonCollection, roommateFields, readRows } from './json-collection.js'
 
 const fail = (status, message) => Object.assign(new Error(message), { status })
+function ageFromBirth(birth) {
+  if (!birth) return null
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(birth))
+  if (!match) return null
+  const year = Number(match[1])
+  if (!Number.isFinite(year) || year < 1900) return null
+  const today = new Date()
+  let age = today.getFullYear() - year
+  const monthDay = `${match[2]}-${match[3]}`
+  const todayMonthDay = `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  if (todayMonthDay < monthDay) age--
+  return age > 0 ? age : null
+}
+function wardFromAddress(address = '') {
+  const parts = String(address).split(',').map(part => part.trim()).filter(Boolean)
+  const rawWard = parts.length > 2 ? parts.at(-2) : ''
+  const cleanWard = rawWard.replace(/^(quận|phường|huyện|thị xã)\s+/i, '').trim()
+  return /ninh\s*ki[eề]u/i.test(cleanWard) ? 'Ninh Kiều' : cleanWard
+}
+
 export function roommateStore({ file, imagesFile, linksFile, catalogFile, studentsFile, universitiesFile }) {
   const data = jsonCollection(file, imagesFile, roommateFields, 'roommate_post_image_id', { linksFile, catalogFile })
   async function read(houses, users) {
@@ -12,8 +32,10 @@ export function roommateStore({ file, imagesFile, linksFile, catalogFile, studen
       if (!owner) return null
       const house = houses.find(house => house.address === post.address)
       return { ...post, kind: 'roommate', ownerId: owner.id, owner: owner.name, phone: owner.phone, email: owner.email,
+        ownerGender: student?.gender || '', major: student?.major || '', age: ageFromBirth(student?.date_of_birth),
+        ownerSchool: universities.find(school => school.university_id === student?.university_id)?.university_name || '',
         school: universities.find(school => school.university_id === post.universityId)?.university_name || '',
-        houseId: house?.id || '', house: house?.name || '', district: house?.ward || '',
+        houseId: house?.id || '', house: house?.name || '', district: house?.ward || wardFromAddress(post.address),
         perPerson: Number(post.price) / (Number(post.people) + 1), totalRent: post.price }
     }).filter(Boolean)
   }
@@ -36,7 +58,7 @@ export function roommateStore({ file, imagesFile, linksFile, catalogFile, studen
     if (!['Còn phòng', 'Hết phòng', 'Ẩn'].includes(body.status)) throw fail(400, 'Trạng thái không hợp lệ.')
     const post = { id, status: body.status }
     for (const key of ['title', 'desc', 'other', 'address', 'moveIn', 'habits']) {
-      if (body[key] != null && (typeof body[key] !== 'string' || body[key].length > 10000)) throw fail(400, 'Thông tin bài đăng không hợp lệ.')
+      if (body[key] != null && (typeof body[key] !== 'string' || body[key].length > (['title', 'desc', 'other', 'habits'].includes(key) ? 255 : 10000))) throw fail(400, 'Thông tin bài đăng không hợp lệ.')
       post[key] = body[key] || ''
     }
     if (!post.title.trim() || !/^\d{4}-\d{2}-\d{2}$/.test(post.moveIn) || !Number.isFinite(Date.parse(post.moveIn))) throw fail(400, 'Vui lòng nhập tiêu đề và ngày chuyển vào hợp lệ.')
@@ -44,8 +66,10 @@ export function roommateStore({ file, imagesFile, linksFile, catalogFile, studen
     if (!['Tất cả', 'Nam', 'Nữ'].includes(post.gender)) throw fail(400, 'Đối tượng không hợp lệ.')
     for (const key of ['price', 'electric', 'water', 'internet', 'people']) {
       post[key] = Number(body[key] || 0)
-      if (!Number.isFinite(post[key]) || post[key] < 0 || (['price', 'people'].includes(key) && !post[key]) || (key === 'people' && !Number.isInteger(post[key]))) throw fail(400, 'Giá và số người không hợp lệ.')
+      if (!Number.isFinite(post[key]) || post[key] < 0 || post[key] > (key === 'people' ? 999999999 : 999999999000) || (['price', 'people'].includes(key) && !post[key]) || (key === 'people' && !Number.isInteger(post[key]))) throw fail(400, 'Giá và số người không hợp lệ.')
     }
+    post.area = body.area == null || body.area === '' ? null : Number(body.area)
+    if (post.area != null && (!Number.isFinite(post.area) || post.area <= 0 || post.area > 999999999)) throw fail(400, 'Diện tích không hợp lệ.')
     for (const [key, limit] of [['latitude', 90], ['longitude', 180]]) {
       post[key] = body[key] == null ? null : Number(body[key])
       if (post[key] != null && (!Number.isFinite(post[key]) || Math.abs(post[key]) > limit)) throw fail(400, 'Tọa độ không hợp lệ.')
@@ -76,7 +100,12 @@ export function roommateStore({ file, imagesFile, linksFile, catalogFile, studen
       post.expiresAt = index < 0 ? null : posts[index].expiresAt
       if (index < 0) posts.push(post); else posts[index] = post
     })
-    return { ...post, kind: 'roommate', ownerId: user.id, houseId: house?.id || '', house: house?.name || '', image: post.images[0] }
+    return { ...post, kind: 'roommate', ownerId: user.id, owner: user.name, phone: user.phone, email: user.email,
+      ownerGender: student?.gender || '', major: student?.major || '', age: ageFromBirth(student?.date_of_birth),
+      ownerSchool: universities.find(school => school.university_id === student?.university_id)?.university_name || '',
+      school: universities.find(school => school.university_id === post.universityId)?.university_name || '',
+      houseId: house?.id || '', house: house?.name || '', district: house?.ward || wardFromAddress(post.address), image: post.images[0],
+      perPerson: Number(post.price) / (Number(post.people) + 1), totalRent: post.price }
   }
   return { read, save, remove }
 }

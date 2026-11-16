@@ -189,8 +189,8 @@ const draft = reactive(defaults());
 const moneyFields = new Set(['price', 'perPerson', 'electric', 'water', 'internet', 'deposit']);
 function updatePositiveNumber(key, event) {
   const value = event.target.value;
-  draft[key] = value === '' ? '' : Math.max(1, Number(value));
-  if (value !== '' && Number(value) < 1) event.target.value = '1';
+  draft[key] = value === '' ? '' : Math.min(999999999, Math.max(1, Number(value)));
+  if (value !== '' && Number(value) !== draft[key]) event.target.value = String(draft[key]);
 }
 function normalizeWard(w) {
   if (!w) return '';
@@ -783,7 +783,7 @@ function locate() {
               v-else-if="type === 'number'"
               :value="draft[key]"
               :aria-label="label + (required ? ' *' : '')"
-              type="number" min="1" step="1" placeholder="Nhập giá trị"
+              type="number" min="1" max="999999999" step="1" placeholder="Nhập giá trị"
               :aria-invalid="!!errors[key]"
               @input="updatePositiveNumber(key, $event)"
               @blur="draft[key] = draft[key] === '' ? 1 : Math.max(1, Number(draft[key]))"
@@ -792,6 +792,7 @@ function locate() {
               v-model="draft[key]"
               :aria-label="label + (required ? ' *' : '')"
               :type="type"
+              :maxlength="type === 'text' ? 255 : undefined"
               :min="
                 type === 'date'
                   ? new Date().toLocaleDateString('en-CA')
@@ -805,6 +806,7 @@ function locate() {
           ><label class="field span-two col-span-full"
             ><span>Mô tả chi tiết</span
             ><textarea
+              maxlength="255"
               rows="5"
               v-model="draft.desc"
               placeholder="Mô tả phòng, người bạn muốn ở cùng và những lưu ý…"
@@ -821,7 +823,7 @@ function locate() {
               ><AppDropdown v-model="draft.ward" label="Phường / Xã" :invalid="!!errors.ward" :options="wardOptions" /><small class="error">{{ errors.ward }}</small></div
             ><label class="field"
               ><span>Tên đường / số nhà <b class="required">*</b></span
-              ><input
+              ><input maxlength="255"
                 v-model="draft.street"
                 placeholder="Ví dụ: 123 đường 3/2"
                 :aria-invalid="!!errors.street"
@@ -873,6 +875,7 @@ function locate() {
                 </div>
                 <input
                   id="post-house-input"
+                  maxlength="255"
                   v-model="draft.house"
                   placeholder="Ví dụ: Nhà trọ Minh An (gõ để tìm trọ trong hệ thống)"
                   autocomplete="off"
@@ -1037,6 +1040,7 @@ function locate() {
         <label class="field"
           ><span>Thói quen sống / lưu ý khác</span
           ><textarea
+            maxlength="255"
             v-model="draft.habits"
             rows="3"
             placeholder="Những điều bạn mong muốn ở người ở cùng…"
@@ -1710,6 +1714,31 @@ function locate() {
   display: flex;
   flex-direction: column;
   gap: 18px;
+}
+.preview-modal-body > *,
+.preview-summary-card > *,
+.preview-location-row > *,
+.preview-meta-line > span {
+  min-width: 0;
+  max-width: 100%;
+}
+.preview-title-block,
+.preview-house-pill,
+.preview-address,
+.preview-price-box,
+.preview-meta-line,
+.preview-text-block,
+.preview-tags-block {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+.preview-price-box {
+  min-width: 0;
+  max-width: 100%;
+}
+.preview-address span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .preview-gallery {
   display: flex;

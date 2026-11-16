@@ -15,9 +15,10 @@ watch(() => [model.value.school, model.value.district], ([school, district]) => 
 const triggers = {}
 let pointerInside = false
 const selectedSchool = computed(() => schools.find(school => school.id === model.value.school))
-const locationLabel = computed(() => selectedSchool.value?.shortName || model.value.district || 'Địa điểm')
+const locationLabel = computed(() => selectedSchool.value?.shortName || model.value.district || 'Tất cả địa điểm')
 const fullLocation = computed(() => selectedSchool.value?.name || model.value.district || '')
-const priceLabel = computed(() => model.value.prices.length === 1 ? priceRanges.find(range => range.id === model.value.prices[0])?.label : 'Khoảng giá')
+const priceLabel = computed(() => model.value.prices.length === 1 ? priceRanges.find(range => range.id === model.value.prices[0])?.label : 'Tất cả khoảng giá')
+const amenitiesLabel = computed(() => model.value.amenities.length ? 'Tiện ích' : 'Tất cả tiện ích')
 const locationOptions = computed(() => locationTab.value === 'school'
   ? schools.map(school => ({ value: school.id, label: school.name }))
   : districts.map(district => ({ value: district, label: district })))
@@ -106,9 +107,9 @@ defineExpose({ close })
     <div class="filter-control">
       <button :ref="el => triggers.location = el" type="button" class="filter-trigger"
         :class="{ 'is-active': active === 'location', 'has-value': fullLocation }"
-        :aria-label="fullLocation ? 'Địa điểm: ' + fullLocation : 'Địa điểm'"
+        :aria-label="fullLocation ? 'Địa điểm: ' + fullLocation : 'Tất cả địa điểm'"
         :aria-expanded="active === 'location'" aria-haspopup="dialog" aria-controls="home-location-filter"
-        :title="fullLocation || 'Chọn trường học hoặc khu vực'" @click="toggle('location')" @keydown.down.prevent="openFromKeyboard('location')">
+        :title="fullLocation || 'Tất cả địa điểm'" @click="toggle('location')" @keydown.down.prevent="openFromKeyboard('location')">
         <Icon name="pin" :size="21" /><span class="trigger-label">{{ locationLabel }}</span><Icon class="filter-chevron" name="down" :size="18" />
       </button>
       <section v-if="active === 'location'" id="home-location-filter" ref="panel" class="filter-popover location-popover" :class="{ 'opens-up': opensUp }" :style="{ maxHeight: popupMaxHeight }" role="dialog" aria-label="Chọn địa điểm">
@@ -119,10 +120,10 @@ defineExpose({ close })
         <div id="location-options" role="tabpanel" :aria-labelledby="locationTab === 'school' ? 'location-school-tab' : 'location-region-tab'">
           <p class="filter-hint">{{ locationTab === 'school' ? 'Chọn trường đại học, cao đẳng' : 'Chọn khu vực bạn muốn ở' }}</p>
           <button type="button" class="location-select" :aria-expanded="locationListOpen" aria-controls="location-choice-list" @click="locationListOpen = !locationListOpen">
-            <span>{{ selectedLocation ? fullLocation : locationTab === 'school' ? 'Theo tất cả địa điểm' : 'Tất cả khu vực' }}</span><Icon name="down" :size="18" :class="{ 'is-rotated': locationListOpen }" />
+            <span>{{ selectedLocation ? fullLocation : (locationTab === 'school' ? 'Tất cả địa điểm' : 'Tất cả khu vực') }}</span><Icon name="down" :size="18" :class="{ 'is-rotated': locationListOpen }" />
           </button>
           <div v-if="locationListOpen" id="location-choice-list" class="location-options" role="group" :aria-label="locationTab === 'school' ? 'Trường đại học, cao đẳng' : 'Khu vực'">
-            <button type="button" :aria-pressed="!selectedLocation" @click="selectLocation('')"><span>{{ locationTab === 'school' ? 'Tất cả trường học' : 'Tất cả khu vực' }}</span><Icon v-if="!selectedLocation" name="check" :size="18" /></button>
+            <button type="button" :aria-pressed="!selectedLocation" @click="selectLocation('')"><span>{{ locationTab === 'school' ? 'Tất cả địa điểm' : 'Tất cả khu vực' }}</span><Icon v-if="!selectedLocation" name="check" :size="18" /></button>
             <button v-for="option in locationOptions" :key="option.value" type="button" :aria-pressed="selectedLocation === option.value" @click="selectLocation(option.value)"><span>{{ option.label }}</span><Icon v-if="selectedLocation === option.value" name="check" :size="18" /></button>
           </div>
         </div>
@@ -131,7 +132,7 @@ defineExpose({ close })
 
     <div class="filter-control">
       <button :ref="el => triggers.price = el" type="button" class="filter-trigger" :class="{ 'is-active': active === 'price', 'has-value': model.prices.length }"
-        :aria-label="model.prices.length ? 'Khoảng giá: ' + priceLabel : 'Khoảng giá'"
+        :aria-label="model.prices.length ? 'Khoảng giá: ' + priceLabel : 'Tất cả khoảng giá'"
         :aria-expanded="active === 'price'" aria-haspopup="dialog" aria-controls="home-price-filter" @click="toggle('price')" @keydown.down.prevent="openFromKeyboard('price')">
         <span class="currency-icon" aria-hidden="true">$</span><span class="trigger-label">{{ priceLabel }}</span><Icon class="filter-chevron" name="down" :size="18" />
       </button>
@@ -140,22 +141,28 @@ defineExpose({ close })
         <div class="filter-checkbox-grid">
           <label v-for="range in priceRanges" :key="range.id" class="filter-checkbox" :class="{ 'is-checked': model.prices.includes(range.id) }"><input type="radio" name="home-price-range" :value="range.id" :checked="model.prices.includes(range.id)" @change="patch({ prices: [range.id] })"><span>{{ range.label }}</span></label>
         </div>
-        <div class="filter-popover-footer selection-footer"><button type="button" class="finish-filter" @click="close(true)">Xong<Icon name="check" :size="16" /></button></div>
+        <div class="filter-popover-footer selection-footer">
+          <button type="button" class="clear-filter" :disabled="!model.prices.length" @click="patch({ prices: [] })">Tất cả khoảng giá</button>
+          <button type="button" class="finish-filter" @click="close(true)">Xong<Icon name="check" :size="16" /></button>
+        </div>
       </section>
     </div>
 
     <div class="filter-control">
       <button :ref="el => triggers.amenities = el" type="button" class="filter-trigger" :class="{ 'is-active': active === 'amenities', 'has-value': model.amenities.length }"
-        :aria-label="model.amenities.length ? 'Tiện ích: ' + model.amenities.length + ' tiện ích đã chọn' : 'Tiện ích'"
+        :aria-label="model.amenities.length ? 'Tiện ích: ' + model.amenities.length + ' tiện ích đã chọn' : 'Tất cả tiện ích'"
         :aria-expanded="active === 'amenities'" aria-haspopup="dialog" aria-controls="home-amenities-filter" @click="toggle('amenities')" @keydown.down.prevent="openFromKeyboard('amenities')">
-        <Icon name="filter" :size="21" /><span class="trigger-label">Tiện ích</span><span v-if="model.amenities.length" class="filter-count">{{ model.amenities.length }}</span><Icon class="filter-chevron" name="down" :size="18" />
+        <Icon name="filter" :size="21" /><span class="trigger-label">{{ amenitiesLabel }}</span><span v-if="model.amenities.length" class="filter-count">{{ model.amenities.length }}</span><Icon class="filter-chevron" name="down" :size="18" />
       </button>
       <section v-if="active === 'amenities'" id="home-amenities-filter" ref="panel" class="filter-popover amenities-popover" :class="{ 'opens-up': opensUp }" :style="{ maxHeight: popupMaxHeight }" role="dialog" aria-labelledby="home-amenities-heading">
         <div class="filter-popover-heading"><h3 id="home-amenities-heading">Tiện ích</h3><button type="button" class="clear-selection" aria-label="Bỏ chọn" title="Bỏ chọn tất cả tiện ích" :disabled="!model.amenities.length" @click="patch({ amenities: [] })"><Icon name="reset" :size="22" /></button></div><p class="filter-hint">Chọn các tiện ích bạn cần cho căn phòng</p>
         <div class="filter-checkbox-grid">
           <label v-for="amenity in amenities" :key="amenity" class="filter-checkbox" :class="{ 'is-checked': model.amenities.includes(amenity) }"><input type="checkbox" :checked="model.amenities.includes(amenity)" @change="toggleChoice('amenities', amenity)"><span>{{ amenity }}</span></label>
         </div>
-        <div class="filter-popover-footer selection-footer"><button type="button" class="finish-filter" @click="close(true)">Xong<Icon name="check" :size="16" /></button></div>
+        <div class="filter-popover-footer selection-footer">
+          <button type="button" class="clear-filter" :disabled="!model.amenities.length" @click="patch({ amenities: [] })">Tất cả tiện ích</button>
+          <button type="button" class="finish-filter" @click="close(true)">Xong<Icon name="check" :size="16" /></button>
+        </div>
       </section>
     </div>
     <button type="submit" class="button primary search-submit">Tìm kiếm <Icon name="arrow" :size="21" /></button>
@@ -186,7 +193,7 @@ defineExpose({ close })
 .filter-popover-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-shrink:0}
 .clear-selection{display:grid;place-items:center;width:44px;height:44px;flex-shrink:0;border-radius:50%;transition:background-color .18s}
 .clear-selection:hover:not(:disabled){background:var(--cream-deep)}
-.filter-popover-footer.selection-footer{justify-content:flex-end}
+.filter-popover-footer.selection-footer{justify-content:space-between}
 .filter-hint{margin:6px 0 16px;color:#526065;font-size:13px;line-height:1.5}
 .location-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border:1px solid #c6c8c0;border-radius:12px;background:#eeeade}
 .location-tabs button{min-height:44px;padding:8px;font-size:14px;border:1px solid transparent;border-radius:9px}

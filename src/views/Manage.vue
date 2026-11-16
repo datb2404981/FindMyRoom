@@ -480,10 +480,10 @@ async function remove() {
                 :to="{ path: '/phong/' + r.id, query: { returnTo: route.fullPath } }"
                 class="manage-post-detail"
               >
-                {{ r.title }}
+                <span class="manage-post-title" :title="r.title">{{ r.title }}</span>
               </RouterLink>
             </h3>
-            <p class="muted">{{ r.address || 'Cần Thơ' }} · {{ r.area }} m²</p>
+            <p class="muted">{{ r.address || 'Cần Thơ' }}<template v-if="r.area"> · {{ r.area }} m²</template></p>
             <p class="price">{{ money(r.price) }}<span> / tháng</span></p>
           </div>
           <div class="manage-post-actions">
@@ -1195,6 +1195,13 @@ async function remove() {
 .house-detail-link:hover {
   text-decoration: none;
 }
+.manage-post-title {
+  display: block;
+  max-width: 500px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .manage-post-detail:focus-visible::after,
 .house-detail-link:focus-visible::after {
   outline: 3px solid #638d92;
@@ -1783,6 +1790,7 @@ async function remove() {
   display: flex;
   align-items: center;
   gap: 12px;
+  margin-left: auto;
 }
 
 .wizard-actions .button {
@@ -1863,11 +1871,11 @@ async function remove() {
     grid-template-columns: minmax(0, 1fr);
   }
   .wizard-actions {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 10px;
   }
   .wizard-actions .inline {
-    width: 100%;
+    width: auto;
     justify-content: flex-end;
   }
 }

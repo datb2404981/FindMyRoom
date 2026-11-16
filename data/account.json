@@ -516,47 +516,5 @@
     "is_active": true,
     "provider": "local",
     "created_at": "2026-11-13T17:14:55.198Z"
-  },
-  {
-    "account_id": "79283568-ee45-4f3d-b325-b15be26b4def",
-    "full_name": "Lâm Thị Anh Thư",
-    "email": "thu123@gmail.com",
-    "password": "scrypt:6265024b5315dc6dd6c06c3f29d7ad98:3a9ba1c51f53bae8cc3e33df0343de9c2edc9d72df4ffd2ee66f13e10f3ff6577847d38a73962b7781aeb7cb70f1f1c40a070f9cfde68891ad39a65599bf2552",
-    "phone": "0923456789",
-    "avatar_url": null,
-    "role": "student",
-    "zalo_phone": "0923456789",
-    "zalo_url": null,
-    "is_active": true,
-    "provider": "local",
-    "created_at": "2026-11-15T02:09:12.099Z"
-  },
-  {
-    "account_id": "6c16d636-079c-4a71-85bb-0ce33cf03c20",
-    "full_name": "Anh Thư",
-    "email": "thub2405011@student.ctu.edu.vn",
-    "password": "scrypt:630fe1cb035ab14bef18d4cf2f90a238:2287e9a55e7c0708762d28ca3d4a313b1488dca02229b6443bfbe136d4b565aac8607a73e229b3cc215f585303267069181bbf8be59aeeca03fb5b81a285566a",
-    "phone": "0987871231",
-    "avatar_url": null,
-    "role": "landlord",
-    "zalo_phone": "0987871231",
-    "zalo_url": null,
-    "is_active": true,
-    "provider": "local",
-    "created_at": "2026-11-15T02:41:55.845Z"
-  },
-  {
-    "account_id": "31b066ea-26d2-4402-a9d9-dc6530cddcf8",
-    "full_name": "Anh Thư",
-    "email": "thub2405010@student.ctu.edu.vn",
-    "password": "scrypt:542b7a2f06b035ae4eb10c8dd9fb1d3a:e50fb71a31566bbf4ff0a13e77b4a5971491dc3de8db233b9a4cf799cb4d066de17df83af47c8e506798d947aa5701aba6040ad24aa0070080caf8738e5b79a8",
-    "phone": "0987871231",
-    "avatar_url": null,
-    "role": "landlord",
-    "zalo_phone": "0987871231",
-    "zalo_url": null,
-    "is_active": true,
-    "provider": "local",
-    "created_at": "2026-11-15T02:42:34.367Z"
   }
 ]

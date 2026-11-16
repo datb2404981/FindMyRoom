@@ -83,15 +83,26 @@ test('house directory persists landlord houses and enforces ownership', async t 
   assert.deepEqual(JSON.parse(await readFile(join(directory, 'rentals-images.json'), 'utf8')), [])
   assert.equal((await request('/api/boarding-houses/house-test', 'DELETE', undefined, users[0].cookie)).status, 200)
   assert.deepEqual((await request('/api/boarding-houses')).data.houses, [])
-  const roommate = { title: 'Shared roommate', status: 'Còn phòng', address: '123 Cần Thơ', price: 2000000, people: 1, gender: 'Tất cả', moveIn: '2027-12-01', images: ['/illustrations/room-1.svg'], nearby: ['Nhà thuốc'], school: 'Đại học Cần Thơ' }
+  const roommate = { title: 'Shared roommate', status: 'Còn phòng', address: '123 Cần Thơ', price: 2000000, area: 25, people: 1, gender: 'Tất cả', moveIn: '2027-12-01', images: ['/illustrations/room-1.svg'], nearby: ['Nhà thuốc'], school: 'Đại học Cần Thơ' }
   assert.equal((await request('/api/roommates/new-roommate', 'PUT', roommate, users[0].cookie)).status, 403)
+  assert.equal((await request('/api/roommates/new-roommate', 'PUT', { ...roommate, area: 0 }, users[2].cookie)).status, 400)
   assert.equal((await request('/api/roommates/new-roommate', 'PUT', roommate, users[2].cookie)).status, 200)
   assert.equal((await request('/api/roommates/new-roommate', 'PUT', roommate, users[3].cookie)).status, 403)
   const rawRoommate = JSON.parse(await readFile(join(directory, 'roommate_post.json'), 'utf8'))[0]
-  assert.deepEqual(Object.keys(rawRoommate).sort(), ['roommate_post_id', 'university_id', 'student_code', 'title', 'description', 'distance_to_school', 'preferred_gender', 'current_room_price', 'electric_price', 'water_price', 'internet_price', 'other_service_fee', 'current_address', 'longitude', 'latitude', 'status', 'posted_at', 'vacancies', 'move_in_date', 'hobbies', 'expires_at'].sort())
+  assert.equal(rawRoommate.area, 25)
+  assert.deepEqual(Object.keys(rawRoommate).sort(), ['roommate_post_id', 'university_id', 'student_code', 'title', 'description', 'distance_to_school', 'preferred_gender', 'current_room_price', 'area', 'electric_price', 'water_price', 'internet_price', 'other_service_fee', 'current_address', 'longitude', 'latitude', 'status', 'posted_at', 'vacancies', 'move_in_date', 'hobbies', 'expires_at'].sort())
   const studentRows = JSON.parse(await readFile(join(directory, 'student_profile.json'), 'utf8'))
   assert.equal(studentRows.find(student => student.student_code === rawRoommate.student_code).account_id, users[2].data.user.id)
-  assert.equal((await afterRestart('/api/roommates')).data.posts[0].title, roommate.title)
+  const reloadedRoommate = (await afterRestart('/api/roommates')).data.posts[0]
+  assert.equal(reloadedRoommate.title, roommate.title)
+  assert.equal(reloadedRoommate.area, 25)
+  assert.equal(reloadedRoommate.ownerGender, '')
+  const profileUpdated = await request('/api/auth/profile', 'PATCH', { name: 'House Test', email: 'house2@example.com', phone: '0987654321', gender: 'Nữ', major: 'Kỹ thuật phần mềm' }, users[2].cookie)
+  assert.equal(profileUpdated.status, 200)
+  const refreshedRoommate = (await afterRestart('/api/roommates')).data.posts[0]
+  assert.equal(refreshedRoommate.ownerGender, 'Nữ')
+  assert.equal(refreshedRoommate.major, 'Kỹ thuật phần mềm')
+  assert.equal(refreshedRoommate.gender, 'Tất cả')
   assert.equal((await request('/api/roommates/new-roommate', 'PUT', { ...roommate, status: 'Ẩn' }, users[2].cookie)).status, 200)
   assert.deepEqual((await request('/api/roommates')).data.posts, [])
   assert.equal((await request('/api/roommates/new-roommate', 'DELETE', undefined, users[3].cookie)).status, 403)
