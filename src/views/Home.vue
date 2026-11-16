@@ -29,6 +29,8 @@ const route = useRoute(),
   router = useRouter();
 const keyword = ref(""),
   filters = ref(emptyFilters());
+const keywordError = ref("");
+const keywordInput = ref(null);
 const filterControl = ref(null);
 const featuredTrack = ref(null),
   locationTrack = ref(null);
@@ -91,21 +93,9 @@ const isSearching = computed(() =>
   searchKeys.some((key) => Object.hasOwn(route.query, key)),
 );
 const queryError = computed(() => searchQueryError(route.query));
-const hasCriteria = computed(() =>
-  searchKeys.some(
-    (key) => key !== "search" && Object.hasOwn(route.query, key),
-  ),
-);
 const appliedFilters = computed(() => filtersFromQuery(route.query));
 const appliedKeyword = computed(() =>
   typeof route.query.q === "string" ? route.query.q.trim() : "",
-);
-const hasFilterCriteria = computed(() => {
-  const f = appliedFilters.value;
-  return Boolean(f.school || f.district || f.prices?.length || f.amenities?.length);
-});
-const isKeywordSearch = computed(() =>
-  Boolean(appliedKeyword.value && !hasFilterCriteria.value),
 );
 const rentals = computed(() => {
   const listings = new Map(publicRentals(state.posts).map((room) => [room.id, room]));
@@ -113,9 +103,12 @@ const rentals = computed(() => {
 });
 const roommates = computed(() => publicRoommates(state.posts));
 const houses = computed(() => publicHouses(rentals.value));
-const priceOrder = computed(() =>
-  ["asc", "desc"].includes(route.query.sort) ? route.query.sort : "",
-);
+const priceOrder = computed(() => Object.fromEntries(
+  ['rentals', 'roommates', 'houses'].map(id => {
+    const order = route.query['sort_' + id] ?? (id === 'rentals' ? route.query.sort : '');
+    return [id, ['asc', 'desc'].includes(order) ? order : ''];
+  }),
+));
 const featuredRooms = computed(() => rentals.value.slice(0, 6));
 function scrollTrack(track, direction) {
   if (!track) return;
@@ -153,7 +146,7 @@ const groups = computed(() => {
       },
     ];
   }
-  if (!isKeywordSearch.value) {
+  if (!appliedKeyword.value) {
     return [
       {
         id: "rentals",
@@ -213,32 +206,36 @@ const pageNumbers = computed(() => {
 });
 const visibleGroups = computed(() =>
   groups.value.map((group) => {
-    const items = priceOrder.value
+    const order = priceOrder.value[group.id];
+    const items = order
       ? [...group.items].sort((a, b) => {
-          const fallback = priceOrder.value === "asc" ? Infinity : -Infinity;
+          const fallback = order === "asc" ? Infinity : -Infinity;
           const pa = a.price == null ? fallback : Number(a.price);
           const pb = b.price == null ? fallback : Number(b.price);
-          return (pa - pb) * (priceOrder.value === "asc" ? 1 : -1);
+          return (pa - pb) * (order === "asc" ? 1 : -1);
         })
       : group.items;
     return {
       ...group,
-      visible: isMobile.value
+      visible: isSearching.value ? items : isMobile.value
         ? items.slice(0, mobileLimit.value)
         : items.slice((currentPage.value - 1) * pageSize, currentPage.value * pageSize),
     };
   }),
 );
-function setPriceOrder(order) {
+function setPriceOrder(groupId, order) {
   const query = { ...route.query };
   delete query.page;
-  if (priceOrder.value !== order) query.sort = order;
-  else delete query.sort;
+  if (priceOrder.value.rentals) query.sort_rentals = priceOrder.value.rentals;
+  delete query.sort;
+  if (priceOrder.value[groupId] !== order) query['sort_' + groupId] = order;
+  else delete query['sort_' + groupId];
   router.push({ path: "/", query });
 }
 watch(
   () => route.query,
   (query) => {
+    keywordError.value = "";
     mobileLimit.value = mobilePageSize;
     keyword.value = typeof query.q === "string" ? query.q : "";
     filters.value = filtersFromQuery(query);
@@ -248,15 +245,20 @@ watch(
 );
 function search() {
   filterControl.value?.close();
+  if (!keyword.value.trim()) {
+    keywordError.value = "Vui lòng nhập từ khóa tìm kiếm.";
+    keywordInput.value?.focus();
+    return;
+  }
+  keywordError.value = "";
   router.push({
     path: "/",
     query: { search: "1", ...queryFromFilters(filters.value, keyword.value) },
   });
 }
-function reset() {
-  keyword.value = "";
-  filters.value = emptyFilters();
-  router.push({ path: "/", query: { search: "1" } });
+function editSearch() {
+  keywordInput.value?.focus();
+  keywordInput.value?.select();
 }
 function goToPage(page) {
   if (page < 1 || page > pageCount.value || page === currentPage.value) return;
@@ -264,6 +266,36 @@ function goToPage(page) {
   if (page === 1) delete query.page;
   else query.page = String(page);
   router.push({ path: "/", query });
+}
+
+let resultDrag, suppressResultClick = false;
+function startResultDrag(event) {
+  if (!isSearching.value || event.pointerType !== 'mouse' || event.button !== 0) return;
+  suppressResultClick = false;
+  resultDrag = { id: event.pointerId, x: event.clientX, left: event.currentTarget.scrollLeft, moved: false };
+}
+function moveResultDrag(event) {
+  if (!resultDrag || event.pointerId !== resultDrag.id) return;
+  const distance = event.clientX - resultDrag.x;
+  if (!resultDrag.moved && Math.abs(distance) < 6) return;
+  resultDrag.moved = true;
+  event.currentTarget.setPointerCapture(event.pointerId);
+  event.currentTarget.classList.add('is-dragging');
+  event.preventDefault();
+  event.currentTarget.scrollLeft = resultDrag.left - distance;
+}
+function endResultDrag(event) {
+  if (!resultDrag || event.pointerId !== resultDrag.id) return;
+  suppressResultClick = resultDrag.moved && event.type !== 'pointercancel';
+  event.currentTarget.classList.remove('is-dragging');
+  if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+  resultDrag = null;
+}
+function resultClick(event) {
+  if (!suppressResultClick) return;
+  event.preventDefault();
+  event.stopPropagation();
+  suppressResultClick = false;
 }
 </script>
 
@@ -277,14 +309,17 @@ function goToPage(page) {
         <form class="search-box" @submit.prevent="search" novalidate>
           <div class="search-input">
             <Icon name="search" /><input
+              ref="keywordInput"
               v-model="keyword"
               aria-label="Từ khóa tìm kiếm"
               placeholder="Bạn muốn tìm trọ ở đâu?"
-              :aria-invalid="!!queryError"
-              :aria-describedby="queryError ? 'home-search-error' : undefined"
+              :aria-invalid="!!(keywordError || queryError)"
+              :aria-describedby="keywordError ? 'keyword-required-error' : queryError ? 'home-search-error' : undefined"
+              @input="keywordError = ''"
             />
           </div>
           <SearchFilters ref="filterControl" v-model="filters" />
+          <p v-if="keywordError" id="keyword-required-error" class="error keyword-required-error" role="alert">{{ keywordError }}</p>
         </form>
       </div>
     </section>
@@ -387,24 +422,12 @@ function goToPage(page) {
         <div>
           <h2>{{ isSearching ? "Kết quả tìm kiếm" : "Danh sách phòng trọ" }}</h2>
         </div>
-        <div v-if="isSearching" class="home-listings-actions">
-          <button
-            v-if="isSearching && resultCount && !queryError"
-            type="button"
-            class="clear-filters-button"
-            aria-label="Xóa bộ lọc"
-            title="Xóa bộ lọc"
-            @click="reset"
-          >
-            <Icon name="back" :size="20" />
-          </button>
-        </div>
       </div>
       <div v-if="queryError" class="home-empty-state" role="alert">
         <span class="empty-icon"><Icon name="info" :size="32" /></span>
         <h2>Dữ liệu không hợp lệ!</h2>
         <p id="home-search-error">{{ queryError }}</p>
-        <button type="button" class="button primary" @click="reset">
+        <button type="button" class="button primary" @click="editSearch">
           Nhập lại tìm kiếm
         </button>
       </div>
@@ -412,7 +435,7 @@ function goToPage(page) {
         <span class="empty-icon"><Icon name="search" :size="32" /></span>
         <h2>Không tìm thấy kết quả phù hợp!</h2>
         <p>Thử thay đổi từ khóa, khu vực, khoảng giá hoặc tiện ích nhé.</p>
-        <button type="button" class="button primary" @click="reset">Xóa bộ lọc</button>
+        <button type="button" class="button primary" @click="editSearch">Nhập lại tìm kiếm</button>
       </div>
       <template v-else>
         <section
@@ -438,8 +461,8 @@ function goToPage(page) {
                 type="button"
                 aria-label="Giá tăng dần"
                 title="Giá tăng dần"
-                :aria-pressed="priceOrder === 'asc'"
-                @click="setPriceOrder('asc')"
+                :aria-pressed="priceOrder[group.id] === 'asc'"
+                @click="setPriceOrder(group.id, 'asc')"
               >
                 <Coins :size="18" aria-hidden="true" /><ArrowUp
                   :size="15"
@@ -449,8 +472,8 @@ function goToPage(page) {
                 type="button"
                 aria-label="Giá giảm dần"
                 title="Giá giảm dần"
-                :aria-pressed="priceOrder === 'desc'"
-                @click="setPriceOrder('desc')"
+                :aria-pressed="priceOrder[group.id] === 'desc'"
+                @click="setPriceOrder(group.id, 'desc')"
               >
                 <Coins :size="18" aria-hidden="true" /><ArrowDown
                   :size="15"
@@ -459,7 +482,13 @@ function goToPage(page) {
               </button>
             </div>
           </div>
-          <div v-if="group.visible.length" class="home-listing-grid">
+          <div v-if="group.visible.length" :key="appliedKeyword" class="home-listing-grid"
+            :role="isSearching ? 'region' : undefined"
+            :aria-label="isSearching ? 'Kết quả ' + group.title : undefined"
+            :tabindex="isSearching ? 0 : undefined"
+            @pointerdown="startResultDrag" @pointermove="moveResultDrag"
+            @pointerup="endResultDrag" @pointercancel="endResultDrag"
+            @click.capture="resultClick" @dragstart="isSearching && $event.preventDefault()">
             <RoomCard
               v-for="listing in group.visible"
               :key="listing.id"
@@ -475,7 +504,7 @@ function goToPage(page) {
           </p>
         </section>
         <button
-          v-if="isMobile && mobileLimit < maxGroupCount"
+          v-if="!isSearching && isMobile && mobileLimit < maxGroupCount"
           ref="loadMoreTrigger"
           type="button"
           class="button secondary mobile-load-more"
@@ -483,7 +512,7 @@ function goToPage(page) {
         >
           Xem thêm phòng trọ
         </button>
-        <nav v-if="!isMobile" class="home-pagination" aria-label="Phân trang kết quả">
+        <nav v-if="!isSearching && !isMobile" class="home-pagination" aria-label="Phân trang kết quả">
           <button
             type="button"
             class="page-button"
@@ -541,6 +570,11 @@ function goToPage(page) {
 }
 .search-box {
   box-shadow: 0 12px 32px rgba(19, 20, 20, 0.16);
+}
+.keyword-required-error {
+  width: 100%;
+  margin: 8px 0 0;
+  text-align: left;
 }
 .locations .location-card:focus-visible {
   border-radius: 16px;
@@ -726,39 +760,6 @@ function goToPage(page) {
 .home-listings-heading p {
   font-size: 14px;
   line-height: 1.5;
-}
-.clear-filters-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  background: var(--cream);
-  color: var(--ink);
-  cursor: pointer;
-}
-.clear-filters-button:hover {
-  background: var(--cream-deep);
-}
-.clear-filters-button:focus-visible {
-  outline: 2px solid currentColor;
-  outline-offset: 2px;
-}
-.home-listings-actions {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  flex-shrink: 0;
-}
-@media (max-width: 600px) {
-  .home-listings-actions {
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 12px;
-  }
 }
 .home-listing-group {
   padding: 24px;
@@ -1057,5 +1058,41 @@ function goToPage(page) {
   .listing-group-controls button {
     transition: none;
   }
+}
+.search-listings .home-listing-grid {
+  --result-gap: 20px;
+  display: grid;
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% - 3 * var(--result-gap)) / 4);
+  justify-content: start;
+  gap: var(--result-gap);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: none;
+  padding: 4px 2px 14px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+  cursor: grab;
+}
+.search-listings .home-listing-grid:focus-visible {
+  outline: 2px solid #638d92;
+  outline-offset: 3px;
+  border-radius: 12px;
+}
+.search-listings .home-listing-grid.is-dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+.search-listings .home-listing-grid.is-dragging :deep(a) { cursor: grabbing; }
+.search-listings .home-listing-grid :deep(.room-card) { min-width: 0; }
+@media (max-width: 1100px) {
+  .search-listings .home-listing-grid { --result-gap: 14px; }
+}
+@media (min-width: 601px) and (max-width: 900px) {
+  .search-listings .home-listing-grid { grid-auto-columns: calc((100% - var(--result-gap)) / 2); }
+}
+@media (max-width: 600px) {
+  .search-listings .home-listing-grid { --result-gap: 12px; grid-auto-columns: min(280px, 85%); }
 }
 </style>
