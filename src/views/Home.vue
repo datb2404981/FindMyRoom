@@ -191,8 +191,15 @@ const resultCount = computed(() =>
 const maxGroupCount = computed(() =>
   Math.max(0, ...groups.value.map((group) => group.items.length)),
 );
+const filterPageSize = 16;
+const searchPageSize = computed(() => appliedKeyword.value ? 8 : filterPageSize);
 const pageCount = computed(() =>
-  Math.max(1, ...groups.value.map((group) => Math.ceil(group.items.length / pageSize))),
+  Math.max(
+    1,
+    ...groups.value.map((group) =>
+      Math.ceil(group.items.length / (isSearching.value ? searchPageSize.value : pageSize)),
+    ),
+  ),
 );
 const currentPage = computed(() =>
   Math.min(Math.max(1, Number(route.query.page) || 1), pageCount.value),
@@ -215,11 +222,12 @@ const visibleGroups = computed(() =>
           return (pa - pb) * (order === "asc" ? 1 : -1);
         })
       : group.items;
+    const size = isSearching.value ? searchPageSize.value : pageSize;
     return {
       ...group,
-      visible: isSearching.value ? items : isMobile.value
+      visible: !isSearching.value && isMobile.value
         ? items.slice(0, mobileLimit.value)
-        : items.slice((currentPage.value - 1) * pageSize, currentPage.value * pageSize),
+        : items.slice((currentPage.value - 1) * size, currentPage.value * size),
     };
   }),
 );
@@ -245,11 +253,6 @@ watch(
 );
 function search() {
   filterControl.value?.close();
-  if (!keyword.value.trim()) {
-    keywordError.value = "Vui lòng nhập từ khóa tìm kiếm.";
-    keywordInput.value?.focus();
-    return;
-  }
   keywordError.value = "";
   router.push({
     path: "/",
@@ -266,36 +269,6 @@ function goToPage(page) {
   if (page === 1) delete query.page;
   else query.page = String(page);
   router.push({ path: "/", query });
-}
-
-let resultDrag, suppressResultClick = false;
-function startResultDrag(event) {
-  if (!isSearching.value || event.pointerType !== 'mouse' || event.button !== 0) return;
-  suppressResultClick = false;
-  resultDrag = { id: event.pointerId, x: event.clientX, left: event.currentTarget.scrollLeft, moved: false };
-}
-function moveResultDrag(event) {
-  if (!resultDrag || event.pointerId !== resultDrag.id) return;
-  const distance = event.clientX - resultDrag.x;
-  if (!resultDrag.moved && Math.abs(distance) < 6) return;
-  resultDrag.moved = true;
-  event.currentTarget.setPointerCapture(event.pointerId);
-  event.currentTarget.classList.add('is-dragging');
-  event.preventDefault();
-  event.currentTarget.scrollLeft = resultDrag.left - distance;
-}
-function endResultDrag(event) {
-  if (!resultDrag || event.pointerId !== resultDrag.id) return;
-  suppressResultClick = resultDrag.moved && event.type !== 'pointercancel';
-  event.currentTarget.classList.remove('is-dragging');
-  if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
-  resultDrag = null;
-}
-function resultClick(event) {
-  if (!suppressResultClick) return;
-  event.preventDefault();
-  event.stopPropagation();
-  suppressResultClick = false;
 }
 </script>
 
@@ -482,13 +455,7 @@ function resultClick(event) {
               </button>
             </div>
           </div>
-          <div v-if="group.visible.length" :key="appliedKeyword" class="home-listing-grid"
-            :role="isSearching ? 'region' : undefined"
-            :aria-label="isSearching ? 'Kết quả ' + group.title : undefined"
-            :tabindex="isSearching ? 0 : undefined"
-            @pointerdown="startResultDrag" @pointermove="moveResultDrag"
-            @pointerup="endResultDrag" @pointercancel="endResultDrag"
-            @click.capture="resultClick" @dragstart="isSearching && $event.preventDefault()">
+          <div v-if="group.visible.length" class="home-listing-grid">
             <RoomCard
               v-for="listing in group.visible"
               :key="listing.id"
@@ -512,7 +479,7 @@ function resultClick(event) {
         >
           Xem thêm phòng trọ
         </button>
-        <nav v-if="!isSearching && !isMobile" class="home-pagination" aria-label="Phân trang kết quả">
+        <nav v-if="pageCount > 1 && (!isMobile || isSearching)" class="home-pagination" aria-label="Phân trang kết quả">
           <button
             type="button"
             class="page-button"
@@ -1059,40 +1026,5 @@ function resultClick(event) {
     transition: none;
   }
 }
-.search-listings .home-listing-grid {
-  --result-gap: 20px;
-  display: grid;
-  grid-template-columns: none;
-  grid-auto-flow: column;
-  grid-auto-columns: calc((100% - 3 * var(--result-gap)) / 4);
-  justify-content: start;
-  gap: var(--result-gap);
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scroll-snap-type: none;
-  padding: 4px 2px 14px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--line) transparent;
-  cursor: grab;
-}
-.search-listings .home-listing-grid:focus-visible {
-  outline: 2px solid #638d92;
-  outline-offset: 3px;
-  border-radius: 12px;
-}
-.search-listings .home-listing-grid.is-dragging {
-  cursor: grabbing;
-  user-select: none;
-}
-.search-listings .home-listing-grid.is-dragging :deep(a) { cursor: grabbing; }
-.search-listings .home-listing-grid :deep(.room-card) { min-width: 0; }
-@media (max-width: 1100px) {
-  .search-listings .home-listing-grid { --result-gap: 14px; }
-}
-@media (min-width: 601px) and (max-width: 900px) {
-  .search-listings .home-listing-grid { grid-auto-columns: calc((100% - var(--result-gap)) / 2); }
-}
-@media (max-width: 600px) {
-  .search-listings .home-listing-grid { --result-gap: 12px; grid-auto-columns: min(280px, 85%); }
-}
+
 </style>

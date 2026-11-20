@@ -21,24 +21,18 @@ async function search(page, keyword = 'Cuộn ngang') {
   await page.locator('.hero-search-filters').getByRole('button', { name: 'Tìm kiếm', exact: true }).click()
 }
 
-test('search requires a nonblank keyword and preserves current results on invalid submission', async ({ page }) => {
+test('search allows empty keyword without validation error and preserves results', async ({ page }) => {
   await openSearch(page)
   const input = page.getByRole('textbox', { name: 'Từ khóa tìm kiếm', exact: true })
   for (const blank of ['', '   ']) {
     await search(page, blank)
-    await expect(page.getByRole('alert')).toHaveText('Vui lòng nhập từ khóa tìm kiếm.')
-    await expect(input).toBeFocused()
-    await expect(input).toHaveAttribute('aria-invalid', 'true')
-    expect(page.url()).not.toContain('search=1')
+    await expect(page.getByRole('alert')).toHaveCount(0)
+    expect(page.url()).toContain('search=1')
   }
   await input.press('Enter')
-  await expect(page.getByRole('alert')).toHaveText('Vui lòng nhập từ khóa tìm kiếm.')
+  await expect(page.getByRole('alert')).toHaveCount(0)
   await search(page)
   await expect(page.getByRole('alert')).toHaveCount(0)
-  await expect(page.locator('.group-rentals .room-card')).toHaveCount(12)
-  const url = page.url()
-  await search(page, ' ')
-  expect(page.url()).toBe(url)
   await expect(page.locator('.group-rentals .room-card')).toHaveCount(12)
 })
 
@@ -93,7 +87,7 @@ test('keyword searches apply price filters across all three result rows', async 
   await priceFilter.getByRole('radio', { name: '1 – 1,5 triệu', exact: true }).check()
   await priceFilter.getByRole('button', { name: 'Xong', exact: true }).click()
   await search(page, ' ')
-  await expect(page.getByRole('alert')).toHaveText('Vui lòng nhập từ khóa tìm kiếm.')
+  await expect(page.getByRole('alert')).toHaveCount(0)
   await search(page)
   await expect(page.locator('.group-rentals .room-card')).toHaveCount(5)
   await expect(page.locator('.group-roommates .room-card')).toHaveCount(7)
